@@ -56,12 +56,13 @@
         .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         div:where(.swal2-container) { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
-        /* Prevent body scroll on mobile behind bottom nav */
         body { padding-bottom: constant(safe-area-inset-bottom); padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-200 selection:text-brand-900 overflow-x-hidden">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
     
     <div id="fallback-error" style="display: none; min-height: 100vh; width: 100%; background: #f8fafc; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 9999; position: fixed; inset: 0;">
         <div style="background: #fee2e2; color: #991b1b; padding: 30px; border-radius: 16px; border: 1px solid #f87171; max-width: 550px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
@@ -72,7 +73,6 @@
 
     <div id="app" v-cloak class="min-h-screen flex flex-col relative pb-20 sm:pb-0">
         
-        <!-- LOADING OVERLAY GLOBAL -->
         <transition name="fade-slide">
             <div v-if="loading && isLoggedIn" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
                 <i class="ph ph-spinner animate-spin text-6xl text-brand-600 mb-4"></i>
@@ -101,16 +101,14 @@
                             <label class="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Username</label>
                             <div class="relative">
                                 <i class="ph-duotone ph-user absolute left-3.5 top-3.5 text-slate-400 text-xl"></i>
-                                <!-- UPDATE: Explicit text color text-slate-900 -->
-                                <input v-model="loginForm.username" type="text" required class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-900 font-bold transition-all" placeholder="Ketik username...">
+                                <input v-model="loginForm.username" type="text" required class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none text-slate-900 font-bold transition-all lowercase" placeholder="Ketik username...">
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Password</label>
                             <div class="relative">
                                 <i class="ph-duotone ph-lock-key absolute left-3.5 top-3.5 text-slate-400 text-xl"></i>
-                                <!-- UPDATE: Explicit text color text-slate-900 -->
-                                <input v-model="loginForm.password" type="password" required class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-900 font-bold transition-all" placeholder="••••••••">
+                                <input v-model="loginForm.password" type="password" required class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none text-slate-900 font-bold transition-all" placeholder="••••••••">
                             </div>
                         </div>
                         
@@ -130,7 +128,6 @@
 
         <!-- MAIN APP -->
         <div v-if="isLoggedIn" class="flex-1 flex flex-col h-full w-full">
-            <!-- Navigation Bar Top -->
             <nav class="bg-gradient-to-r from-brand-900 to-brand-800 text-white shadow-lg sticky top-0 z-40">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between h-16 sm:h-20">
@@ -145,6 +142,40 @@
                             <div class="flex items-center bg-green-500/20 px-2.5 py-1.5 rounded-lg border border-green-500/30">
                                 <div class="w-2 h-2 rounded-full bg-green-400 sm:mr-2" :class="{'animate-pulse': isSyncing}"></div>
                                 <span class="text-[10px] font-black text-green-300 tracking-widest hidden sm:block">SYNC</span>
+                            </div>
+
+                            <!-- Lonceng Notifikasi ala E-Commerce -->
+                            <div class="relative cursor-pointer" @click="showNotifMenu = !showNotifMenu">
+                                <div class="p-2 bg-black/20 hover:bg-black/30 rounded-xl transition-colors relative text-white">
+                                    <i class="ph-duotone ph-bell text-xl sm:text-2xl"></i>
+                                    <span v-if="lowStockItems.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-brand-900 shadow-sm animate-pulse">{{ lowStockItems.length }}</span>
+                                </div>
+                                <!-- Overlay untuk close click luar -->
+                                <div v-if="showNotifMenu" class="fixed inset-0 z-40" @click.stop="showNotifMenu = false" style="width:100vw; height:100vh;"></div>
+                                <!-- Menu Dropdown -->
+                                <transition name="fade-slide">
+                                    <div v-if="showNotifMenu" class="absolute right-0 mt-3 w-[300px] sm:w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 origin-top-right" @click.stop>
+                                        <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                                            <h4 class="font-black text-slate-800 text-sm flex items-center"><i class="ph-duotone ph-warning-circle text-red-500 mr-2 text-lg"></i> Alert Reorder</h4>
+                                            <span class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded-lg">{{ lowStockItems.length }} Low</span>
+                                        </div>
+                                        <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                                            <div v-if="lowStockItems.length === 0" class="p-6 text-center text-slate-400 text-sm font-medium">Stok dalam kondisi aman.</div>
+                                            <!-- List Item -->
+                                            <div v-for="item in lowStockItems" :key="item.barcode" class="p-3 border-b border-slate-50 hover:bg-red-50/50 transition-colors flex items-start gap-3 cursor-pointer group" @click="goToInventoryAndSearch(item.barcode)">
+                                                <div class="bg-red-100 text-red-500 p-2 rounded-lg group-hover:bg-red-500 group-hover:text-white transition-colors"><i class="ph-fill ph-package text-lg"></i></div>
+                                                <div class="flex-1 overflow-hidden">
+                                                    <div class="text-xs font-black text-slate-800 uppercase truncate" :title="item.name">{{ item.name }}</div>
+                                                    <div class="text-[10px] text-slate-500 mt-0.5 font-medium">Stok: <b class="text-red-600 text-xs">{{ item.qty }}</b> <span class="mx-1">/</span> Min: {{ item.minQty }}</div>
+                                                </div>
+                                                <div class="text-[9px] text-slate-400 font-bold bg-slate-100 px-1.5 py-0.5 rounded shadow-sm shrink-0">{{ item.location === 'CIP Store' ? 'CIP' : 'STORE' }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="p-2 bg-slate-50 border-t border-slate-100 text-center">
+                                            <button @click="filterLowStockAndGo(); showNotifMenu = false" class="text-xs font-black text-brand-600 hover:text-brand-700 py-1.5 w-full rounded-lg hover:bg-brand-100 transition-colors">Lihat Semua di Master</button>
+                                        </div>
+                                    </div>
+                                </transition>
                             </div>
 
                             <div class="hidden md:flex flex-col items-end mr-2">
@@ -169,23 +200,12 @@
 
             <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 
-                <!-- Tab Navigation (Desktop Only) -->
                 <div class="hidden sm:flex space-x-4 mb-8 overflow-x-auto pb-3 border-b border-slate-200 hide-scrollbar snap-x">
-                    <button @click="changeTab('dashboard')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'dashboard' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'">
-                        <i class="ph-duotone ph-chart-line-up text-xl mr-2" :class="activeTab==='dashboard'?'text-brand-100':''"></i> Dashboard
-                    </button>
-                    <button @click="changeTab('scan')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'scan' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'">
-                        <i class="ph-duotone ph-barcode text-xl mr-2" :class="activeTab==='scan'?'text-brand-100':''"></i> Scan Opname
-                    </button>
-                    <button @click="changeTab('recap')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'recap' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'">
-                        <i class="ph-duotone ph-list-numbers text-xl mr-2" :class="activeTab==='recap'?'text-brand-100':''"></i> Rekap Tabel
-                    </button>
-                    <button @click="changeTab('inventory')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'inventory' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'">
-                        <i class="ph-duotone ph-database text-xl mr-2" :class="activeTab==='inventory'?'text-brand-100':''"></i> Master Data
-                    </button>
-                    <button @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'">
-                        <i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2" :class="activeTab==='history'?'text-brand-100':''"></i> Log History
-                    </button>
+                    <button @click="changeTab('dashboard')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'dashboard' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-chart-line-up text-xl mr-2" :class="activeTab==='dashboard'?'text-brand-100':''"></i> Dashboard</button>
+                    <button @click="changeTab('scan')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'scan' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-barcode text-xl mr-2" :class="activeTab==='scan'?'text-brand-100':''"></i> Scan Opname</button>
+                    <button @click="changeTab('recap')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'recap' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-list-numbers text-xl mr-2" :class="activeTab==='recap'?'text-brand-100':''"></i> Rekap Tabel</button>
+                    <button @click="changeTab('inventory')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'inventory' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-database text-xl mr-2" :class="activeTab==='inventory'?'text-brand-100':''"></i> Master Data</button>
+                    <button @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2" :class="activeTab==='history'?'text-brand-100':''"></i> Log History</button>
                 </div>
 
                 <transition name="fade-slide" mode="out-in">
@@ -193,7 +213,6 @@
                     <!-- ================= TAB: DASHBOARD ================= -->
                     <div v-if="activeTab === 'dashboard'" key="dashboard">
                         
-                        <!-- SMART FILTER KHUSUS SUPER ADMIN -->
                         <div v-if="currentUser.role === 'Super Admin'" class="mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div class="flex items-center text-slate-700">
                                 <div class="bg-indigo-100 text-indigo-600 p-2 rounded-xl mr-3"><i class="ph-duotone ph-funnel text-xl"></i></div>
@@ -202,13 +221,12 @@
                                     <p class="text-xs text-slate-500">Anda melihat data secara menyeluruh. Filter untuk merinci.</p>
                                 </div>
                             </div>
-                            <select v-model="dashboardFilter" class="w-full sm:w-auto px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-brand-500 cursor-pointer shadow-inner">
-                                <option value="ALL">Semua Lokasi Gudang</option>
-                                <option v-for="loc in availableLocations" :key="loc" :value="loc">{{ loc }}</option>
+                            <select v-model="dashboardFilter" class="w-full sm:w-auto px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none cursor-pointer shadow-inner transition-all uppercase">
+                                <option value="ALL">📍 Semua Lokasi Gudang</option>
+                                <option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option>
                             </select>
                         </div>
 
-                        <!-- Summary Cards -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8">
                             <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-slate-100 relative overflow-hidden group">
                                 <div class="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform"><i class="ph-fill ph-database text-9xl text-blue-500"></i></div>
@@ -226,7 +244,6 @@
                                 </div>
                                 <p class="text-3xl sm:text-4xl font-black text-slate-800 relative z-10">{{ baseInventory.reduce((sum, item) => sum + item.qty, 0) }}</p>
                             </div>
-                            <!-- KLIK KARTU INI UNTUK FILTER LOW STOCK -->
                             <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl shadow-sm p-4 sm:p-5 border border-red-200 col-span-2 relative overflow-hidden group cursor-pointer hover:shadow-md transition-all" @click="filterLowStockAndGo()">
                                 <div class="absolute -right-4 -top-8 opacity-10 group-hover:scale-110 transition-transform duration-500"><i class="ph-fill ph-warning text-[8rem] sm:text-[10rem] text-red-600"></i></div>
                                 <div class="flex items-center text-red-700 mb-2 relative z-10">
@@ -237,26 +254,21 @@
                             </div>
                         </div>
 
-                        <!-- CHARTS SECTION -->
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8">
-                            
-                            <!-- MAIN TRENDLINE CHART -->
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 lg:col-span-3 flex flex-col">
                                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                                     <h3 class="font-bold text-slate-800 flex items-center text-lg">
                                         <div class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-trend-up text-xl"></i></div>
                                         Trend Stok Aktual Barang
                                     </h3>
-                                    
                                     <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                                         <div class="relative w-full sm:w-64">
-                                            <!-- UPDATE: Explicit text color text-slate-800 -->
-                                            <input v-model="selectedTrendItem" list="inventoryList" @change="renderCharts" placeholder="Ketik barcode/nama..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-brand-500 focus:border-brand-500 outline-none">
+                                            <input v-model="selectedTrendItem" list="inventoryList" @change="renderCharts" placeholder="Ketik barcode/nama..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-all uppercase">
                                             <datalist id="inventoryList">
                                                 <option v-for="item in baseInventory" :key="item.barcode" :value="item.barcode">{{ item.name }}</option>
                                             </datalist>
                                         </div>
-                                        <select v-model="trendFilter" @change="renderCharts" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-brand-500 focus:border-brand-500 outline-none w-full sm:w-auto">
+                                        <select v-model="trendFilter" @change="renderCharts" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none w-full sm:w-auto cursor-pointer transition-all">
                                             <option value="day">7 Hari Terakhir</option>
                                             <option value="week">4 Minggu Terakhir</option>
                                             <option value="month">12 Bulan Terakhir</option>
@@ -275,7 +287,6 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-10">
-                            <!-- DOUGHNUT CHART (CATEGORY) -->
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col">
                                 <h3 class="font-bold text-slate-800 mb-6 flex items-center text-lg">
                                     <div class="bg-blue-100 text-blue-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-chart-pie-slice text-xl"></i></div>
@@ -285,8 +296,6 @@
                                     <canvas id="categoryChart"></canvas>
                                 </div>
                             </div>
-
-                            <!-- QUICK ACTIONS -->
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
                                 <h3 class="font-bold text-slate-800 mb-5 flex items-center text-lg">
                                     <div class="bg-yellow-100 text-yellow-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-lightning text-xl"></i></div>
@@ -332,19 +341,20 @@
                             </div>
                             
                             <div class="p-5 sm:p-8">
-                                <!-- INPUT PIC -->
                                 <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
                                     <label class="block text-xs font-black uppercase tracking-wider text-blue-800 mb-2 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Nama PIC / Petugas Opname</label>
-                                    <!-- UPDATE: Explicit text color text-slate-900 -->
-                                    <input v-model="opnamePic" type="text" class="w-full px-4 py-3 border-2 border-white rounded-xl focus:ring-0 focus:border-blue-400 text-sm font-bold text-slate-900 shadow-sm transition-all" placeholder="Misal: Budi & Andi" @change="savePicToLocal">
+                                    <input v-model="opnamePic" @input="opnamePic = opnamePic.toUpperCase()" list="picList" type="text" class="w-full px-4 py-3 border-2 border-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white bg-white text-sm font-bold text-slate-900 shadow-sm transition-all outline-none uppercase" placeholder="Ketik atau pilih dari histori..." @change="savePicToLocal">
+                                    
+                                    <datalist id="picList">
+                                        <option v-for="pic in uniquePics" :key="pic" :value="pic"></option>
+                                    </datalist>
                                 </div>
 
                                 <form @submit.prevent="handleScan" class="mb-6">
                                     <div class="flex flex-col sm:flex-row gap-3">
                                         <div class="relative flex-1 group">
                                             <i class="ph-duotone ph-barcode absolute left-4 top-3.5 text-slate-400 text-2xl group-focus-within:text-brand-500 transition-colors"></i>
-                                            <!-- UPDATE: Explicit text color text-slate-900 -->
-                                            <input ref="barcodeInput" v-model="scannedCode" type="text" class="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-2xl focus:ring-0 focus:border-brand-500 transition-all text-lg font-mono uppercase tracking-widest bg-slate-50 focus:bg-white text-slate-900 shadow-inner" placeholder="Ketik Barcode..." :disabled="isProcessing || isCameraOpen">
+                                            <input ref="barcodeInput" v-model="scannedCode" @input="scannedCode = scannedCode.toUpperCase()" type="text" class="w-full pl-12 pr-4 py-4 border-2 border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-all text-lg font-mono uppercase tracking-widest bg-slate-50 text-slate-900 shadow-inner" placeholder="Ketik Barcode..." :disabled="isProcessing || isCameraOpen">
                                         </div>
                                         <div class="flex gap-2 h-[60px]">
                                             <button type="submit" class="bg-brand-600 text-white px-5 sm:px-6 rounded-2xl hover:bg-brand-700 transition-all font-bold shadow-md disabled:opacity-50 disabled:cursor-not-allowed" :disabled="isProcessing || isCameraOpen || !scannedCode.trim()">
@@ -357,7 +367,6 @@
                                     </div>
                                 </form>
 
-                                <!-- Kamera -->
                                 <transition name="fade-slide">
                                     <div v-show="isCameraOpen" class="mb-8 p-3 border-2 border-dashed border-brand-300 rounded-2xl bg-brand-50/50">
                                         <div class="text-center text-sm font-bold text-brand-700 mb-3 flex items-center justify-center"><i class="ph-duotone ph-camera animate-pulse mr-2 text-xl"></i> Arahkan Kamera ke Barcode</div>
@@ -374,8 +383,8 @@
                                             <div class="flex justify-between items-start mb-4 pr-24">
                                                 <div>
                                                     <span class="inline-block px-2 py-1 bg-brand-50 text-brand-700 text-[10px] font-black tracking-widest uppercase rounded mb-2 border border-brand-100">{{ activeItem.category }}</span>
-                                                    <h3 class="font-black text-xl sm:text-2xl text-slate-800 leading-tight">{{ activeItem.name }}</h3>
-                                                    <p class="text-xs sm:text-sm text-slate-500 font-mono mt-1 bg-slate-50 inline-block px-2 py-0.5 rounded border border-slate-100">{{ activeItem.barcode }}</p>
+                                                    <h3 class="font-black text-xl sm:text-2xl text-slate-800 leading-tight uppercase">{{ activeItem.name }}</h3>
+                                                    <p class="text-xs sm:text-sm text-slate-500 font-mono mt-1 bg-slate-50 inline-block px-2 py-0.5 rounded border border-slate-100 uppercase">{{ activeItem.barcode }}</p>
                                                 </div>
                                             </div>
                                             
@@ -383,7 +392,7 @@
                                                 <i class="ph-fill ph-database absolute -right-2 -bottom-4 text-slate-200 text-6xl"></i>
                                                 <span class="text-xs sm:text-sm font-bold text-slate-600 relative z-10 flex items-center"><i class="ph-duotone ph-desktop text-xl mr-2 text-slate-400"></i> Stok Sistem:</span>
                                                 <div class="text-right relative z-10 bg-white px-3 sm:px-4 py-2 rounded-lg shadow-sm border border-slate-100">
-                                                    <span class="text-xl sm:text-2xl font-black text-slate-800">{{ activeItem.qty }}</span><span class="text-xs sm:text-sm text-slate-500 font-bold ml-1.5">{{ activeItem.unit }}</span>
+                                                    <span class="text-xl sm:text-2xl font-black text-slate-800">{{ activeItem.qty }}</span><span class="text-xs sm:text-sm text-slate-500 font-bold ml-1.5 uppercase">{{ activeItem.unit }}</span>
                                                 </div>
                                             </div>
 
@@ -393,8 +402,7 @@
                                                 <label class="block text-xs sm:text-sm font-black text-brand-900 mb-3 flex items-center"><i class="ph-duotone ph-clipboard-text text-xl mr-2 text-brand-500"></i> Input Sisa Fisik Aktual ({{ activeItem.unit }})</label>
                                                 <div class="flex shadow-md rounded-xl bg-white border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 transition-all">
                                                     <button @click="actualStock > 0 && actualStock--" class="px-5 py-3 sm:py-4 bg-slate-50 hover:bg-slate-100 font-black text-slate-600 transition-colors text-xl border-r border-slate-200 active:bg-slate-200" :disabled="isProcessing">-</button>
-                                                    <!-- UPDATE: Explicit text color text-brand-800 -->
-                                                    <input ref="actualStockInput" v-model.number="actualStock" @keyup.enter="submitUpdate" type="number" min="0" class="flex-1 w-full px-2 py-3 sm:py-4 text-center text-3xl font-black text-brand-800 bg-white focus:outline-none" :disabled="isProcessing">
+                                                    <input ref="actualStockInput" v-model.number="actualStock" @keyup.enter="submitUpdate" type="number" min="0" class="flex-1 w-full px-2 py-3 sm:py-4 text-center text-3xl font-black text-brand-800 bg-white focus:bg-brand-50 outline-none transition-colors" :disabled="isProcessing">
                                                     <button @click="actualStock++" class="px-5 py-3 sm:py-4 bg-slate-50 hover:bg-slate-100 font-black text-slate-600 transition-colors text-xl border-l border-slate-200 active:bg-slate-200" :disabled="isProcessing">+</button>
                                                 </div>
                                                 <p class="text-[10px] sm:text-[11px] text-brand-600/70 font-medium mt-3 text-center flex items-center justify-center"><i class="ph-fill ph-lightbulb mr-1.5 text-yellow-500 text-sm"></i> Ubah angka lalu tekan Enter.</p>
@@ -423,13 +431,12 @@
 
                     <!-- ================= TAB: REKAP HARIAN (TABLE) ================= -->
                     <div v-else-if="activeTab === 'recap'" key="recap" class="mb-10">
-                        <!-- Komponen Tabel tetap serupa, hanya update warna text input jika ada -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                             <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
                                 <div><h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800"><div class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-list-numbers text-xl sm:text-2xl"></i></div>Tabel Rekap Opname</h2></div>
-                                <div class="flex items-center space-x-3 w-full sm:w-auto bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+                                <div class="flex items-center space-x-3 w-full sm:w-auto bg-white p-2 rounded-xl border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-brand-500 focus-within:bg-brand-50 transition-colors">
                                     <i class="ph-duotone ph-calendar-blank text-xl text-slate-400 ml-2"></i>
-                                    <select v-model="selectedRecapDate" class="py-1.5 pr-8 border-none focus:ring-0 bg-transparent font-bold text-slate-800 text-sm cursor-pointer w-full sm:w-48 outline-none">
+                                    <select v-model="selectedRecapDate" class="py-1.5 pr-8 border-none focus:ring-0 bg-transparent font-bold text-slate-800 text-sm cursor-pointer w-full sm:w-48 outline-none uppercase">
                                         <option v-if="availableDates.length === 0" value="">Belum ada data</option>
                                         <option v-for="date in availableDates" :key="date" :value="date">{{ formatDateString(date) }}</option>
                                     </select>
@@ -438,7 +445,7 @@
 
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4" v-if="selectedRecapDate">
                                 <div class="relative w-full sm:max-w-md">
-                                    <input v-model="recapSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 bg-slate-50 text-slate-800 font-medium transition-all">
+                                    <input v-model="recapSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 bg-slate-50 text-slate-800 font-medium transition-all outline-none uppercase">
                                     <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
                                     <button v-if="recapSearchQuery" @click="recapSearchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
                                 </div>
@@ -450,7 +457,7 @@
                                     </transition>
                                     <div class="flex items-center space-x-2 text-xs sm:text-sm font-bold text-slate-600">
                                         <span class="hidden sm:inline">Tampilkan:</span>
-                                        <select v-model.number="recapItemsPerPage" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-slate-800 bg-white outline-none cursor-pointer">
+                                        <select v-model.number="recapItemsPerPage" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-slate-800 bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none cursor-pointer transition-colors">
                                             <option value="10">10</option>
                                             <option value="25">25</option>
                                             <option value="50">50</option>
@@ -478,8 +485,8 @@
                                                     <tr v-if="paginatedRecapSummary.length === 0" class="text-center text-slate-500"><td colspan="6" class="p-10">Tidak ada data ditemukan.</td></tr>
                                                     <tr v-for="summary in paginatedRecapSummary" :key="summary.barcode" class="hover:bg-slate-50 transition-colors group/row" :class="{'bg-brand-50/50': selectedRecapItems.includes(summary.barcode)}">
                                                         <td class="p-3 sm:p-4 text-center"><input type="checkbox" :value="summary.barcode" v-model="selectedRecapItems" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></td>
-                                                        <td class="p-3 sm:p-4 cursor-pointer" @click="toggleRecapSelection(summary.barcode)"><div class="font-bold text-slate-800">{{ summary.name }}</div><div class="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5">{{ summary.barcode }}</div></td>
-                                                        <td class="p-3 sm:p-4 text-center font-bold text-blue-700">{{ summary.pic || '-' }}</td>
+                                                        <td class="p-3 sm:p-4 cursor-pointer" @click="toggleRecapSelection(summary.barcode)"><div class="font-bold text-slate-800 uppercase">{{ summary.name }}</div><div class="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5 uppercase">{{ summary.barcode }}</div></td>
+                                                        <td class="p-3 sm:p-4 text-center font-bold text-blue-700 uppercase">{{ summary.pic || '-' }}</td>
                                                         <td class="p-3 sm:p-4 text-center text-slate-500 font-medium">{{ summary.firstOldQty }}</td>
                                                         <td class="p-3 sm:p-4 text-center font-black text-brand-700 bg-brand-50/30">{{ summary.lastNewQty }}</td>
                                                         <td class="p-3 sm:p-4 text-right font-black">
@@ -520,7 +527,7 @@
                             
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div class="relative w-full sm:max-w-md">
-                                    <input v-model="searchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 bg-slate-50 text-slate-800 font-medium transition-all">
+                                    <input v-model="searchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 bg-slate-50 text-slate-800 font-medium transition-all outline-none uppercase">
                                     <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
                                     <button v-if="searchQuery" @click="searchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
                                 </div>
@@ -530,9 +537,16 @@
                                             <i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedInventoryItems.length }})
                                         </button>
                                     </transition>
+                                    
+                                    <!-- Smart Filter Lokasi khusus Admin -->
+                                    <select v-if="currentUser.role === 'Super Admin'" v-model="dashboardFilter" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-brand-700 bg-brand-50 focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer transition-colors text-xs font-bold shadow-sm hidden sm:block uppercase">
+                                        <option value="ALL">📍 Semua Gudang</option>
+                                        <option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option>
+                                    </select>
+
                                     <div class="flex items-center space-x-2 text-xs sm:text-sm font-bold text-slate-600">
                                         <span class="hidden sm:inline">Tampilkan:</span>
-                                        <select v-model.number="invItemsPerPage" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-slate-800 bg-white outline-none cursor-pointer">
+                                        <select v-model.number="invItemsPerPage" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-slate-800 bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none cursor-pointer transition-colors">
                                             <option value="10">10</option>
                                             <option value="25">25</option>
                                             <option value="50">50</option>
@@ -558,10 +572,10 @@
                                         <tr v-if="paginatedInventory.length === 0"><td colspan="7" class="p-10 text-center text-slate-500"><i class="ph-duotone ph-ghost text-4xl text-slate-300 mb-3"></i><br>Tidak ada data ditemukan.</td></tr>
                                         <tr v-for="item in paginatedInventory" :key="item.barcode" class="hover:bg-slate-50/80 transition-colors group/row" :class="{'bg-brand-50/50': selectedInventoryItems.includes(item.barcode)}">
                                             <td class="p-3 sm:p-4 text-center"><input type="checkbox" :value="item.barcode" v-model="selectedInventoryItems" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></td>
-                                            <td class="p-3 sm:p-4 cursor-pointer" @click="toggleInventorySelection(item.barcode)"><div class="font-bold text-slate-800">{{ item.name }}</div><div class="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded">{{ item.barcode }}</div></td>
+                                            <td class="p-3 sm:p-4 cursor-pointer" @click="toggleInventorySelection(item.barcode)"><div class="font-bold text-slate-800 uppercase">{{ item.name }}</div><div class="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded uppercase">{{ item.barcode }}</div></td>
                                             <td class="p-3 sm:p-4 font-bold text-brand-700 text-[10px] sm:text-xs uppercase">{{ item.location }}</td>
-                                            <td class="p-3 sm:p-4"><span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] sm:text-xs font-bold border border-slate-200 bg-white shadow-sm">{{ item.category }}</span></td>
-                                            <td class="p-3 sm:p-4 text-right"><span class="font-black text-lg sm:text-xl" :class="item.qty <= item.minQty ? 'text-red-600' : 'text-slate-800'">{{ item.qty }}</span><span class="text-slate-500 text-[10px] sm:text-xs ml-1 font-bold">{{ item.unit }}</span></td>
+                                            <td class="p-3 sm:p-4"><span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] sm:text-xs font-bold border border-slate-200 bg-white shadow-sm uppercase">{{ item.category }}</span></td>
+                                            <td class="p-3 sm:p-4 text-right"><span class="font-black text-lg sm:text-xl" :class="item.qty <= item.minQty ? 'text-red-600' : 'text-slate-800'">{{ item.qty }}</span><span class="text-slate-500 text-[10px] sm:text-xs ml-1 font-bold uppercase">{{ item.unit }}</span></td>
                                             <td class="p-3 sm:p-4 text-center">
                                                 <div v-if="item.qty <= item.minQty" class="inline-flex items-center px-2 py-1 bg-red-50 text-red-700 text-[10px] sm:text-xs rounded-lg border border-red-200 font-bold"><i class="ph-fill ph-warning-circle mr-1 text-red-500"></i> Low (Min: {{item.minQty}})</div>
                                                 <div v-else class="inline-flex items-center px-2 py-1 bg-slate-50 text-slate-500 text-[10px] sm:text-xs rounded-lg border border-slate-200 font-bold"><i class="ph-fill ph-check-circle mr-1 text-green-500"></i> Aman</div>
@@ -598,8 +612,9 @@
 
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div class="relative w-full sm:max-w-md">
-                                    <input v-model="logSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 bg-slate-50 text-slate-800 font-medium transition-all">
+                                    <input v-model="logSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 bg-slate-50 text-slate-800 font-medium transition-all outline-none uppercase">
                                     <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
+                                    <button v-if="logSearchQuery" @click="logSearchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
                                 </div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end">
                                     <transition name="fade-slide">
@@ -609,7 +624,7 @@
                                     </transition>
                                     <div class="flex items-center space-x-2 text-xs sm:text-sm font-bold text-slate-600">
                                         <span class="hidden sm:inline">Tampilkan:</span>
-                                        <select v-model.number="logItemsPerPage" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-slate-800 bg-white outline-none cursor-pointer">
+                                        <select v-model.number="logItemsPerPage" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-slate-800 bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none cursor-pointer transition-colors">
                                             <option value="10">10</option>
                                             <option value="25">25</option>
                                             <option value="50">50</option>
@@ -637,9 +652,9 @@
                                         <tr v-for="log in paginatedTransactions" :key="log.id" class="hover:bg-slate-50 transition-colors group/row" :class="{'bg-brand-50/50': selectedLogItems.includes(log.id)}">
                                             <td class="p-3 sm:p-4 text-center"><input type="checkbox" :value="log.id" v-model="selectedLogItems" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></td>
                                             <td class="p-3 sm:p-4 cursor-pointer" @click="toggleLogSelection(log.id)"><div class="font-bold text-slate-700">{{ formatDate(log.date).split(' ')[0] }}</div><div class="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5 flex items-center"><i class="ph-fill ph-clock mr-1"></i> {{ formatDate(log.date).split(' ')[1] }}</div></td>
-                                            <td class="p-3 sm:p-4"><div class="font-bold text-brand-700 text-[10px] sm:text-xs uppercase">{{ log.location }}</div><div class="text-[10px] sm:text-xs text-blue-600 mt-0.5 font-bold">PIC: {{ log.pic || '-' }}</div></td>
-                                            <td class="p-3 sm:p-4 text-slate-700"><div class="flex items-center"><div class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-[10px] font-black mr-2">{{ log.user.charAt(0).toUpperCase() }}</div><span class="font-bold text-xs">{{ log.user }}</span></div></td>
-                                            <td class="p-3 sm:p-4"><div class="font-bold text-slate-800">{{ log.name }}</div><div class="text-[10px] text-slate-500 font-mono mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded">{{ log.barcode }}</div></td>
+                                            <td class="p-3 sm:p-4"><div class="font-bold text-brand-700 text-[10px] sm:text-xs uppercase">{{ log.location }}</div><div class="text-[10px] sm:text-xs text-blue-600 mt-0.5 font-bold uppercase">PIC: {{ log.pic || '-' }}</div></td>
+                                            <td class="p-3 sm:p-4 text-slate-700"><div class="flex items-center"><div class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-[10px] font-black mr-2">{{ log.user.charAt(0).toUpperCase() }}</div><span class="font-bold text-xs uppercase">{{ log.user }}</span></div></td>
+                                            <td class="p-3 sm:p-4"><div class="font-bold text-slate-800 uppercase">{{ log.name }}</div><div class="text-[10px] text-slate-500 font-mono mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded uppercase">{{ log.barcode }}</div></td>
                                             <td class="p-3 sm:p-4 text-center text-slate-400 font-bold line-through">{{ log.oldQty }}</td>
                                             <td class="p-3 sm:p-4 text-center font-black text-brand-700">{{ log.newQty }}</td>
                                             <td class="p-3 sm:p-4 text-right font-black">
@@ -664,7 +679,7 @@
             </main>
         </div>
 
-        <!-- MOBILE BOTTOM NAVIGATION (Muncul di layar HP, menggantikan tab atas) -->
+        <!-- MOBILE BOTTOM NAVIGATION -->
         <div v-if="isLoggedIn" class="sm:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-50 flex justify-around pb-safe">
             <button @click="changeTab('dashboard')" class="flex flex-col items-center justify-center py-2.5 px-2 w-full transition-colors active:bg-slate-50" :class="activeTab==='dashboard'?'text-brand-600':'text-slate-400'">
                 <i class="text-2xl mb-1" :class="activeTab==='dashboard'?'ph-fill ph-chart-line-up':'ph-duotone ph-chart-line-up'"></i>
@@ -699,16 +714,18 @@
                     <div class="p-5 overflow-y-auto bg-white max-h-[75vh]">
                         <form @submit.prevent="saveItem" class="space-y-4">
                             <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Barcode ID *</label>
-                                <!-- UPDATE: Explicit text color text-slate-900 -->
-                                <input v-model="formItem.barcode" type="text" required :disabled="isEditing || isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 font-mono uppercase text-slate-900 bg-white disabled:bg-slate-100 outline-none">
+                                <input v-model="formItem.barcode" @input="formItem.barcode = formItem.barcode.toUpperCase()" type="text" required :disabled="isEditing || isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 font-mono uppercase text-slate-900 bg-white disabled:bg-slate-100 outline-none transition-colors">
                             </div>
                             <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Nama Barang *</label>
-                                <input v-model="formItem.name" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-900 bg-white outline-none">
+                                <input v-model="formItem.name" @input="formItem.name = formItem.name.toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors uppercase" placeholder="Ketik nama barang...">
+                                <datalist id="itemNameList">
+                                    <option v-for="name in uniqueItemNames" :key="name" :value="name"></option>
+                                </datalist>
                             </div>
                             
                             <div>
                                 <label class="block text-xs font-black uppercase text-slate-600 mb-1">Lokasi Gudang *</label>
-                                <select v-model="formItem.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 font-bold bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-500 outline-none">
+                                <select v-model="formItem.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 font-bold bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-500 outline-none cursor-pointer transition-colors uppercase">
                                     <option value="CIP Store">CIP Store</option>
                                     <option value="Store Room">Store Room</option>
                                 </select>
@@ -716,19 +733,19 @@
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Kategori</label>
-                                    <input v-model="formItem.category" list="catList" :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 uppercase text-slate-900 bg-white outline-none">
+                                    <input v-model="formItem.category" @input="formItem.category = formItem.category.toUpperCase()" list="catList" :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 uppercase text-slate-900 bg-white outline-none transition-colors">
                                     <datalist id="catList"><option value="CHEMICAL"></option><option value="CONSUMABLE"></option><option value="PACKAGING"></option></datalist>
                                 </div>
                                 <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Satuan</label>
-                                    <input v-model="formItem.unit" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-900 bg-white outline-none">
+                                    <input v-model="formItem.unit" @input="formItem.unit = formItem.unit.toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors uppercase">
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Stok Awal</label>
-                                    <input v-model.number="formItem.qty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-900 bg-white outline-none">
+                                    <input v-model.number="formItem.qty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors">
                                 </div>
                                 <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Min. Stok</label>
-                                    <input v-model.number="formItem.minQty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-900 bg-white outline-none">
+                                    <input v-model.number="formItem.minQty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors">
                                 </div>
                             </div>
                             <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
@@ -759,7 +776,6 @@
         
         try { Chart.register(ChartDataLabels); } catch(e) { console.warn("ChartJS plugin skipped."); }
         
-        // URL SCRIPT GOOGLE ANDA TETAP DIPERTAHANKAN
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxOhxfqB4_OoPzYbHXSDhwtGRObEVCd4bMfIeblMLS-0wmcU2ayAhNBL_vXX8OMuIOb/exec"; 
 
         createApp({
@@ -771,6 +787,10 @@
                 const currentTime = ref(new Date());
                 let timerInterval;
 
+                let hasNotifiedLowStock = false;
+                
+                const showNotifMenu = ref(false);
+
                 const activeTab = ref('dashboard');
                 const loading = ref(false);
                 const isProcessing = ref(false);
@@ -778,7 +798,6 @@
                 const inventory = ref([]);
                 const transactions = ref([]);
 
-                // --- NEW FILTER & PIC STATES ---
                 const dashboardFilter = ref('ALL');
                 const opnamePic = ref(localStorage.getItem('savedPic') || '');
 
@@ -809,7 +828,7 @@
                 const selectedRecapDate = ref('');
                 const showModal = ref(false);
                 const isEditing = ref(false);
-                const formItem = ref({ barcode: '', name: '', category: 'Chemical', qty: 0, minQty: 10, unit: 'Pcs', location: 'CIP Store' });
+                const formItem = ref({ barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: 'CIP Store' });
                 
                 const excelFileInput = ref(null);
                 const historyFileInput = ref(null);
@@ -832,7 +851,16 @@
                     return [...new Set(locs)].filter(Boolean);
                 });
 
-                // UPDATE: Smart Filter Logic for Dashboard
+                const uniquePics = computed(() => {
+                    const pics = transactions.value.map(t => t.pic ? t.pic.toUpperCase() : '');
+                    return [...new Set(pics)].filter(Boolean);
+                });
+
+                const uniqueItemNames = computed(() => {
+                    const names = inventory.value.map(i => i.name ? i.name.toUpperCase() : '');
+                    return [...new Set(names)].filter(Boolean);
+                });
+
                 const baseInventory = computed(() => {
                     let loc = currentUser.value.location;
                     if (loc === 'ALL') loc = dashboardFilter.value;
@@ -907,7 +935,7 @@
                             summary[log.barcode].lastNewQty = log.newQty;
                             summary[log.barcode].totalVariance += log.variance;
                             summary[log.barcode].scanCount += 1;
-                            if(log.pic) summary[log.barcode].pic = log.pic; // Update PIC to the latest one
+                            if(log.pic) summary[log.barcode].pic = log.pic;
                         }
                     });
                     return Object.values(summary).sort((a, b) => a.name.localeCompare(b.name));
@@ -961,11 +989,16 @@
 
                 const filterLowStockAndGo = () => { searchQuery.value = '@low'; changeTab('inventory'); };
 
+                const goToInventoryAndSearch = (barcode) => {
+                    searchQuery.value = barcode;
+                    changeTab('inventory');
+                    showNotifMenu.value = false;
+                };
+
                 const savePicToLocal = () => {
                     localStorage.setItem('savedPic', opnamePic.value);
                 };
 
-                // --- BULK SELECTION METHODS ---
                 const toggleAllInventory = (e) => {
                     if (e.target.checked) selectedInventoryItems.value = paginatedInventory.value.map(i => i.barcode);
                     else selectedInventoryItems.value = [];
@@ -1001,7 +1034,29 @@
                 watch([recapCurrentPage, recapSearchQuery, selectedRecapDate, recapItemsPerPage], () => selectedRecapItems.value = []);
                 watch(dashboardFilter, () => { if(activeTab.value === 'dashboard') renderCharts(); });
 
-                // --- API CALLER ---
+                const triggerLowStockAlert = () => {
+                    const lowCount = lowStockItems.value.length;
+                    if (lowCount > 0 && !hasNotifiedLowStock) {
+                        setTimeout(() => {
+                            Swal.fire({
+                                title: '⚠️ Alert Reorder!',
+                                html: `Terdapat <b style="color:#ef4444; font-size:1.2em;">${lowCount} barang</b> di gudang Anda yang sudah mencapai batas minimum stok.<br><br>Harap segera lakukan pengecekan dan pengajuan <b>REORDER</b>.`,
+                                icon: 'warning',
+                                confirmButtonText: 'Lihat Daftar Barang',
+                                confirmButtonColor: '#ef4444',
+                                showCancelButton: true,
+                                cancelButtonText: 'Tutup',
+                                allowOutsideClick: false
+                            }).then((result) => {
+                                if(result.isConfirmed) {
+                                    filterLowStockAndGo();
+                                }
+                            });
+                            hasNotifiedLowStock = true; 
+                        }, 500); 
+                    }
+                };
+
                 const apiCall = async (action, payload = {}) => {
                     if (isPreview) {
                         Swal.fire("URL API Belum Diatur", "Silakan atur GAS URL.", "error");
@@ -1036,6 +1091,9 @@
                                 transactions.value = res.data.transactions;
                                 if (availableDates.value.length > 0) selectedRecapDate.value = availableDates.value[0];
                                 if (baseInventory.value.length > 0 && !selectedTrendItem.value) selectedTrendItem.value = baseInventory.value[0].barcode;
+                                
+                                triggerLowStockAlert();
+
                                 if (activeTab.value === 'dashboard') nextTick(() => renderCharts());
                             } else {
                                 Swal.fire({title: 'Koneksi Gagal', html: res?.error || 'Periksa koneksi database Anda', icon: 'error'});
@@ -1070,7 +1128,6 @@
                     } catch (e) {} finally { isSyncing.value = false; }
                 };
 
-                // --- CHARTS LOGIC ---
                 const processTrendData = () => {
                     if (!selectedTrendItem.value) return { labels: [], data: [], itemName: '' };
                     const itemObj = inventory.value.find(i => i.barcode === selectedTrendItem.value);
@@ -1149,13 +1206,12 @@
                     });
                 };
 
-                // --- LOGIN ---
                 const handleLogin = async () => {
                     isProcessing.value = true; loginError.value = '';
                     try {
                         if (isPreview) {
                             await new Promise(r => setTimeout(r, 500));
-                            if (loginForm.value.username === 'admin') {
+                            if (loginForm.value.username.toLowerCase() === 'admin') {
                                 currentUser.value = { username: 'Administrator', role: 'Super Admin', location: 'ALL' };
                                 isLoggedIn.value = true; await fetchData(); 
                             } else { loginError.value = 'Hanya contoh preview (Gunakan: admin)'; }
@@ -1175,11 +1231,13 @@
                 
                 const logout = () => {
                     Swal.fire({ title: 'Keluar dari Sistem?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Logout' }).then((r) => {
-                        if (r.isConfirmed) { isLoggedIn.value = false; inventory.value = []; transactions.value = []; loginForm.value.password = ''; }
+                        if (r.isConfirmed) { 
+                            isLoggedIn.value = false; inventory.value = []; transactions.value = []; loginForm.value.password = ''; 
+                            hasNotifiedLowStock = false; 
+                        }
                     });
                 };
 
-                // --- SCANNER ---
                 const handleScan = () => {
                     if (!scannedCode.value.trim()) return;
                     if (!opnamePic.value.trim()) {
@@ -1214,15 +1272,21 @@
                     isProcessing.value = true;
                     try {
                         const payload = { 
-                            id: Date.now(), date: currentTime.value.toISOString(), barcode: activeItem.value.barcode, 
-                            name: activeItem.value.name, oldQty: activeItem.value.qty, newQty: actualStock.value, 
-                            variance: actualStock.value - activeItem.value.qty, user: currentUser.value.username || 'Sistem',
-                            location: activeItem.value.location, pic: opnamePic.value
+                            id: Date.now(), date: currentTime.value.toISOString(), barcode: activeItem.value.barcode.toUpperCase(), 
+                            name: activeItem.value.name.toUpperCase(), oldQty: activeItem.value.qty, newQty: actualStock.value, 
+                            variance: actualStock.value - activeItem.value.qty, user: currentUser.value.username.toUpperCase() || 'SISTEM',
+                            location: activeItem.value.location.toUpperCase(), pic: opnamePic.value.toUpperCase()
                         };
                         
+                        const isBecomingLowStock = actualStock.value <= activeItem.value.minQty;
+
                         if (isPreview) {
                             await new Promise(r => setTimeout(r, 300));
-                            Swal.fire({ title: 'Berhasil!', text: 'Data stok tersimpan.', icon: 'success', timer: 2000, showConfirmButton: false });
+                            if(isBecomingLowStock) {
+                                Swal.fire({ title: 'Tersimpan & Peringatan!', text: 'Data stok tersimpan. Barang ini berstatus LOW STOCK dan butuh Reorder!', icon: 'warning', showConfirmButton: true, confirmButtonText: 'Oke Mengerti' });
+                            } else {
+                                Swal.fire({ title: 'Berhasil!', text: 'Data stok tersimpan.', icon: 'success', timer: 2000, showConfirmButton: false });
+                            }
                             resetScanner();
                         } else {
                             const res = await apiCall('submitOpnameUpdate', payload);
@@ -1232,7 +1296,12 @@
                                 transactions.value.unshift(payload); 
                                 if (availableDates.value.length > 0 && !selectedRecapDate.value) selectedRecapDate.value = availableDates.value[0];
                                 
-                                Swal.fire({ title: 'Berhasil!', text: 'Data tersimpan di Server.', icon: 'success', timer: 2000, showConfirmButton: false });
+                                if (isBecomingLowStock) {
+                                    Swal.fire({ title: 'Data Tersimpan', text: 'Status: PERINGATAN REORDER (Stok < Minimum)', icon: 'warning', showConfirmButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!' });
+                                } else {
+                                    Swal.fire({ title: 'Berhasil!', text: 'Data tersimpan di Server.', icon: 'success', timer: 2000, showConfirmButton: false });
+                                }
+                                
                                 resetScanner(); silentFetchData();
                             } else { Swal.fire({title: 'Gagal Menyimpan', html: res?.error || 'Sistem sibuk / bentrok', icon: 'error'}); }
                         }
@@ -1254,17 +1323,20 @@
                     isCameraOpen.value = false;
                 };
 
-                // --- CRUD SINGLE & BULK ---
                 const openAddModal = () => { 
                     isEditing.value = false; 
-                    formItem.value = { barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'Pcs', location: currentUser.value.location === 'ALL' ? 'CIP Store' : currentUser.value.location }; 
+                    formItem.value = { barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: currentUser.value.location === 'ALL' ? 'CIP Store' : currentUser.value.location }; 
                     showModal.value = true; 
                 };
                 const openEditModal = (item) => { isEditing.value = true; formItem.value = { ...item }; showModal.value = true; };
                 const closeModal = () => { showModal.value = false; };
                 
                 const saveItem = async () => { 
-                    formItem.value.barcode = formItem.value.barcode.toUpperCase().trim(); formItem.value.category = formItem.value.category.toUpperCase().trim();
+                    formItem.value.barcode = formItem.value.barcode.toUpperCase().trim(); 
+                    formItem.value.category = formItem.value.category.toUpperCase().trim();
+                    formItem.value.name = formItem.value.name.toUpperCase().trim();
+                    formItem.value.unit = formItem.value.unit.toUpperCase().trim();
+
                     const exists = inventory.value.find(i => String(i.barcode).trim().toUpperCase() === formItem.value.barcode);
                     if (!isEditing.value && exists) { Swal.fire('Error', 'Barcode ini sudah terdaftar!', 'error'); return; }
 
@@ -1390,10 +1462,10 @@
                             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                             if (json.length > 0) {
                                 const importedData = json.map(row => ({
-                                    barcode: String(row["Barcode"] || row.barcode || '').toUpperCase().trim(), name: String(row["Nama Barang"] || row.name || row.Name || 'Unknown').trim(),
+                                    barcode: String(row["Barcode"] || row.barcode || '').toUpperCase().trim(), name: String(row["Nama Barang"] || row.name || row.Name || 'Unknown').toUpperCase().trim(),
                                     category: String(row["Kategori"] || row.category || row.Category || 'Consumable').toUpperCase().trim(), qty: Number(row["Stok"] ?? row.qty ?? row.Qty ?? 0) || 0,
-                                    minQty: Number(row["Min. Stok"] ?? row.minQty ?? row.MinQty ?? 10) || 0, unit: String(row["Satuan"] || row.unit || row.Unit || 'Pcs').trim(),
-                                    location: (currentUser.value.location !== 'ALL') ? currentUser.value.location : String(row["Lokasi"] || row.location || row.Location || 'CIP Store').trim()
+                                    minQty: Number(row["Min. Stok"] ?? row.minQty ?? row.MinQty ?? 10) || 0, unit: String(row["Satuan"] || row.unit || row.Unit || 'Pcs').toUpperCase().trim(),
+                                    location: (currentUser.value.location !== 'ALL') ? currentUser.value.location.toUpperCase() : String(row["Lokasi"] || row.location || row.Location || 'CIP Store').toUpperCase().trim()
                                 })).filter(item => item.barcode !== ''); 
 
                                 Swal.fire({ title: 'Konfirmasi Import', text: `Timpa master data dengan ${importedData.length} data?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Import!' }).then(async (result) => {
@@ -1436,14 +1508,14 @@
                             const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
                             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                             if (json.length > 0) {
-                                const parseDateString = (dateStr) => { /* simplified for brevity in this output, assumed functional */ return new Date(dateStr).toISOString() || new Date().toISOString() };
+                                const parseDateString = (dateStr) => { return new Date(dateStr).toISOString() || new Date().toISOString() };
                                 const importedData = json.map(row => {
                                     return {
                                         id: row["ID Transaksi"] || row.id || Date.now(), date: row["Tanggal Waktu"] ? parseDateString(row["Tanggal Waktu"]) : new Date().toISOString(),
-                                        user: String(row["Operator"] || row.user || 'Unknown').trim(), pic: String(row["PIC Opname"] || row.pic || '-').trim(),
-                                        barcode: String(row["Barcode"] || row.barcode || '').toUpperCase().trim(), name: String(row["Nama Barang"] || row.name || 'Unknown').trim(),
+                                        user: String(row["Operator"] || row.user || 'Unknown').toUpperCase().trim(), pic: String(row["PIC Opname"] || row.pic || '-').toUpperCase().trim(),
+                                        barcode: String(row["Barcode"] || row.barcode || '').toUpperCase().trim(), name: String(row["Nama Barang"] || row.name || 'Unknown').toUpperCase().trim(),
                                         oldQty: Number(row["Stok Awal"] ?? row.oldQty) || 0, newQty: Number(row["Stok Baru"] ?? row.newQty) || 0,
-                                        variance: Number(row["Selisih"] ?? row.variance) || 0, location: (currentUser.value.location !== 'ALL') ? currentUser.value.location : String(row["Lokasi"] || row.location || 'CIP Store').trim()
+                                        variance: Number(row["Selisih"] ?? row.variance) || 0, location: (currentUser.value.location !== 'ALL') ? currentUser.value.location.toUpperCase() : String(row["Lokasi"] || row.location || 'CIP Store').toUpperCase().trim()
                                     };
                                 }).filter(item => item.barcode !== '');
 
@@ -1473,6 +1545,7 @@
                     activeTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
                     inventory, transactions, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, availableLocations, opnamePic, savePicToLocal,
+                    uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch,
                     showModal, isEditing, formItem, excelFileInput, historyFileInput, selectedTrendItem, trendFilter, renderCharts,
                     searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
