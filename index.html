@@ -78,7 +78,7 @@
             border-radius: 1.5rem !important;
             padding: 15px !important;
             font-family: inherit !important;
-            z-index: 9999 !important; /* Mencegah kalender tertutup elemen lain */
+            z-index: 99999 !important; /* Mencegah kalender tertutup elemen lain secara mutlak */
         }
         .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
             background: #8b5cf6 !important; /* Tailwind Purple 500 */
@@ -307,7 +307,7 @@
                             </div>
                         </div>
 
-                        <!-- CHARTS SECTION - CANGGIH & BEAUTIFUL -->
+                        <!-- CHARTS SECTION -->
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8">
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 lg:col-span-3 flex flex-col relative overflow-hidden">
                                 <div class="absolute -top-24 -right-24 w-64 h-64 bg-brand-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none"></div>
@@ -342,7 +342,7 @@
                             </div>
                         </div>
 
-                        <!-- 🔴 TRACKER AKTIVITAS PIC (OPERATOR) 🔴 -->
+                        <!-- TRACKER AKTIVITAS PIC (OPERATOR) -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-8 flex flex-col relative overflow-hidden">
                             <div class="absolute -left-24 -bottom-24 w-64 h-64 bg-teal-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none"></div>
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
@@ -546,7 +546,7 @@
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
                                             <i class="ph-duotone ph-calendar-blank text-purple-500 text-lg group-focus-within:text-purple-600 transition-colors"></i>
                                         </div>
-                                        <input ref="recapDateInput" type="text" placeholder="Pilih Rentang Tanggal..." class="bg-white border border-slate-200 text-slate-800 text-sm font-bold rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-50 block w-full pl-10 pr-4 py-2.5 shadow-sm transition-all outline-none cursor-pointer hover:border-purple-300">
+                                        <input id="recapDateInputId" type="text" placeholder="Pilih Rentang Tanggal..." class="bg-white border border-slate-200 text-slate-800 text-sm font-bold rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-50 block w-full pl-10 pr-4 py-2.5 shadow-sm transition-all outline-none cursor-pointer hover:border-purple-300">
                                     </div>
                                 </div>
                             </div>
@@ -784,7 +784,7 @@
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
                                             <i class="ph-duotone ph-calendar-blank text-orange-500 text-lg group-focus-within:text-orange-600 transition-colors"></i>
                                         </div>
-                                        <input ref="logDateInput" type="text" placeholder="Pilih Rentang Tanggal..." class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-orange-50 bg-slate-50 outline-none text-slate-800 font-bold transition-all cursor-pointer hover:border-orange-300">
+                                        <input id="logDateInputId" type="text" placeholder="Pilih Rentang Tanggal..." class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-orange-50 bg-slate-50 outline-none text-slate-800 font-bold transition-all cursor-pointer hover:border-orange-300">
                                     </div>
                                 </div>
                                 
@@ -1254,28 +1254,37 @@
                     );
                 };
 
+                // FIX: Menangani spasi yang tidak terduga pada Split Tanggal & mencegah error NaN Date
                 const isDateInRange = (dateIsoStr, rangeStr) => {
                     if (!rangeStr) return true; 
                     
                     const d = new Date(dateIsoStr);
+                    if (isNaN(d.getTime())) return false;
+                    
                     const year = d.getFullYear();
                     const month = String(d.getMonth() + 1).padStart(2, '0');
                     const day = String(d.getDate()).padStart(2, '0');
                     const localDateStr = `${year}-${month}-${day}`;
 
-                    let startStr, endStr;
+                    let startStr = '', endStr = '';
                     if (rangeStr.includes(' to ')) {
-                        [startStr, endStr] = rangeStr.split(' to ');
+                        const parts = rangeStr.split(' to ');
+                        startStr = parts[0].trim();
+                        endStr = parts[1] ? parts[1].trim() : '';
                     } else if (rangeStr.includes(' - ')) {
-                        [startStr, endStr] = rangeStr.split(' - ');
+                        const parts = rangeStr.split(' - ');
+                        startStr = parts[0].trim();
+                        endStr = parts[1] ? parts[1].trim() : '';
+                    } else {
+                        startStr = rangeStr.trim();
                     }
 
                     if (startStr && endStr) {
                         return localDateStr >= startStr && localDateStr <= endStr;
-                    } else {
-                        const singleDate = startStr || rangeStr;
-                        return localDateStr === singleDate;
+                    } else if (startStr) {
+                        return localDateStr === startStr;
                     }
+                    return true;
                 };
 
                 const processedInventory = computed(() => {
@@ -1377,28 +1386,55 @@
                     }
                     
                     if (s && e) {
-                        return `${new Date(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} - ${new Date(e).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+                        return `${new Date(s.trim()).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} - ${new Date(e.trim()).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}`;
                     }
-                    return new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+                    return new Date(dateStr.trim()).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
                 };
                 
                 const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
                 const showToast = (msg, type='success') => { Toast.fire({ icon: type, title: msg }); };
 
-                const initFlatpickr = () => {
-                    if (activeTab.value === 'recap' && recapDateInput.value) {
-                        if (fpRecap) fpRecap.destroy();
-                        fpRecap = flatpickr(recapDateInput.value, {
-                            mode: "range", dateFormat: "Y-m-d", locale: "id", defaultDate: selectedRecapDate.value,
-                            onChange: function(selectedDates, dateStr, instance) { selectedRecapDate.value = dateStr; }
-                        });
+                // FIX: Gunakan ID agar kalender tetap bisa diikat meskipun transisi DOM belum selesai secara visual
+                const initFlatpickrSafe = () => {
+                    if (activeTab.value === 'recap') {
+                        const el = document.getElementById('recapDateInputId');
+                        if (el) {
+                            if (fpRecap) fpRecap.destroy();
+                            let defDate = null;
+                            if (selectedRecapDate.value) {
+                                defDate = selectedRecapDate.value.includes(' to ') ? selectedRecapDate.value.split(' to ') : selectedRecapDate.value.split(' - ');
+                            }
+                            fpRecap = flatpickr(el, {
+                                mode: "range", 
+                                dateFormat: "Y-m-d", 
+                                locale: "id", 
+                                disableMobile: true, // 🔥 PENTING UNTUK HP
+                                defaultDate: defDate,
+                                onChange: function(selectedDates, dateStr, instance) { 
+                                    selectedRecapDate.value = dateStr; 
+                                }
+                            });
+                        }
                     }
-                    if (activeTab.value === 'history' && logDateInput.value) {
-                        if (fpLog) fpLog.destroy();
-                        fpLog = flatpickr(logDateInput.value, {
-                            mode: "range", dateFormat: "Y-m-d", locale: "id", defaultDate: logFilterDate.value,
-                            onChange: function(selectedDates, dateStr, instance) { logFilterDate.value = dateStr; }
-                        });
+                    if (activeTab.value === 'history') {
+                        const el = document.getElementById('logDateInputId');
+                        if (el) {
+                            if (fpLog) fpLog.destroy();
+                            let defDate = null;
+                            if (logFilterDate.value) {
+                                defDate = logFilterDate.value.includes(' to ') ? logFilterDate.value.split(' to ') : logFilterDate.value.split(' - ');
+                            }
+                            fpLog = flatpickr(el, {
+                                mode: "range", 
+                                dateFormat: "Y-m-d", 
+                                locale: "id", 
+                                disableMobile: true, // 🔥 PENTING UNTUK HP
+                                defaultDate: defDate,
+                                onChange: function(selectedDates, dateStr, instance) { 
+                                    logFilterDate.value = dateStr; 
+                                }
+                            });
+                        }
                     }
                 };
 
@@ -1422,10 +1458,14 @@
                     
                     if (targetState === 'recap') {
                         selectedRecapDate.value = dateStr;
-                        if (fpRecap) fpRecap.setDate([start, end]);
+                        if (fpRecap) {
+                            fpRecap.setDate([start, end]);
+                        }
                     } else {
                         logFilterDate.value = dateStr;
-                        if (fpLog) fpLog.setDate([start, end]);
+                        if (fpLog) {
+                            fpLog.setDate([start, end]);
+                        }
                     }
                 };
 
@@ -1443,17 +1483,21 @@
                     return selectedRecapDate.value === yestStr;
                 });
 
-                const changeTab = async (tab) => {
+                const changeTab = (tab) => {
                     activeTab.value = tab;
                     isProcessing.value = false;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     
-                    if (tab === 'dashboard') {
-                        setTimeout(() => { nextTick(() => renderCharts()); }, 50);
-                    }
-                    if (tab === 'recap' || tab === 'history') {
-                        await nextTick(); initFlatpickr(); 
-                    }
+                    // FIX: Delay agar transisi DOM fade-slide selesai sebelum inisialisasi flatpickr/chart
+                    setTimeout(() => {
+                        if (tab === 'dashboard') {
+                            renderCharts();
+                        }
+                        if (tab === 'recap' || tab === 'history') {
+                            initFlatpickrSafe();
+                        }
+                    }, 350);
+                    
                     if (tab === 'scan') resetScanner();
                     if (tab === 'settings') { passwordForm.value = { old: '', new: '', confirm: '' }; }
                 };
@@ -2323,7 +2367,7 @@
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname,
                     exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings,
-                    setDateRange, isRecapToday, isRecapYesterday,
+                    setDateRange, isRecapToday, isRecapYesterday, 
                     recapDateInput, logDateInput
                 };
             }
