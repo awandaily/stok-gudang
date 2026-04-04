@@ -60,6 +60,13 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         div:where(.swal2-container) { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
         body { padding-bottom: constant(safe-area-inset-bottom); padding-bottom: env(safe-area-inset-bottom); }
+        
+        /* Sembunyikan ikon mata bawaan browser agar tidak tumpang tindih */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear,
+        input[type="password"]::-webkit-reveal {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
@@ -76,8 +83,8 @@
         <transition name="fade-slide">
             <div v-if="loading && isLoggedIn" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
                 <i class="ph ph-spinner animate-spin text-6xl text-brand-600 mb-4"></i>
-                <h2 class="text-xl font-black text-slate-800">Sistem Autentikasi...</h2>
-                <p class="text-slate-500 font-medium text-sm mt-2">Memeriksa koneksi aman.</p>
+                <h2 class="text-xl font-black text-slate-800">Sinkronisasi Data...</h2>
+                <p class="text-slate-500 font-medium text-sm mt-2">Mohon tunggu sebentar.</p>
             </div>
         </transition>
 
@@ -113,7 +120,10 @@
                             <label class="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Password</label>
                             <div class="relative">
                                 <i class="ph-duotone ph-lock-key absolute left-3.5 top-3.5 text-slate-400 text-xl"></i>
-                                <input v-model="loginForm.password" type="password" required class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none text-slate-900 font-bold transition-all" placeholder="••••••••">
+                                <input v-model="loginForm.password" :type="showPass.login ? 'text' : 'password'" required class="w-full pl-11 pr-12 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none text-slate-900 font-bold transition-all" placeholder="••••••••">
+                                <button type="button" @click="showPass.login = !showPass.login" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-brand-600 transition-colors focus:outline-none">
+                                    <i class="ph-bold text-xl" :class="showPass.login ? 'ph-eye' : 'ph-eye-slash'"></i>
+                                </button>
                             </div>
                         </div>
                         
@@ -149,6 +159,11 @@
                                 <span class="text-[10px] font-black text-green-300 tracking-widest hidden sm:block">{{ isSyncing ? 'LIVE' : 'SYNC' }}</span>
                             </div>
 
+                            <!-- NEW: Tombol Refresh Data Global Tanpa Reload URL -->
+                            <button @click="manualRefresh" class="p-2 bg-blue-500/20 hover:bg-blue-500/40 rounded-xl transition-colors relative text-blue-100" title="Refresh Data Terbaru">
+                                <i class="ph-bold ph-arrows-clockwise text-xl sm:text-2xl" :class="{'animate-spin': loading}"></i>
+                            </button>
+
                             <!-- Lonceng Notifikasi -->
                             <div class="relative cursor-pointer" @click="showNotifMenu = !showNotifMenu">
                                 <div class="p-2 bg-black/20 hover:bg-black/30 rounded-xl transition-colors relative text-white">
@@ -174,7 +189,7 @@
                                             </div>
                                         </div>
                                         <div class="p-2 bg-slate-50 border-t border-slate-100 text-center">
-                                            <button @click="filterLowStockAndGo(); showNotifMenu = false" class="text-xs font-black text-brand-600 hover:text-brand-700 py-1.5 w-full rounded-lg hover:bg-brand-100 transition-colors">Lihat Semua di Master</button>
+                                            <button @click="resetFilters(); filterLowStockAndGo(); showNotifMenu = false" class="text-xs font-black text-brand-600 hover:text-brand-700 py-1.5 w-full rounded-lg hover:bg-brand-100 transition-colors">Lihat Semua di Master</button>
                                         </div>
                                     </div>
                                 </transition>
@@ -209,7 +224,6 @@
                     <button @click="changeTab('inventory')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'inventory' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-database text-xl mr-2" :class="activeTab==='inventory'?'text-brand-100':''"></i> Master Data</button>
                     <button @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2" :class="activeTab==='history'?'text-brand-100':''"></i> Log History</button>
                     
-                    <!-- NEW: TAB PENGATURAN -->
                     <button @click="changeTab('settings')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap ml-auto" :class="activeTab === 'settings' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-gear text-xl mr-2"></i> Pengaturan</button>
                 </div>
 
@@ -218,18 +232,26 @@
                     <!-- ================= TAB: DASHBOARD ================= -->
                     <div v-if="activeTab === 'dashboard'" key="dashboard">
                         
-                        <div v-if="currentUser.role === 'Super Admin'" class="mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div class="flex items-center text-slate-700">
-                                <div class="bg-indigo-100 text-indigo-600 p-2 rounded-xl mr-3"><i class="ph-duotone ph-funnel text-xl"></i></div>
-                                <div>
-                                    <h4 class="font-bold text-sm">Filter Tampilan Gudang</h4>
-                                    <p class="text-xs text-slate-500">Anda melihat data secara menyeluruh. Filter untuk merinci.</p>
+                        <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <!-- Admin Filter Gudang -->
+                            <div v-if="currentUser.role === 'Super Admin'" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row items-start sm:items-center flex-1 w-full gap-4">
+                                <div class="flex items-center text-slate-700">
+                                    <div class="bg-indigo-100 text-indigo-600 p-2 rounded-xl mr-3"><i class="ph-duotone ph-funnel text-xl"></i></div>
+                                    <div>
+                                        <h4 class="font-bold text-sm">Filter Tampilan Gudang</h4>
+                                        <p class="text-xs text-slate-500">Anda melihat data secara menyeluruh. Filter untuk merinci.</p>
+                                    </div>
                                 </div>
+                                <select v-model="dashboardFilter" class="w-full sm:w-auto px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none cursor-pointer shadow-inner transition-all uppercase">
+                                    <option value="ALL">📍 Semua Lokasi Gudang</option>
+                                    <option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option>
+                                </select>
                             </div>
-                            <select v-model="dashboardFilter" class="w-full sm:w-auto px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none cursor-pointer shadow-inner transition-all uppercase">
-                                <option value="ALL">📍 Semua Lokasi Gudang</option>
-                                <option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option>
-                            </select>
+                            
+                            <!-- NEW: Tombol Reset Seluruh Filter (Global) -->
+                            <button @click="resetFilters" class="px-5 py-3 sm:py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl text-sm font-bold shadow-sm hover:bg-slate-50 hover:text-slate-900 transition-all flex items-center justify-center w-full sm:w-auto self-stretch">
+                                <i class="ph-bold ph-faders text-lg mr-2"></i> Reset Filter
+                            </button>
                         </div>
 
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8">
@@ -259,7 +281,7 @@
                             </div>
                         </div>
 
-                        <!-- CHARTS SECTION -->
+                        <!-- CHARTS SECTION - CANGGIH & BEAUTIFUL -->
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8">
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 lg:col-span-3 flex flex-col relative overflow-hidden">
                                 <div class="absolute -top-24 -right-24 w-64 h-64 bg-brand-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none"></div>
@@ -291,6 +313,39 @@
                                 <div v-else class="relative flex-1 min-h-[300px] px-2 w-full z-10">
                                     <canvas id="trendChart"></canvas>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- 🔴 TRACKER AKTIVITAS PIC (OPERATOR) 🔴 -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-8 flex flex-col relative overflow-hidden">
+                            <div class="absolute -left-24 -bottom-24 w-64 h-64 bg-teal-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none"></div>
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
+                                <div>
+                                    <h3 class="font-bold text-slate-800 flex items-center text-lg">
+                                        <div class="bg-teal-100 text-teal-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-user-focus text-xl"></i></div>
+                                        Pantauan Aktivitas Petugas Opname
+                                    </h3>
+                                    <p class="text-xs text-slate-500 mt-1 ml-11">Lacak produktivitas harian/bulanan dari masing-masing Petugas (PIC).</p>
+                                </div>
+                                <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                                    <select v-model="selectedOperator" @change="renderCharts" class="w-full sm:w-48 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 shadow-sm outline-none transition-all uppercase cursor-pointer">
+                                        <option value="">-- PILIH PIC --</option>
+                                        <option v-for="pic in uniquePics" :key="pic" :value="pic">{{ pic }}</option>
+                                    </select>
+                                    <select v-model="operatorFilter" @change="renderCharts" class="w-full sm:w-40 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 shadow-sm outline-none transition-all cursor-pointer">
+                                        <option value="week">7 Hari Terakhir</option>
+                                        <option value="month">30 Hari Terakhir</option>
+                                        <option value="year">1 Tahun Terakhir</option>
+                                        <option value="all">Sepanjang Masa</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div v-if="!selectedOperator" class="flex-1 flex flex-col items-center justify-center min-h-[250px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200 relative z-10">
+                                <i class="ph-duotone ph-users text-5xl text-slate-300 mb-3"></i>
+                                <p class="text-slate-500 font-medium mt-2 text-sm text-center px-4">Pilih nama petugas di atas untuk melihat riwayat aktivitas opname.</p>
+                            </div>
+                            <div v-else class="relative flex-1 min-h-[250px] w-full z-10">
+                                <canvas id="operatorChart"></canvas>
                             </div>
                         </div>
 
@@ -352,11 +407,11 @@
                             <div class="p-5 sm:p-8">
                                 <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
                                     <label class="block text-xs font-black uppercase tracking-wider text-blue-800 mb-2 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Nama PIC / Petugas Opname</label>
-                                    <input v-model="opnamePic" @input="opnamePic = opnamePic.toUpperCase()" list="picList" type="text" class="w-full px-4 py-3 border-2 border-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white bg-white text-sm font-bold text-slate-900 shadow-sm transition-all outline-none uppercase" placeholder="Ketik atau pilih dari histori..." @change="savePicToLocal">
-                                    
-                                    <datalist id="picList">
-                                        <option v-for="pic in uniquePics" :key="pic" :value="pic"></option>
-                                    </datalist>
+                                    <select v-model="opnamePic" class="w-full px-4 py-3 border-2 border-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white bg-white text-sm font-bold text-slate-900 shadow-sm transition-all outline-none uppercase cursor-pointer" @change="savePicToLocal">
+                                        <option value="" disabled>-- PILIH NAMA PETUGAS PIC --</option>
+                                        <option v-for="pic in availablePicsForDropdown" :key="pic" :value="pic">{{ pic }}</option>
+                                    </select>
+                                    <p v-if="availablePicsForDropdown.length === 0" class="text-[10px] text-red-500 mt-2 font-bold"><i class="ph-fill ph-warning-circle"></i> Admin belum mengatur daftar PIC untuk gudang ini di menu Pengaturan.</p>
                                 </div>
 
                                 <form @submit.prevent="handleScan" class="mb-6">
@@ -697,15 +752,30 @@
                                 <form @submit.prevent="submitChangePassword" class="space-y-4 max-w-md">
                                     <div>
                                         <label class="block text-xs font-black uppercase text-slate-600 mb-1">Password Lama</label>
-                                        <input v-model="passwordForm.old" type="password" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                        <div class="relative">
+                                            <input v-model="passwordForm.old" :type="showPass.old ? 'text' : 'password'" required :disabled="isProcessing" class="w-full px-4 py-2 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                            <button type="button" @click="showPass.old = !showPass.old" class="absolute right-3 top-2 text-slate-400 hover:text-brand-600 focus:outline-none">
+                                                <i class="ph-bold text-lg" :class="showPass.old ? 'ph-eye' : 'ph-eye-slash'"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-black uppercase text-slate-600 mb-1">Password Baru</label>
-                                        <input v-model="passwordForm.new" type="password" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                        <div class="relative">
+                                            <input v-model="passwordForm.new" :type="showPass.new ? 'text' : 'password'" required :disabled="isProcessing" class="w-full px-4 py-2 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                            <button type="button" @click="showPass.new = !showPass.new" class="absolute right-3 top-2 text-slate-400 hover:text-brand-600 focus:outline-none">
+                                                <i class="ph-bold text-lg" :class="showPass.new ? 'ph-eye' : 'ph-eye-slash'"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-black uppercase text-slate-600 mb-1">Konfirmasi Password Baru</label>
-                                        <input v-model="passwordForm.confirm" type="password" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                        <div class="relative">
+                                            <input v-model="passwordForm.confirm" :type="showPass.confirm ? 'text' : 'password'" required :disabled="isProcessing" class="w-full px-4 py-2 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                            <button type="button" @click="showPass.confirm = !showPass.confirm" class="absolute right-3 top-2 text-slate-400 hover:text-brand-600 focus:outline-none">
+                                                <i class="ph-bold text-lg" :class="showPass.confirm ? 'ph-eye' : 'ph-eye-slash'"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <button type="submit" class="w-full sm:w-auto mt-2 px-6 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-md hover:bg-brand-700 transition-colors disabled:opacity-50 flex items-center justify-center" :disabled="isProcessing">
                                         <i v-if="!isProcessing" class="ph-bold ph-floppy-disk mr-2 text-lg"></i>
@@ -722,36 +792,49 @@
                             <div class="p-5 sm:p-6 border-b border-slate-100 bg-indigo-50/50 relative z-10">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-envelope-simple text-xl"></i></div>Konfigurasi Email Notifikasi</h2>
-                                        <p class="text-xs text-slate-500 mt-1 ml-11">Atur email tujuan peringatan reorder untuk masing-masing gudang.</p>
+                                        <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-envelope-simple text-xl"></i></div>Konfigurasi Gudang (Email & PIC)</h2>
+                                        <p class="text-xs text-slate-500 mt-1 ml-11">Atur email tujuan peringatan reorder dan daftar nama PIC untuk dropdown scanner.</p>
                                     </div>
                                     <div class="bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-1 rounded border border-indigo-200">SUPER ADMIN</div>
                                 </div>
                             </div>
                             <div class="p-5 sm:p-6 relative z-10">
                                 <div class="space-y-4">
-                                    <div v-for="(set, index) in settingsData" :key="index" class="flex flex-col sm:flex-row gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl relative group">
-                                        <div class="flex-1">
-                                            <label class="block text-xs font-black uppercase text-slate-500 mb-1">Nama Gudang / Lokasi</label>
-                                            <input v-model="set.Location" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 uppercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="Cth: CIP STORE">
+                                    <div v-for="(set, index) in settingsData" :key="index" class="flex flex-col p-4 bg-slate-50 border border-slate-200 rounded-xl relative group gap-3">
+                                        
+                                        <!-- Baris Atas -->
+                                        <div class="flex flex-col sm:flex-row gap-3">
+                                            <div class="flex-1">
+                                                <label class="block text-xs font-black uppercase text-slate-500 mb-1">Nama Gudang / Lokasi</label>
+                                                <input v-model="set.Location" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 uppercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="Cth: CIP STORE">
+                                            </div>
+                                            <div class="flex-[2]">
+                                                <label class="block text-xs font-black uppercase text-slate-500 mb-1">Email Penerima Peringatan Stok</label>
+                                                <input v-model="set.EmailPIC" type="email" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-800 lowercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="email.pic@perusahaan.com">
+                                            </div>
                                         </div>
-                                        <div class="flex-[2]">
-                                            <label class="block text-xs font-black uppercase text-slate-500 mb-1">Email Penerima (PIC)</label>
-                                            <input v-model="set.EmailPIC" type="email" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-800 lowercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="email.pic@perusahaan.com">
+
+                                        <!-- Baris Bawah: Daftar Nama -->
+                                        <div class="flex flex-col sm:flex-row gap-3">
+                                            <div class="flex-[3]">
+                                                <label class="block text-xs font-black uppercase text-slate-500 mb-1 flex items-center"><i class="ph-fill ph-users mr-1"></i> Daftar Nama PIC (Pisahkan Dengan Koma)</label>
+                                                <input v-model="set.PICList" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 uppercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="Budi, Andi, Joko Santoso">
+                                                <p class="text-[10px] text-slate-400 mt-1">Nama-nama ini akan muncul sebagai dropdown di form Scan Opname Gudang terkait.</p>
+                                            </div>
+                                            <button @click="settingsData.splice(index, 1)" class="sm:self-start sm:mt-5 px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors border border-red-200 flex items-center justify-center shrink-0" title="Hapus Aturan">
+                                                <i class="ph-bold ph-trash text-lg mr-2 sm:mr-0"></i> <span class="sm:hidden text-xs font-bold">Hapus Gudang</span>
+                                            </button>
                                         </div>
-                                        <button @click="settingsData.splice(index, 1)" class="sm:self-end sm:mb-1 px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors border border-red-200 flex items-center justify-center" title="Hapus Aturan">
-                                            <i class="ph-bold ph-trash text-lg"></i>
-                                        </button>
                                     </div>
 
                                     <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                                        <button @click="settingsData.push({Location: '', EmailPIC: ''})" class="px-4 py-2 border-2 border-dashed border-indigo-300 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 font-bold text-sm rounded-xl transition-colors flex items-center justify-center w-full sm:w-auto">
-                                            <i class="ph-bold ph-plus mr-1.5"></i> Tambah Lokasi
+                                        <button @click="settingsData.push({Location: '', EmailPIC: '', PICList: ''})" class="px-4 py-2 border-2 border-dashed border-indigo-300 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 font-bold text-sm rounded-xl transition-colors flex items-center justify-center w-full sm:w-auto">
+                                            <i class="ph-bold ph-plus mr-1.5"></i> Tambah Gudang Baru
                                         </button>
                                         <button @click="submitSaveSettings" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center w-full sm:w-auto" :disabled="isProcessing">
                                             <i v-if="!isProcessing" class="ph-bold ph-floppy-disk mr-2 text-lg"></i>
                                             <i v-else class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i>
-                                            Simpan Konfigurasi Email
+                                            Simpan Konfigurasi
                                         </button>
                                     </div>
                                 </div>
@@ -762,88 +845,6 @@
                 </transition>
             </main>
         </div>
-
-        <!-- MOBILE BOTTOM NAVIGATION -->
-        <div v-if="isLoggedIn" class="sm:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-50 flex justify-around pb-safe">
-            <button @click="changeTab('dashboard')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='dashboard'?'text-brand-600':'text-slate-400'">
-                <i class="text-xl mb-1" :class="activeTab==='dashboard'?'ph-fill ph-chart-line-up':'ph-duotone ph-chart-line-up'"></i>
-                <span class="text-[8px] font-black tracking-wider uppercase">Dash</span>
-            </button>
-            <button @click="changeTab('scan')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='scan'?'text-brand-600':'text-slate-400'">
-                <i class="text-xl mb-1" :class="activeTab==='scan'?'ph-fill ph-barcode':'ph-duotone ph-barcode'"></i>
-                <span class="text-[8px] font-black tracking-wider uppercase">Opname</span>
-            </button>
-            <button @click="changeTab('recap')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='recap'?'text-brand-600':'text-slate-400'">
-                <i class="text-xl mb-1" :class="activeTab==='recap'?'ph-fill ph-list-numbers':'ph-duotone ph-list-numbers'"></i>
-                <span class="text-[8px] font-black tracking-wider uppercase">Rekap</span>
-            </button>
-            <button @click="changeTab('inventory')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='inventory'?'text-brand-600':'text-slate-400'">
-                <i class="text-xl mb-1" :class="activeTab==='inventory'?'ph-fill ph-database':'ph-duotone ph-database'"></i>
-                <span class="text-[8px] font-black tracking-wider uppercase">Master</span>
-            </button>
-            <button @click="changeTab('settings')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='settings'?'text-slate-800':'text-slate-400'">
-                <i class="text-xl mb-1" :class="activeTab==='settings'?'ph-fill ph-gear':'ph-duotone ph-gear'"></i>
-                <span class="text-[8px] font-black tracking-wider uppercase">Setting</span>
-            </button>
-        </div>
-
-        <!-- CRUD MODAL -->
-        <transition name="fade-slide">
-            <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm pb-20 sm:pb-0">
-                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-scale-in">
-                    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                        <h3 class="font-black text-lg text-slate-800 flex items-center"><div class="bg-brand-100 text-brand-600 p-1.5 rounded-lg mr-3"><i class="ph-bold text-xl" :class="isEditing ? 'ph-pencil-simple' : 'ph-plus-circle'"></i></div>{{ isEditing ? 'Edit Barang' : 'Tambah Barang' }}</h3>
-                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 bg-white hover:bg-red-50 p-2 rounded-xl transition-all" :disabled="isProcessing"><i class="ph-bold ph-x text-lg"></i></button>
-                    </div>
-                    <div class="p-5 overflow-y-auto bg-white max-h-[75vh]">
-                        <form @submit.prevent="saveItem" class="space-y-4">
-                            <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Barcode ID *</label>
-                                <input v-model="formItem.barcode" @input="formItem.barcode = formItem.barcode.toUpperCase()" type="text" required :disabled="isEditing || isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 font-mono uppercase text-slate-900 bg-white disabled:bg-slate-100 outline-none transition-colors">
-                            </div>
-                            <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Nama Barang *</label>
-                                <input v-model="formItem.name" @input="formItem.name = formItem.name.toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors uppercase" placeholder="Ketik nama barang...">
-                                <datalist id="itemNameList">
-                                    <option v-for="name in uniqueItemNames" :key="name" :value="name"></option>
-                                </datalist>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-xs font-black uppercase text-slate-600 mb-1">Lokasi Gudang *</label>
-                                <select v-model="formItem.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 font-bold bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-500 outline-none cursor-pointer transition-colors uppercase">
-                                    <option value="CIP Store">CIP Store</option>
-                                    <option value="Store Room">Store Room</option>
-                                </select>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Kategori</label>
-                                    <input v-model="formItem.category" @input="formItem.category = formItem.category.toUpperCase()" list="catList" :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 uppercase text-slate-900 bg-white outline-none transition-colors">
-                                    <datalist id="catList"><option value="CHEMICAL"></option><option value="CONSUMABLE"></option><option value="PACKAGING"></option></datalist>
-                                </div>
-                                <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Satuan</label>
-                                    <input v-model="formItem.unit" @input="formItem.unit = formItem.unit.toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors uppercase">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Stok Awal</label>
-                                    <input v-model.number="formItem.qty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors">
-                                </div>
-                                <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Min. Stok</label>
-                                    <input v-model.number="formItem.minQty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors">
-                                </div>
-                            </div>
-                            <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
-                                <button type="button" @click="closeModal" class="px-4 sm:px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm sm:text-base" :disabled="isProcessing">Batal</button>
-                                <button type="submit" class="px-4 sm:px-5 py-2.5 bg-brand-600 text-white rounded-xl font-black flex items-center shadow-lg shadow-brand-500/30 disabled:opacity-50 text-sm sm:text-base" :disabled="isProcessing">
-                                    <span v-if="isProcessing"><i class="ph ph-spinner animate-spin text-xl mr-2"></i> Memproses...</span>
-                                    <span v-else><i class="ph-bold ph-floppy-disk mr-2"></i> Simpan</span>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </transition>
 
     </div>
 
@@ -930,6 +931,7 @@
                 const formItem = ref({ barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: 'CIP Store' });
                 
                 const passwordForm = ref({ old: '', new: '', confirm: '' });
+                const showPass = ref({ login: false, old: false, new: false, confirm: false });
 
                 const excelFileInput = ref(null);
                 const historyFileInput = ref(null);
@@ -938,6 +940,10 @@
                 const trendFilter = ref('week'); 
                 let trendChartObj = null;
                 let categoryChartObj = null;
+
+                const selectedOperator = ref('');
+                const operatorFilter = ref('month');
+                let operatorChartObj = null;
 
                 const isSyncing = ref(false);
                 const isPreview = !GAS_API_URL || !GAS_API_URL.startsWith("http");
@@ -958,6 +964,22 @@
                 const uniqueItemNames = computed(() => {
                     const names = inventory.value.map(i => i.name ? i.name.toUpperCase() : '');
                     return [...new Set(names)].filter(Boolean);
+                });
+
+                const availablePicsForDropdown = computed(() => {
+                    let pics = [];
+                    const userLoc = currentUser.value.location.toUpperCase();
+                    if (userLoc === 'ALL') {
+                        settingsData.value.forEach(s => {
+                            if (s.PICList) pics.push(...s.PICList.split(',').map(p => p.trim().toUpperCase()));
+                        });
+                    } else {
+                        const setting = settingsData.value.find(s => String(s.Location).toUpperCase() === userLoc);
+                        if (setting && setting.PICList) {
+                            pics = setting.PICList.split(',').map(p => p.trim().toUpperCase());
+                        }
+                    }
+                    return [...new Set(pics)].filter(Boolean);
                 });
 
                 const baseInventory = computed(() => {
@@ -1123,10 +1145,30 @@
                     else selectedRecapItems.value.push(barcode);
                 };
 
+                // NEW: Reset All Filters
+                const resetFilters = () => {
+                    dashboardFilter.value = currentUser.value.location === 'ALL' ? 'ALL' : currentUser.value.location;
+                    selectedTrendItem.value = baseInventory.value.length > 0 ? baseInventory.value[0].barcode : '';
+                    trendFilter.value = 'week';
+                    selectedOperator.value = '';
+                    operatorFilter.value = 'month';
+                    searchQuery.value = '';
+                    recapSearchQuery.value = '';
+                    logSearchQuery.value = '';
+                    if (availableDates.value.length > 0) selectedRecapDate.value = availableDates.value[0];
+                    
+                    if (activeTab.value === 'dashboard') {
+                        nextTick(() => renderCharts());
+                    }
+                    showToast('Filter berhasil direset', 'success');
+                };
+
                 watch([invCurrentPage, searchQuery, invItemsPerPage], () => selectedInventoryItems.value = []);
                 watch([logCurrentPage, logSearchQuery, logItemsPerPage], () => selectedLogItems.value = []);
                 watch([recapCurrentPage, recapSearchQuery, selectedRecapDate, recapItemsPerPage], () => selectedRecapItems.value = []);
+                
                 watch(dashboardFilter, () => { if(activeTab.value === 'dashboard') renderCharts(); });
+                watch([selectedOperator, operatorFilter], () => { if(activeTab.value === 'dashboard') renderCharts(); });
 
                 const triggerLowStockAlert = () => {
                     const lowCount = lowStockItems.value.length;
@@ -1223,6 +1265,13 @@
                     } catch(e) {} finally { loading.value = false; }
                 };
 
+                // NEW: Refresh secara manual oleh user dari header
+                const manualRefresh = async () => {
+                    if (loading.value || isProcessing.value) return;
+                    await fetchData();
+                    showToast('Data Gudang Terbaru Ditarik', 'success');
+                };
+
                 const silentFetchData = async () => {
                     if (isPreview || !isLoggedIn.value || isProcessing.value || loading.value) return; 
                     if (selectedInventoryItems.value.length > 0 || selectedLogItems.value.length > 0 || selectedRecapItems.value.length > 0) return;
@@ -1275,88 +1324,186 @@
                     return { labels, data, itemName };
                 };
 
-                const renderCharts = () => {
-                    if (!document.getElementById('trendChart') || !document.getElementById('categoryChart')) return;
-                    Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif"; Chart.defaults.color = '#64748b';
-
-                    const tCtx = document.getElementById('trendChart').getContext('2d');
-                    if (trendChartObj) trendChartObj.destroy();
-                    const tData = processTrendData();
+                const processOperatorData = () => {
+                    const opName = selectedOperator.value || 'Pilih Petugas';
+                    const filter = operatorFilter.value;
+                    const now = new Date();
                     
-                    const gradientFill = tCtx.createLinearGradient(0, 0, 0, 300);
-                    gradientFill.addColorStop(0, 'rgba(14, 165, 233, 0.4)');
-                    gradientFill.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+                    const logs = selectedOperator.value 
+                        ? baseTransactions.value.filter(t => String(t.pic).toUpperCase() === opName.toUpperCase()) 
+                        : [];
 
-                    trendChartObj = new Chart(tCtx, {
-                        type: 'line',
-                        data: {
-                            labels: tData.labels,
-                            datasets: [{
-                                label: `Stok Aktual: ${tData.itemName}`, data: tData.data,
-                                borderColor: '#0ea5e9', backgroundColor: gradientFill,
-                                borderWidth: 3, pointBackgroundColor: '#0284c7', pointBorderColor: '#fff',
-                                pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, fill: true, tension: 0.4 
-                            }]
-                        },
-                        options: {
-                            responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30, right: 20 } },
-                            plugins: {
-                                legend: { display: true, position: 'top', labels: { usePointStyle: true, font: {weight: 'bold'} } },
-                                tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 12, titleFont: { size: 13 } },
-                                datalabels: { 
-                                    align: 'end', 
-                                    anchor: 'end', 
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                                    borderColor: '#0ea5e9',
-                                    borderWidth: 1,
-                                    borderRadius: 4, 
-                                    color: '#0f172a', 
-                                    font: { weight: 'bold', size: 11 }, 
-                                    formatter: Math.round, 
-                                    padding: { top: 4, bottom: 4, left: 6, right: 6 },
-                                    offset: 4
-                                }
-                            },
-                            scales: {
-                                y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9' }, title: { display: true, text: 'Jumlah Stok Fisik', font: { weight: 'bold' } } },
-                                x: { grid: { display: false }, title: { display: true, text: 'Rentang Waktu', font: { weight: 'bold' } } }
+                    const grouped = {};
+                    let cutoff = new Date();
+                    let isDaily = true;
+
+                    if (filter === 'week') cutoff.setDate(now.getDate() - 7);
+                    else if (filter === 'month') cutoff.setDate(now.getDate() - 30);
+                    else if (filter === 'year') { cutoff.setMonth(now.getMonth() - 12); isDaily = false; }
+                    else if (filter === 'all') { cutoff = new Date(2000, 0, 1); isDaily = false; }
+
+                    if (filter === 'week' || filter === 'month') {
+                        let daysCount = filter === 'week' ? 7 : 30;
+                        for(let i = daysCount - 1; i >= 0; i--) {
+                            let d = new Date(now);
+                            d.setDate(d.getDate() - i);
+                            grouped[d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })] = 0;
+                        }
+                    } else if (filter === 'year') {
+                        for(let i = 11; i >= 0; i--) {
+                            let d = new Date(now);
+                            d.setMonth(d.getMonth() - i);
+                            grouped[d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' })] = 0;
+                        }
+                    }
+
+                    logs.forEach(log => {
+                        const logDate = new Date(log.date);
+                        if (logDate >= cutoff) {
+                            let key = isDaily 
+                                ? logDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+                                : logDate.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
+                            
+                            if (filter === 'all') {
+                                if (grouped[key] === undefined) grouped[key] = 0;
+                                grouped[key]++;
+                            } else if (grouped[key] !== undefined) {
+                                grouped[key]++;
                             }
                         }
                     });
 
-                    const cCtx = document.getElementById('categoryChart').getContext('2d');
-                    if (categoryChartObj) categoryChartObj.destroy();
+                    let labels = [];
+                    let data = [];
 
-                    const categoryCounts = {};
-                    baseInventory.value.forEach(i => {
-                        const cat = i.category ? i.category.toUpperCase() : 'LAINNYA';
-                        categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
-                    });
-                    
-                    categoryChartObj = new Chart(cCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: Object.keys(categoryCounts),
-                            datasets: [{ data: Object.values(categoryCounts), backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b'], borderWidth: 0, hoverOffset: 4 }]
-                        },
-                        options: { 
-                            responsive: true, maintainAspectRatio: false, cutout: '65%', 
-                            plugins: { 
-                                legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true, font:{weight:'bold', size:10} } }, 
-                                datalabels: { 
-                                    display: true,
-                                    color: '#ffffff',
-                                    font: { weight: '900', size: 12 },
-                                    formatter: (value, ctx) => {
-                                        let sum = 0;
-                                        let dataArr = ctx.chart.data.datasets[0].data;
-                                        dataArr.map(data => { sum += data; });
-                                        return (value * 100 / sum).toFixed(0) + "%";
+                    if (filter === 'all') {
+                        labels = Object.keys(grouped).reverse(); 
+                        data = labels.map(l => grouped[l]);
+                    } else {
+                        labels = Object.keys(grouped);
+                        data = labels.map(l => grouped[l]);
+                    }
+
+                    return { labels, data, opName };
+                };
+
+                const renderCharts = () => {
+                    Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif"; Chart.defaults.color = '#64748b';
+
+                    if (document.getElementById('trendChart')) {
+                        const tCtx = document.getElementById('trendChart').getContext('2d');
+                        if (trendChartObj) trendChartObj.destroy();
+                        const tData = processTrendData();
+                        
+                        const gradientFill = tCtx.createLinearGradient(0, 0, 0, 300);
+                        gradientFill.addColorStop(0, 'rgba(14, 165, 233, 0.4)');
+                        gradientFill.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+
+                        trendChartObj = new Chart(tCtx, {
+                            type: 'line',
+                            data: {
+                                labels: tData.labels,
+                                datasets: [{
+                                    label: `Stok Aktual: ${tData.itemName}`, data: tData.data,
+                                    borderColor: '#0ea5e9', backgroundColor: gradientFill,
+                                    borderWidth: 3, pointBackgroundColor: '#0284c7', pointBorderColor: '#fff',
+                                    pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, fill: true, tension: 0.4 
+                                }]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30, right: 20 } },
+                                plugins: {
+                                    legend: { display: true, position: 'top', labels: { usePointStyle: true, font: {weight: 'bold'} } },
+                                    tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 12, titleFont: { size: 13 } },
+                                    datalabels: { 
+                                        align: 'end', anchor: 'end', backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                                        borderColor: '#0ea5e9', borderWidth: 1, borderRadius: 4, color: '#0f172a', 
+                                        font: { weight: 'bold', size: 11 }, formatter: Math.round, 
+                                        padding: { top: 4, bottom: 4, left: 6, right: 6 }, offset: 4
                                     }
+                                },
+                                scales: {
+                                    y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9' }, title: { display: true, text: 'Jumlah Stok Fisik', font: { weight: 'bold' } } },
+                                    x: { grid: { display: false }, title: { display: true, text: 'Rentang Waktu', font: { weight: 'bold' } } }
+                                }
+                            }
+                        });
+                    }
+
+                    if (document.getElementById('categoryChart')) {
+                        const cCtx = document.getElementById('categoryChart').getContext('2d');
+                        if (categoryChartObj) categoryChartObj.destroy();
+
+                        const categoryCounts = {};
+                        baseInventory.value.forEach(i => {
+                            const cat = i.category ? i.category.toUpperCase() : 'LAINNYA';
+                            categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+                        });
+                        
+                        categoryChartObj = new Chart(cCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: Object.keys(categoryCounts),
+                                datasets: [{ data: Object.values(categoryCounts), backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b'], borderWidth: 0, hoverOffset: 4 }]
+                            },
+                            options: { 
+                                responsive: true, maintainAspectRatio: false, cutout: '65%', 
+                                plugins: { 
+                                    legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true, font:{weight:'bold', size:10} } }, 
+                                    datalabels: { 
+                                        display: true, color: '#ffffff', font: { weight: '900', size: 12 },
+                                        formatter: (value, ctx) => {
+                                            let sum = 0;
+                                            let dataArr = ctx.chart.data.datasets[0].data;
+                                            dataArr.map(data => { sum += data; });
+                                            return (value * 100 / sum).toFixed(0) + "%";
+                                        }
+                                    } 
                                 } 
-                            } 
-                        }
-                    });
+                            }
+                        });
+                    }
+
+                    if (document.getElementById('operatorChart')) {
+                        const opCtx = document.getElementById('operatorChart').getContext('2d');
+                        if (operatorChartObj) operatorChartObj.destroy();
+                        const opData = processOperatorData();
+                        
+                        const gradientBar = opCtx.createLinearGradient(0, 0, 0, 300);
+                        gradientBar.addColorStop(0, 'rgba(13, 148, 136, 0.8)'); 
+                        gradientBar.addColorStop(1, 'rgba(45, 212, 191, 0.2)');
+
+                        operatorChartObj = new Chart(opCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: opData.labels,
+                                datasets: [{
+                                    label: `Total Scan Opname: ${opData.opName}`, data: opData.data,
+                                    backgroundColor: gradientBar,
+                                    borderColor: '#0d9488',
+                                    borderWidth: 1,
+                                    borderRadius: { topLeft: 4, topRight: 4 },
+                                    hoverBackgroundColor: '#0f766e'
+                                }]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30 } },
+                                plugins: {
+                                    legend: { display: true, position: 'top', labels: { usePointStyle: true, font: {weight: 'bold'} } },
+                                    tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 12, titleFont: { size: 13 } },
+                                    datalabels: { 
+                                        align: 'top', anchor: 'end', color: '#0d9488', 
+                                        font: { weight: 'bold', size: 11 }, formatter: (value) => value > 0 ? value : '', 
+                                        offset: 2
+                                    }
+                                },
+                                scales: {
+                                    y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9' }, title: { display: true, text: 'Jumlah Pemindaian', font: { weight: 'bold' } }, ticks: { stepSize: 1 } },
+                                    x: { grid: { display: false } }
+                                }
+                            }
+                        });
+                    }
                 };
 
                 const handleLogin = async () => {
@@ -1451,7 +1598,7 @@
                     try {
                         if (isPreview) {
                             await new Promise(r => setTimeout(r, 500));
-                            Swal.fire('Berhasil', 'Konfigurasi Email disimpan (Mock).', 'success');
+                            Swal.fire('Berhasil', 'Konfigurasi Gudang disimpan (Mock).', 'success');
                         } else {
                             const res = await apiCall('saveSettings', { settingsData: settingsData.value });
                             if (res && res.success) {
@@ -1466,7 +1613,7 @@
                 const handleScan = () => {
                     if (!scannedCode.value.trim()) return;
                     if (!opnamePic.value.trim()) {
-                        Swal.fire({ icon: 'warning', title: 'PIC Kosong', text: 'Harap isi Nama PIC / Petugas terlebih dahulu.' });
+                        Swal.fire({ icon: 'warning', title: 'PIC Belum Dipilih', text: 'Harap pilih Nama PIC / Petugas terlebih dahulu di form bagian atas.' });
                         return;
                     }
                     const scanStr = scannedCode.value.trim().toUpperCase();
@@ -1492,7 +1639,7 @@
 
                 const submitUpdate = async () => {
                     if (!activeItem.value || actualStock.value === '' || actualStock.value < 0 || typeof actualStock.value !== 'number') return;
-                    if (!opnamePic.value.trim()) { Swal.fire({ icon: 'warning', title: 'PIC Kosong', text: 'Harap isi Nama PIC / Petugas.' }); return; }
+                    if (!opnamePic.value.trim()) { Swal.fire({ icon: 'warning', title: 'PIC Kosong', text: 'Harap pilih Nama PIC / Petugas.' }); return; }
                     
                     isProcessing.value = true;
                     try {
@@ -1781,10 +1928,12 @@
                 return {
                     isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr,
                     activeTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
+                    manualRefresh, resetFilters, // 🟢 NEW FEATURES
                     inventory, transactions, settingsData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, availableLocations, opnamePic, savePicToLocal,
-                    uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch,
+                    uniquePics, uniqueItemNames, availablePicsForDropdown, showNotifMenu, goToInventoryAndSearch,
                     showModal, isEditing, formItem, excelFileInput, historyFileInput, selectedTrendItem, trendFilter, renderCharts,
+                    selectedOperator, operatorFilter,
                     searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
                     logSearchQuery, logSortKey, logSortAsc, logCurrentPage, logItemsPerPage, processedTransactions, paginatedTransactions, logTotalPages,
@@ -1794,7 +1943,7 @@
                     formatDate, formatDateString, handleScan, submitUpdate, openCamera, closeCamera, resetScanner,
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname,
                     exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
-                    passwordForm, submitChangePassword, submitSaveSettings
+                    passwordForm, showPass, submitChangePassword, submitSaveSettings
                 };
             }
         }).mount('#app');
