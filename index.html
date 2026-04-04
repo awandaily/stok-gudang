@@ -66,6 +66,17 @@
         input[type="password"]::-webkit-reveal {
             display: none !important;
         }
+
+        /* Styling Native Date Picker agar lebih Elegan */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+            filter: invert(0.5) sepia(1) saturate(5) hue-rotate(220deg); /* Memberi sentuhan warna pada icon kalender bawaan */
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
@@ -305,7 +316,6 @@
                                     <i class="ph-duotone ph-chart-line-up text-5xl text-slate-300 mb-3"></i>
                                     <p class="text-slate-500 font-medium mt-2 text-sm text-center px-4">Pilih barang pada dropdown di atas untuk melihat Trend Stok.</p>
                                 </div>
-                                <!-- FIX HEIGHT & RELATIVE POSITION FOR MOBILE RESIZING -->
                                 <div v-else class="relative w-full h-[300px] sm:h-[350px] px-2 z-10">
                                     <canvas id="trendChart"></canvas>
                                 </div>
@@ -340,7 +350,6 @@
                                 <i class="ph-duotone ph-users text-5xl text-slate-300 mb-3"></i>
                                 <p class="text-slate-500 font-medium mt-2 text-sm text-center px-4">Pilih nama petugas di atas untuk melihat riwayat aktivitas opname.</p>
                             </div>
-                            <!-- FIX HEIGHT & RELATIVE POSITION FOR MOBILE RESIZING -->
                             <div v-else class="relative w-full h-[250px] sm:h-[300px] z-10">
                                 <canvas id="operatorChart"></canvas>
                             </div>
@@ -490,23 +499,40 @@
                         </div>
                     </div>
 
-                    <!-- ================= TAB: REKAP HARIAN (TABLE) ================= -->
+                    <!-- ================= TAB: REKAP HARIAN (TABLE) - ENTERPRISE DESIGN ================= -->
                     <div v-else-if="activeTab === 'recap'" key="recap" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
-                                <div><h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800"><div class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-list-numbers text-xl sm:text-2xl"></i></div>Tabel Rekap Opname</h2></div>
-                                <div class="flex items-center space-x-3 w-full sm:w-auto bg-white p-2 rounded-xl border border-slate-200 shadow-sm focus-within:ring-2 focus-within:ring-brand-500 focus-within:bg-brand-50 transition-colors">
-                                    <i class="ph-duotone ph-calendar-blank text-xl text-slate-400 ml-2"></i>
-                                    <select v-model="selectedRecapDate" class="py-1.5 pr-8 border-none focus:ring-0 bg-transparent font-bold text-slate-800 text-sm cursor-pointer w-full sm:w-48 outline-none uppercase">
-                                        <option v-if="availableDates.length === 0" value="">Belum ada data</option>
-                                        <option v-for="date in availableDates" :key="date" :value="date">{{ formatDateString(date) }}</option>
-                                    </select>
+                            
+                            <!-- Header & Smart Filter Kalender -->
+                            <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 relative overflow-hidden">
+                                <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-calendar-check text-[10rem] text-purple-500"></i></div>
+                                <div class="relative z-10">
+                                    <h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800">
+                                        <div class="bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-2 rounded-xl mr-3 shadow-md"><i class="ph-bold ph-list-numbers text-xl sm:text-2xl"></i></div>
+                                        Tabel Rekap Opname
+                                    </h2>
+                                    <p class="text-xs text-slate-500 mt-1 ml-12">Ringkasan harian perubahan stok dan selisih (variance).</p>
+                                </div>
+                                
+                                <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto relative z-10">
+                                    <!-- Smart Date Chips -->
+                                    <div class="hidden md:flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+                                        <button @click="setRecapDate('today')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="isRecapToday ? 'bg-purple-100 text-purple-700' : 'text-slate-500 hover:bg-slate-50'">Hari Ini</button>
+                                        <button @click="setRecapDate('yesterday')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="isRecapYesterday ? 'bg-purple-100 text-purple-700' : 'text-slate-500 hover:bg-slate-50'">Kemarin</button>
+                                    </div>
+                                    <!-- Beautiful Date Picker -->
+                                    <div class="relative group w-full sm:w-auto">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                                            <i class="ph-duotone ph-calendar-blank text-purple-500 text-lg group-focus-within:text-purple-600 transition-colors"></i>
+                                        </div>
+                                        <input v-model="selectedRecapDate" type="date" class="bg-white border border-slate-200 text-slate-800 text-sm font-bold rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-50 block w-full pl-10 pr-4 py-2.5 shadow-sm transition-all outline-none cursor-pointer hover:border-purple-300">
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4" v-if="selectedRecapDate">
+                            <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4" v-if="selectedRecapDate && paginatedRecapSummary.length > 0">
                                 <div class="relative w-full sm:max-w-md">
-                                    <input v-model="recapSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 bg-slate-50 text-slate-800 font-medium transition-all outline-none uppercase">
+                                    <input v-model="recapSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-50 bg-slate-50 text-slate-800 font-medium transition-all outline-none uppercase">
                                     <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
                                     <button v-if="recapSearchQuery" @click="recapSearchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
                                 </div>
@@ -518,7 +544,7 @@
                                     </transition>
                                     <div class="flex items-center space-x-2 text-xs sm:text-sm font-bold text-slate-600">
                                         <span class="hidden sm:inline">Tampilkan:</span>
-                                        <select v-model.number="recapItemsPerPage" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-slate-800 bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none cursor-pointer transition-colors">
+                                        <select v-model.number="recapItemsPerPage" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-slate-800 bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-50 outline-none cursor-pointer transition-colors">
                                             <option value="10">10</option>
                                             <option value="25">25</option>
                                             <option value="50">50</option>
@@ -530,26 +556,66 @@
                             <div class="p-4 sm:p-6 pt-0 sm:pt-0 mt-4 sm:mt-6">
                                 <transition name="fade-slide" mode="out-in">
                                     <div v-if="selectedRecapDate">
-                                        <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                                        <div v-if="paginatedRecapSummary.length === 0" class="text-center py-16 px-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                                            <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-purple-50 mb-4 shadow-inner">
+                                                <i class="ph-duotone ph-calendar-x text-5xl text-purple-400"></i>
+                                            </div>
+                                            <h3 class="text-lg font-black text-slate-700 mb-1">Tidak Ada Opname</h3>
+                                            <p class="text-sm text-slate-500">Tidak ada data riwayat opname pada tanggal yang dipilih.</p>
+                                        </div>
+                                        <div v-else class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
                                             <table class="w-full text-left border-collapse whitespace-nowrap min-w-[700px]">
                                                 <thead>
                                                     <tr class="bg-slate-50 text-slate-500 text-[10px] sm:text-[11px] uppercase tracking-widest border-b border-slate-200 select-none">
-                                                        <th class="p-3 sm:p-4 w-10 sm:w-12 text-center"><input type="checkbox" @change="toggleAllRecaps" :checked="selectedRecapItems.length === paginatedRecapSummary.length && paginatedRecapSummary.length > 0" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></th>
-                                                        <th @click="toggleSort('recap', 'name')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 group">Nama Barang & Barcode <i class="ph-bold ml-1" :class="recapSortKey === 'name' ? (recapSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i></th>
-                                                        <th class="p-3 sm:p-4 font-black text-center group">PIC Petugas</th>
-                                                        <th @click="toggleSort('recap', 'firstOldQty')" class="p-3 sm:p-4 font-black text-center cursor-pointer hover:bg-slate-100 group">Stok Awal <i class="ph-bold ml-1" :class="recapSortKey === 'firstOldQty' ? (recapSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i></th>
-                                                        <th @click="toggleSort('recap', 'lastNewQty')" class="p-3 sm:p-4 font-bold text-center bg-brand-50/50 text-brand-700 cursor-pointer hover:bg-brand-100 group">Stok Final <i class="ph-bold ml-1" :class="recapSortKey === 'lastNewQty' ? (recapSortAsc ? 'ph-caret-up' : 'ph-caret-down') : 'ph-arrows-down-up opacity-50'"></i></th>
-                                                        <th @click="toggleSort('recap', 'totalVariance')" class="p-3 sm:p-4 font-black text-right cursor-pointer hover:bg-slate-100 group"><i class="ph-bold mr-1" :class="recapSortKey === 'totalVariance' ? (recapSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i> Total Selisih</th>
+                                                        <th class="p-3 sm:p-4 w-10 sm:w-12 text-center"><input type="checkbox" @change="toggleAllRecaps" :checked="selectedRecapItems.length === paginatedRecapSummary.length && paginatedRecapSummary.length > 0" class="rounded text-purple-600 w-4 h-4 cursor-pointer"></th>
+                                                        
+                                                        <!-- Smart Sort Headers -->
+                                                        <th @click="toggleSort('recap', 'name')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none">
+                                                            <div class="flex items-center gap-1.5">
+                                                                Nama Barang & Barcode
+                                                                <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="recapSortKey === 'name' ? 'bg-purple-100 text-purple-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
+                                                                    <i class="ph-bold" :class="recapSortKey === 'name' ? (recapSortAsc ? 'ph-caret-up' : 'ph-caret-down') : 'ph-arrows-down-up'"></i>
+                                                                </span>
+                                                            </div>
+                                                        </th>
+                                                        
+                                                        <th class="p-3 sm:p-4 font-black text-center">PIC Petugas</th>
+                                                        
+                                                        <th @click="toggleSort('recap', 'firstOldQty')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none">
+                                                            <div class="flex items-center justify-center gap-1.5">
+                                                                Stok Awal
+                                                                <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="recapSortKey === 'firstOldQty' ? 'bg-purple-100 text-purple-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
+                                                                    <i class="ph-bold" :class="recapSortKey === 'firstOldQty' ? (recapSortAsc ? 'ph-caret-up' : 'ph-caret-down') : 'ph-arrows-down-up'"></i>
+                                                                </span>
+                                                            </div>
+                                                        </th>
+                                                        
+                                                        <th @click="toggleSort('recap', 'lastNewQty')" class="p-3 sm:p-4 font-bold bg-purple-50/50 text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors group select-none">
+                                                            <div class="flex items-center justify-center gap-1.5">
+                                                                Stok Final
+                                                                <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="recapSortKey === 'lastNewQty' ? 'bg-white text-purple-600 shadow-sm' : 'bg-transparent text-purple-300 group-hover:bg-purple-200 group-hover:text-purple-600'">
+                                                                    <i class="ph-bold" :class="recapSortKey === 'lastNewQty' ? (recapSortAsc ? 'ph-caret-up' : 'ph-caret-down') : 'ph-arrows-down-up'"></i>
+                                                                </span>
+                                                            </div>
+                                                        </th>
+                                                        
+                                                        <th @click="toggleSort('recap', 'totalVariance')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none text-right">
+                                                            <div class="flex items-center justify-end gap-1.5">
+                                                                <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="recapSortKey === 'totalVariance' ? 'bg-purple-100 text-purple-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
+                                                                    <i class="ph-bold" :class="recapSortKey === 'totalVariance' ? (recapSortAsc ? 'ph-caret-up' : 'ph-caret-down') : 'ph-arrows-down-up'"></i>
+                                                                </span>
+                                                                Total Selisih
+                                                            </div>
+                                                        </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-slate-100 text-xs sm:text-sm bg-white">
-                                                    <tr v-if="paginatedRecapSummary.length === 0" class="text-center text-slate-500"><td colspan="6" class="p-10">Tidak ada data ditemukan.</td></tr>
-                                                    <tr v-for="summary in paginatedRecapSummary" :key="summary.barcode" class="hover:bg-slate-50 transition-colors group/row" :class="{'bg-brand-50/50': selectedRecapItems.includes(summary.barcode)}">
-                                                        <td class="p-3 sm:p-4 text-center"><input type="checkbox" :value="summary.barcode" v-model="selectedRecapItems" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></td>
+                                                    <tr v-for="summary in paginatedRecapSummary" :key="summary.barcode" class="hover:bg-slate-50 transition-colors group/row" :class="{'bg-purple-50/50': selectedRecapItems.includes(summary.barcode)}">
+                                                        <td class="p-3 sm:p-4 text-center"><input type="checkbox" :value="summary.barcode" v-model="selectedRecapItems" class="rounded text-purple-600 w-4 h-4 cursor-pointer"></td>
                                                         <td class="p-3 sm:p-4 cursor-pointer" @click="toggleRecapSelection(summary.barcode)"><div class="font-bold text-slate-800 uppercase">{{ summary.name }}</div><div class="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5 uppercase">{{ summary.barcode }}</div></td>
                                                         <td class="p-3 sm:p-4 text-center font-bold text-blue-700 uppercase">{{ summary.pic || '-' }}</td>
                                                         <td class="p-3 sm:p-4 text-center text-slate-500 font-medium">{{ summary.firstOldQty }}</td>
-                                                        <td class="p-3 sm:p-4 text-center font-black text-brand-700 bg-brand-50/30">{{ summary.lastNewQty }}</td>
+                                                        <td class="p-3 sm:p-4 text-center font-black text-purple-700 bg-purple-50/30">{{ summary.lastNewQty }}</td>
                                                         <td class="p-3 sm:p-4 text-right font-black">
                                                             <span v-if="summary.totalVariance === 0" class="text-slate-400 flex items-center justify-end"><i class="ph-fill ph-check-circle mr-1.5 text-green-500"></i> 0</span>
                                                             <span v-else :class="summary.totalVariance > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="inline-flex items-center justify-end px-2 py-1 rounded-lg">{{ summary.totalVariance > 0 ? '+' : '' }}{{ summary.totalVariance }}</span>
@@ -567,7 +633,13 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div v-else class="text-center py-12 text-slate-400 flex flex-col items-center"><i class="ph-duotone ph-calendar-blank text-6xl mb-4 text-slate-300"></i><p class="font-medium text-lg">Pilih tanggal di atas untuk melihat rekap.</p></div>
+                                    <div v-else class="text-center py-16 px-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-purple-50 mb-4 shadow-inner">
+                                            <i class="ph-duotone ph-calendar-blank text-5xl text-purple-400"></i>
+                                        </div>
+                                        <h3 class="text-lg font-black text-slate-700 mb-1">Pilih Tanggal</h3>
+                                        <p class="text-sm text-slate-500">Pilih tanggal di atas untuk melihat rekap opname.</p>
+                                    </div>
                                 </transition>
                             </div>
                         </div>
@@ -876,7 +948,6 @@
             </main>
         </div>
 
-        <!-- 🔴 FIX: 6 MENU MOBILE BOTTOM NAVIGATION (OVERFLOW HORIZONTAL) 🔴 -->
         <div v-if="isLoggedIn" class="sm:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-50 flex justify-between px-2 pb-safe overflow-x-auto hide-scrollbar gap-2">
             <button @click="changeTab('dashboard')" class="flex flex-col items-center justify-center py-2 px-1 flex-1 min-w-[50px] transition-colors active:bg-slate-50" :class="activeTab==='dashboard'?'text-brand-600':'text-slate-400'">
                 <i class="text-xl mb-1" :class="activeTab==='dashboard'?'ph-fill ph-chart-line-up':'ph-duotone ph-chart-line-up'"></i>
@@ -894,7 +965,6 @@
                 <i class="text-xl mb-1" :class="activeTab==='inventory'?'ph-fill ph-database':'ph-duotone ph-database'"></i>
                 <span class="text-[8px] font-black tracking-wider uppercase">Master</span>
             </button>
-            <!-- 🔴 FIX: MENU LOG HISTORY DI HP -->
             <button @click="changeTab('history')" class="flex flex-col items-center justify-center py-2 px-1 flex-1 min-w-[50px] transition-colors active:bg-slate-50" :class="activeTab==='history'?'text-brand-600':'text-slate-400'">
                 <i class="text-xl mb-1" :class="activeTab==='history'?'ph-fill ph-clock-counter-clockwise':'ph-duotone ph-clock-counter-clockwise'"></i>
                 <span class="text-[8px] font-black tracking-wider uppercase">Log</span>
@@ -1177,7 +1247,25 @@
                 const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
                 const showToast = (msg, type='success') => { Toast.fire({ icon: type, title: msg }); };
 
-                // 🔴 FIX: Memastikan chart render menunggu tab termount sempurna
+                // FUNGSI UNTUK QUICK CHIPS TANGGAL REKAP
+                const setRecapDate = (type) => {
+                    const d = new Date();
+                    if (type === 'yesterday') d.setDate(d.getDate() - 1);
+                    selectedRecapDate.value = d.toISOString().split('T')[0];
+                };
+
+                const isRecapToday = computed(() => {
+                    if (!selectedRecapDate.value) return false;
+                    return selectedRecapDate.value === new Date().toISOString().split('T')[0];
+                });
+
+                const isRecapYesterday = computed(() => {
+                    if (!selectedRecapDate.value) return false;
+                    const d = new Date();
+                    d.setDate(d.getDate() - 1);
+                    return selectedRecapDate.value === d.toISOString().split('T')[0];
+                });
+
                 const changeTab = (tab) => {
                     activeTab.value = tab;
                     isProcessing.value = false;
@@ -1258,10 +1346,32 @@
                 watch([logCurrentPage, logSearchQuery, logFilterDate, logFilterLocation, logFilterPic, logItemsPerPage], () => selectedLogItems.value = []);
                 watch([recapCurrentPage, recapSearchQuery, selectedRecapDate, recapItemsPerPage], () => selectedRecapItems.value = []);
                 
-                // 🔴 FIX: Memastikan chart dimuat ulang setiap ganti operator/tanggal
                 watch(dashboardFilter, () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
                 watch([selectedTrendItem, trendFilter], () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
                 watch([selectedOperator, operatorFilter], () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
+
+                const triggerLowStockAlert = () => {
+                    const lowCount = lowStockItems.value.length;
+                    if (lowCount > 0 && !hasNotifiedLowStock) {
+                        setTimeout(() => {
+                            Swal.fire({
+                                title: '⚠️ Alert Reorder!',
+                                html: `Terdapat <b style="color:#ef4444; font-size:1.2em;">${lowCount} barang</b> di gudang Anda yang sudah mencapai batas minimum stok.<br><br>Harap segera lakukan pengecekan dan pengajuan <b>REORDER</b>.`,
+                                icon: 'warning',
+                                confirmButtonText: 'Lihat Daftar Barang',
+                                confirmButtonColor: '#ef4444',
+                                showCancelButton: true,
+                                cancelButtonText: 'Tutup',
+                                allowOutsideClick: false
+                            }).then((result) => {
+                                if(result.isConfirmed) {
+                                    filterLowStockAndGo();
+                                }
+                            });
+                            hasNotifiedLowStock = true; 
+                        }, 500); 
+                    }
+                };
 
                 const resetIdleTimer = () => {
                     clearTimeout(idleTimeout);
@@ -1323,9 +1433,10 @@
                                 transactions.value = res.data.transactions;
                                 if (res.data.settings) settingsData.value = res.data.settings; 
 
-                                if (availableDates.value.length > 0) selectedRecapDate.value = availableDates.value[0];
+                                if (availableDates.value.length > 0 && !selectedRecapDate.value) selectedRecapDate.value = availableDates.value[0];
                                 if (baseInventory.value.length > 0 && !selectedTrendItem.value) selectedTrendItem.value = baseInventory.value[0].barcode;
                                 
+                                triggerLowStockAlert();
                                 if (activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50);
                             } else if (res && res.error !== "SESSION_EXPIRED") {
                                 Swal.fire({title: 'Koneksi Gagal', html: res?.error || 'Periksa koneksi database Anda', icon: 'error'});
@@ -1705,7 +1816,6 @@
                     if(activeTab.value === 'scan') nextTick(() => { if (barcodeInput.value) barcodeInput.value.focus(); }); 
                 };
 
-                // 🔴 FIX: ANIMASI SUCCESS ENTERPRISE SAAT OPNAME 🔴
                 const submitUpdate = async () => {
                     if (!activeItem.value || actualStock.value === '' || actualStock.value < 0 || typeof actualStock.value !== 'number') return;
                     if (!opnamePic.value.trim()) { Swal.fire({ icon: 'warning', title: 'PIC Kosong', text: 'Harap pilih Nama PIC / Petugas.' }); return; }
@@ -2029,7 +2139,8 @@
                     formatDate, formatDateString, handleScan, submitUpdate, openCamera, closeCamera, resetScanner,
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname,
                     exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
-                    passwordForm, showPass, submitChangePassword, submitSaveSettings
+                    passwordForm, showPass, submitChangePassword, submitSaveSettings,
+                    setRecapDate, isRecapToday, isRecapYesterday // 🔴 DITAMBAHKAN UNTUK SMART DATE CHIPS
                 };
             }
         }).mount('#app');
