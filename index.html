@@ -307,7 +307,7 @@
                             </div>
                         </div>
 
-                        <!-- CHARTS SECTION -->
+                        <!-- CHARTS SECTION - CANGGIH & BEAUTIFUL -->
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8">
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 lg:col-span-3 flex flex-col relative overflow-hidden">
                                 <div class="absolute -top-24 -right-24 w-64 h-64 bg-brand-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none"></div>
@@ -342,7 +342,7 @@
                             </div>
                         </div>
 
-                        <!-- TRACKER AKTIVITAS PIC -->
+                        <!-- 🔴 TRACKER AKTIVITAS PIC (OPERATOR) 🔴 -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-8 flex flex-col relative overflow-hidden">
                             <div class="absolute -left-24 -bottom-24 w-64 h-64 bg-teal-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none"></div>
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
@@ -519,7 +519,7 @@
                         </div>
                     </div>
 
-                    <!-- ================= TAB: REKAP HARIAN (TABLE) ================= -->
+                    <!-- ================= TAB: REKAP HARIAN (TABLE) - ENTERPRISE DESIGN ================= -->
                     <div v-else-if="activeTab === 'recap'" key="recap" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                             
@@ -585,7 +585,7 @@
                                             <p class="text-sm text-slate-500">Tidak ada data riwayat opname pada rentang tanggal yang dipilih.</p>
                                         </div>
                                         <div v-else class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-                                            <div v-if="selectedRecapDate.includes(' to ')" class="px-4 py-2 bg-purple-50 border-b border-purple-100 text-xs font-bold text-purple-700 flex items-center">
+                                            <div v-if="selectedRecapDate.includes(' to ') || selectedRecapDate.includes(' - ')" class="px-4 py-2 bg-purple-50 border-b border-purple-100 text-xs font-bold text-purple-700 flex items-center">
                                                 <i class="ph-fill ph-info mr-2"></i> Menampilkan agregasi data gabungan dari rentang tanggal yang dipilih.
                                             </div>
                                             <table class="w-full text-left border-collapse whitespace-nowrap min-w-[700px]">
@@ -771,7 +771,7 @@
 
                             <!-- 🔴 SMART FILTER ENTERPRISE UNTUK LOG HISTORY 🔴 -->
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row gap-4 items-end">
-                                <!-- Filter Tanggal -->
+                                <!-- Filter Tanggal (Flatpickr Range) -->
                                 <div class="w-full sm:w-auto flex-1">
                                     <label class="block text-xs font-black uppercase text-slate-500 mb-1 flex justify-between items-end">
                                         <span>Berdasarkan Tanggal</span>
@@ -839,7 +839,7 @@
 
                             <div class="overflow-x-auto">
                                 <!-- Notifikasi Rentang Tanggal -->
-                                <div v-if="logFilterDate && logFilterDate.includes(' to ')" class="px-6 py-2 bg-orange-50 border-b border-orange-100 text-xs font-bold text-orange-700 flex items-center">
+                                <div v-if="logFilterDate && (logFilterDate.includes(' to ') || logFilterDate.includes(' - '))" class="px-6 py-2 bg-orange-50 border-b border-orange-100 text-xs font-bold text-orange-700 flex items-center">
                                     <i class="ph-fill ph-info mr-2"></i> Menampilkan riwayat transaksi dari rentang tanggal yang dipilih.
                                 </div>
                                 <table class="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
@@ -1263,11 +1263,18 @@
                     const day = String(d.getDate()).padStart(2, '0');
                     const localDateStr = `${year}-${month}-${day}`;
 
+                    let startStr, endStr;
                     if (rangeStr.includes(' to ')) {
-                        const [startStr, endStr] = rangeStr.split(' to ');
+                        [startStr, endStr] = rangeStr.split(' to ');
+                    } else if (rangeStr.includes(' - ')) {
+                        [startStr, endStr] = rangeStr.split(' - ');
+                    }
+
+                    if (startStr && endStr) {
                         return localDateStr >= startStr && localDateStr <= endStr;
                     } else {
-                        return localDateStr === rangeStr;
+                        const singleDate = startStr || rangeStr;
+                        return localDateStr === singleDate;
                     }
                 };
 
@@ -1362,8 +1369,14 @@
                 
                 const formatDateString = (dateStr) => {
                     if (!dateStr) return '';
+                    let s, e;
                     if (dateStr.includes(' to ')) {
-                        const [s, e] = dateStr.split(' to ');
+                        [s, e] = dateStr.split(' to ');
+                    } else if (dateStr.includes(' - ')) {
+                        [s, e] = dateStr.split(' - ');
+                    }
+                    
+                    if (s && e) {
                         return `${new Date(s).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} - ${new Date(e).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}`;
                     }
                     return new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
@@ -1405,7 +1418,7 @@
                     }
                     
                     const formatStr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                    const dateStr = start.getTime() === end.getTime() ? formatStr(start) : `${formatStr(start)} to ${formatStr(end)}`;
+                    const dateStr = start.getTime() === end.getTime() ? formatStr(start) : `${formatStr(start)} - ${formatStr(end)}`;
                     
                     if (targetState === 'recap') {
                         selectedRecapDate.value = dateStr;
@@ -1430,22 +1443,17 @@
                     return selectedRecapDate.value === yestStr;
                 });
 
-                const changeTab = (tab) => {
+                const changeTab = async (tab) => {
                     activeTab.value = tab;
                     isProcessing.value = false;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     
-                    // Gunakan setTimeout agar DOM selesai melakukan animasi transisi (fade-slide) 
-                    // sebelum Chart atau Kalender digambar dan elemen input terdeteksi (350ms)
-                    setTimeout(() => {
-                        if (tab === 'dashboard') {
-                            renderCharts();
-                        }
-                        if (tab === 'recap' || tab === 'history') {
-                            initFlatpickr(); 
-                        }
-                    }, 350); 
-                    
+                    if (tab === 'dashboard') {
+                        setTimeout(() => { nextTick(() => renderCharts()); }, 50);
+                    }
+                    if (tab === 'recap' || tab === 'history') {
+                        await nextTick(); initFlatpickr(); 
+                    }
                     if (tab === 'scan') resetScanner();
                     if (tab === 'settings') { passwordForm.value = { old: '', new: '', confirm: '' }; }
                 };
@@ -2315,7 +2323,7 @@
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname,
                     exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings,
-                    setDateRange, isRecapToday, isRecapYesterday, // FIX: Memperbaiki nama fungsi yang diekspor
+                    setDateRange, isRecapToday, isRecapYesterday,
                     recapDateInput, logDateInput
                 };
             }
