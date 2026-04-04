@@ -76,8 +76,8 @@
         <transition name="fade-slide">
             <div v-if="loading && isLoggedIn" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
                 <i class="ph ph-spinner animate-spin text-6xl text-brand-600 mb-4"></i>
-                <h2 class="text-xl font-black text-slate-800">Menarik Data Database...</h2>
-                <p class="text-slate-500 font-medium text-sm mt-2">Mohon tunggu sebentar.</p>
+                <h2 class="text-xl font-black text-slate-800">Sistem Autentikasi...</h2>
+                <p class="text-slate-500 font-medium text-sm mt-2">Memeriksa koneksi aman.</p>
             </div>
         </transition>
 
@@ -88,12 +88,17 @@
                 <div class="absolute bottom-20 right-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse-slow" style="animation-delay: 1s;"></div>
                 
                 <div class="glass p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 animate-scale-in border border-white/20">
-                    <div class="text-center mb-8">
-                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-lg mb-4 transform hover:rotate-12 transition-transform duration-300">
+                    <div class="text-center mb-6">
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-lg mb-4 transform hover:rotate-12 transition-transform duration-300 relative">
                             <i class="ph-duotone ph-buildings text-5xl"></i>
+                            <div class="absolute -bottom-2 -right-2 bg-green-500 text-white p-1 rounded-full shadow-md border-2 border-white"><i class="ph-fill ph-lock-key text-sm"></i></div>
                         </div>
                         <h1 class="text-3xl font-black text-slate-800 tracking-tight">Stok <span class="text-brand-600">Gudang</span></h1>
                         <p class="text-slate-500 text-sm mt-2 font-medium">Sistem Monitoring & Opname Terpadu</p>
+                    </div>
+                    
+                    <div class="flex items-center justify-center space-x-2 text-[10px] text-brand-600 font-black uppercase tracking-widest bg-brand-50 py-1.5 rounded-lg mb-6 border border-brand-100">
+                        <i class="ph-fill ph-shield-check text-base"></i> Enterprise Secure Login
                     </div>
 
                     <form @submit.prevent="handleLogin" class="space-y-5">
@@ -118,7 +123,7 @@
                         </div>
 
                         <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white rounded-xl font-bold shadow-lg shadow-brand-500/30 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center" :disabled="isProcessing">
-                            <span v-if="isProcessing"><i class="ph ph-spinner animate-spin text-xl mr-2"></i> Memuat...</span>
+                            <span v-if="isProcessing"><i class="ph ph-spinner animate-spin text-xl mr-2"></i> Mengenkripsi...</span>
                             <span v-else class="flex items-center">Login ke Sistem <i class="ph-bold ph-arrow-right ml-2"></i></span>
                         </button>
                     </form>
@@ -141,18 +146,16 @@
                         <div class="flex items-center space-x-2 sm:space-x-5">
                             <div class="flex items-center bg-green-500/20 px-2.5 py-1.5 rounded-lg border border-green-500/30">
                                 <div class="w-2 h-2 rounded-full bg-green-400 sm:mr-2" :class="{'animate-pulse': isSyncing}"></div>
-                                <span class="text-[10px] font-black text-green-300 tracking-widest hidden sm:block">SYNC</span>
+                                <span class="text-[10px] font-black text-green-300 tracking-widest hidden sm:block">{{ isSyncing ? 'LIVE' : 'SYNC' }}</span>
                             </div>
 
-                            <!-- Lonceng Notifikasi ala E-Commerce -->
+                            <!-- Lonceng Notifikasi -->
                             <div class="relative cursor-pointer" @click="showNotifMenu = !showNotifMenu">
                                 <div class="p-2 bg-black/20 hover:bg-black/30 rounded-xl transition-colors relative text-white">
                                     <i class="ph-duotone ph-bell text-xl sm:text-2xl"></i>
                                     <span v-if="lowStockItems.length > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-brand-900 shadow-sm animate-pulse">{{ lowStockItems.length }}</span>
                                 </div>
-                                <!-- Overlay untuk close click luar -->
                                 <div v-if="showNotifMenu" class="fixed inset-0 z-40" @click.stop="showNotifMenu = false" style="width:100vw; height:100vh;"></div>
-                                <!-- Menu Dropdown -->
                                 <transition name="fade-slide">
                                     <div v-if="showNotifMenu" class="absolute right-0 mt-3 w-[300px] sm:w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 origin-top-right" @click.stop>
                                         <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
@@ -161,7 +164,6 @@
                                         </div>
                                         <div class="max-h-64 overflow-y-auto custom-scrollbar">
                                             <div v-if="lowStockItems.length === 0" class="p-6 text-center text-slate-400 text-sm font-medium">Stok dalam kondisi aman.</div>
-                                            <!-- List Item -->
                                             <div v-for="item in lowStockItems" :key="item.barcode" class="p-3 border-b border-slate-50 hover:bg-red-50/50 transition-colors flex items-start gap-3 cursor-pointer group" @click="goToInventoryAndSearch(item.barcode)">
                                                 <div class="bg-red-100 text-red-500 p-2 rounded-lg group-hover:bg-red-500 group-hover:text-white transition-colors"><i class="ph-fill ph-package text-lg"></i></div>
                                                 <div class="flex-1 overflow-hidden">
@@ -190,7 +192,7 @@
                                     <span class="text-[9px] sm:text-xs text-brand-200 leading-tight uppercase truncate">{{ currentUser.location }}</span>
                                 </div>
                             </div>
-                            <button @click="logout" class="p-2 bg-red-500/10 text-red-200 hover:bg-red-500 hover:text-white rounded-xl transition-all" title="Logout">
+                            <button @click="logout(false)" class="p-2 bg-red-500/10 text-red-200 hover:bg-red-500 hover:text-white rounded-xl transition-all" title="Logout">
                                 <i class="ph-bold ph-sign-out text-xl"></i>
                             </button>
                         </div>
@@ -206,6 +208,9 @@
                     <button @click="changeTab('recap')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'recap' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-list-numbers text-xl mr-2" :class="activeTab==='recap'?'text-brand-100':''"></i> Rekap Tabel</button>
                     <button @click="changeTab('inventory')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'inventory' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-database text-xl mr-2" :class="activeTab==='inventory'?'text-brand-100':''"></i> Master Data</button>
                     <button @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2" :class="activeTab==='history'?'text-brand-100':''"></i> Log History</button>
+                    
+                    <!-- NEW: TAB PENGATURAN -->
+                    <button @click="changeTab('settings')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap ml-auto" :class="activeTab === 'settings' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-gear text-xl mr-2"></i> Pengaturan</button>
                 </div>
 
                 <transition name="fade-slide" mode="out-in">
@@ -254,21 +259,24 @@
                             </div>
                         </div>
 
+                        <!-- CHARTS SECTION -->
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8">
-                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 lg:col-span-3 flex flex-col">
-                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 lg:col-span-3 flex flex-col relative overflow-hidden">
+                                <div class="absolute -top-24 -right-24 w-64 h-64 bg-brand-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none"></div>
+                                
+                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
                                     <h3 class="font-bold text-slate-800 flex items-center text-lg">
                                         <div class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-trend-up text-xl"></i></div>
                                         Trend Stok Aktual Barang
                                     </h3>
                                     <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                                         <div class="relative w-full sm:w-64">
-                                            <input v-model="selectedTrendItem" list="inventoryList" @change="renderCharts" placeholder="Ketik barcode/nama..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-all uppercase">
+                                            <input v-model="selectedTrendItem" list="inventoryList" @change="renderCharts" placeholder="Ketik barcode/nama..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm outline-none transition-all uppercase">
                                             <datalist id="inventoryList">
                                                 <option v-for="item in baseInventory" :key="item.barcode" :value="item.barcode">{{ item.name }}</option>
                                             </datalist>
                                         </div>
-                                        <select v-model="trendFilter" @change="renderCharts" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none w-full sm:w-auto cursor-pointer transition-all">
+                                        <select v-model="trendFilter" @change="renderCharts" class="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm outline-none w-full sm:w-auto cursor-pointer transition-all">
                                             <option value="day">7 Hari Terakhir</option>
                                             <option value="week">4 Minggu Terakhir</option>
                                             <option value="month">12 Bulan Terakhir</option>
@@ -276,47 +284,48 @@
                                     </div>
                                 </div>
                                 
-                                <div v-if="!selectedTrendItem || !baseInventory.find(i => i.barcode === selectedTrendItem)" class="flex-1 flex flex-col items-center justify-center min-h-[300px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                                <div v-if="!selectedTrendItem || !baseInventory.find(i => i.barcode === selectedTrendItem)" class="flex-1 flex flex-col items-center justify-center min-h-[300px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200 relative z-10">
                                     <i class="ph-duotone ph-chart-line-up text-5xl text-slate-300 mb-3"></i>
                                     <p class="text-slate-500 font-medium mt-2 text-sm text-center px-4">Pilih barang pada dropdown di atas untuk melihat Trend Stok.</p>
                                 </div>
-                                <div v-else class="relative flex-1 min-h-[300px] px-2 w-full">
+                                <div v-else class="relative flex-1 min-h-[300px] px-2 w-full z-10">
                                     <canvas id="trendChart"></canvas>
                                 </div>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-10">
-                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col">
-                                <h3 class="font-bold text-slate-800 mb-6 flex items-center text-lg">
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col relative overflow-hidden">
+                                <h3 class="font-bold text-slate-800 mb-6 flex items-center text-lg relative z-10">
                                     <div class="bg-blue-100 text-blue-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-chart-pie-slice text-xl"></i></div>
                                     Distribusi Stok per Kategori
                                 </h3>
-                                <div class="relative flex-1 min-h-[250px] flex items-center justify-center">
+                                <div class="relative flex-1 min-h-[250px] flex items-center justify-center z-10">
                                     <canvas id="categoryChart"></canvas>
                                 </div>
                             </div>
-                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
-                                <h3 class="font-bold text-slate-800 mb-5 flex items-center text-lg">
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 relative overflow-hidden">
+                                <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-yellow-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none"></div>
+                                <h3 class="font-bold text-slate-800 mb-5 flex items-center text-lg relative z-10">
                                     <div class="bg-yellow-100 text-yellow-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-lightning text-xl"></i></div>
                                     Aksi Cepat & Ekspor
                                 </h3>
-                                <div class="grid grid-cols-1 gap-4">
-                                    <button @click="changeTab('scan')" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-brand-400 hover:bg-brand-50 hover:shadow-md transition-all group">
+                                <div class="grid grid-cols-1 gap-4 relative z-10">
+                                    <button @click="changeTab('scan')" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-brand-400 hover:bg-brand-50 hover:shadow-md transition-all group bg-white">
                                         <div class="flex items-center">
                                             <div class="bg-brand-100 p-3 rounded-xl text-brand-600 mr-4 group-hover:bg-brand-600 group-hover:text-white transition-colors shadow-sm"><i class="ph-duotone ph-barcode text-2xl"></i></div>
                                             <div class="text-left"><h4 class="font-bold text-slate-800">Mulai Stock Opname</h4><p class="text-xs text-slate-500">Scan via Kamera/Input Manual</p></div>
                                         </div>
                                         <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-brand-500 group-hover:translate-x-1 transition-all"></i>
                                     </button>
-                                    <button @click="changeTab('inventory'); openAddModal()" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-green-400 hover:bg-green-50 hover:shadow-md transition-all group">
+                                    <button @click="changeTab('inventory'); openAddModal()" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-green-400 hover:bg-green-50 hover:shadow-md transition-all group bg-white">
                                         <div class="flex items-center">
                                             <div class="bg-green-100 p-3 rounded-xl text-green-600 mr-4 group-hover:bg-green-600 group-hover:text-white transition-colors shadow-sm"><i class="ph-duotone ph-plus-circle text-2xl"></i></div>
                                             <div class="text-left"><h4 class="font-bold text-slate-800">Tambah Data Master</h4><p class="text-xs text-slate-500">Daftarkan item baru ke gudang</p></div>
                                         </div>
                                         <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-green-500 group-hover:translate-x-1 transition-all"></i>
                                     </button>
-                                    <button @click="exportExcel" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md transition-all group">
+                                    <button @click="exportExcel" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md transition-all group bg-white">
                                         <div class="flex items-center">
                                             <div class="bg-indigo-100 p-3 rounded-xl text-indigo-600 mr-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors shadow-sm"><i class="ph-duotone ph-file-xls text-2xl"></i></div>
                                             <div class="text-left"><h4 class="font-bold text-slate-800">Download Laporan Excel</h4><p class="text-xs text-slate-500">Unduh master data barang terkini</p></div>
@@ -538,7 +547,6 @@
                                         </button>
                                     </transition>
                                     
-                                    <!-- Smart Filter Lokasi khusus Admin -->
                                     <select v-if="currentUser.role === 'Super Admin'" v-model="dashboardFilter" class="py-1.5 pl-3 pr-8 border border-slate-300 rounded-lg text-brand-700 bg-brand-50 focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer transition-colors text-xs font-bold shadow-sm hidden sm:block uppercase">
                                         <option value="ALL">📍 Semua Gudang</option>
                                         <option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option>
@@ -675,31 +683,107 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ================= TAB: PENGATURAN (SETTINGS) ENTERPRISE ================= -->
+                    <div v-else-if="activeTab === 'settings'" key="settings" class="max-w-4xl mx-auto mb-10 space-y-6">
+                        
+                        <!-- Panel 1: Keamanan Akun (Ganti Password) -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="p-5 sm:p-6 border-b border-slate-100 bg-slate-50">
+                                <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-brand-100 text-brand-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-shield-check text-xl"></i></div>Keamanan Akun</h2>
+                                <p class="text-xs text-slate-500 mt-1 ml-11">Kelola kata sandi akun Anda ({{ currentUser.username }}).</p>
+                            </div>
+                            <div class="p-5 sm:p-6">
+                                <form @submit.prevent="submitChangePassword" class="space-y-4 max-w-md">
+                                    <div>
+                                        <label class="block text-xs font-black uppercase text-slate-600 mb-1">Password Lama</label>
+                                        <input v-model="passwordForm.old" type="password" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black uppercase text-slate-600 mb-1">Password Baru</label>
+                                        <input v-model="passwordForm.new" type="password" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black uppercase text-slate-600 mb-1">Konfirmasi Password Baru</label>
+                                        <input v-model="passwordForm.confirm" type="password" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                    </div>
+                                    <button type="submit" class="w-full sm:w-auto mt-2 px-6 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-md hover:bg-brand-700 transition-colors disabled:opacity-50 flex items-center justify-center" :disabled="isProcessing">
+                                        <i v-if="!isProcessing" class="ph-bold ph-floppy-disk mr-2 text-lg"></i>
+                                        <i v-else class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i>
+                                        Update Password
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Panel 2: Manajemen Email PIC Khusus Super Admin -->
+                        <div v-if="currentUser.role === 'Super Admin'" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+                            <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-envelope text-[15rem] text-indigo-500"></i></div>
+                            <div class="p-5 sm:p-6 border-b border-slate-100 bg-indigo-50/50 relative z-10">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-envelope-simple text-xl"></i></div>Konfigurasi Email Notifikasi</h2>
+                                        <p class="text-xs text-slate-500 mt-1 ml-11">Atur email tujuan peringatan reorder untuk masing-masing gudang.</p>
+                                    </div>
+                                    <div class="bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-1 rounded border border-indigo-200">SUPER ADMIN</div>
+                                </div>
+                            </div>
+                            <div class="p-5 sm:p-6 relative z-10">
+                                <div class="space-y-4">
+                                    <div v-for="(set, index) in settingsData" :key="index" class="flex flex-col sm:flex-row gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl relative group">
+                                        <div class="flex-1">
+                                            <label class="block text-xs font-black uppercase text-slate-500 mb-1">Nama Gudang / Lokasi</label>
+                                            <input v-model="set.Location" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 uppercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="Cth: CIP STORE">
+                                        </div>
+                                        <div class="flex-[2]">
+                                            <label class="block text-xs font-black uppercase text-slate-500 mb-1">Email Penerima (PIC)</label>
+                                            <input v-model="set.EmailPIC" type="email" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-800 lowercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="email.pic@perusahaan.com">
+                                        </div>
+                                        <button @click="settingsData.splice(index, 1)" class="sm:self-end sm:mb-1 px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors border border-red-200 flex items-center justify-center" title="Hapus Aturan">
+                                            <i class="ph-bold ph-trash text-lg"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                                        <button @click="settingsData.push({Location: '', EmailPIC: ''})" class="px-4 py-2 border-2 border-dashed border-indigo-300 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 font-bold text-sm rounded-xl transition-colors flex items-center justify-center w-full sm:w-auto">
+                                            <i class="ph-bold ph-plus mr-1.5"></i> Tambah Lokasi
+                                        </button>
+                                        <button @click="submitSaveSettings" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center w-full sm:w-auto" :disabled="isProcessing">
+                                            <i v-if="!isProcessing" class="ph-bold ph-floppy-disk mr-2 text-lg"></i>
+                                            <i v-else class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i>
+                                            Simpan Konfigurasi Email
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
                 </transition>
             </main>
         </div>
 
         <!-- MOBILE BOTTOM NAVIGATION -->
         <div v-if="isLoggedIn" class="sm:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-50 flex justify-around pb-safe">
-            <button @click="changeTab('dashboard')" class="flex flex-col items-center justify-center py-2.5 px-2 w-full transition-colors active:bg-slate-50" :class="activeTab==='dashboard'?'text-brand-600':'text-slate-400'">
-                <i class="text-2xl mb-1" :class="activeTab==='dashboard'?'ph-fill ph-chart-line-up':'ph-duotone ph-chart-line-up'"></i>
-                <span class="text-[9px] font-black tracking-wider uppercase">Dash</span>
+            <button @click="changeTab('dashboard')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='dashboard'?'text-brand-600':'text-slate-400'">
+                <i class="text-xl mb-1" :class="activeTab==='dashboard'?'ph-fill ph-chart-line-up':'ph-duotone ph-chart-line-up'"></i>
+                <span class="text-[8px] font-black tracking-wider uppercase">Dash</span>
             </button>
-            <button @click="changeTab('scan')" class="flex flex-col items-center justify-center py-2.5 px-2 w-full transition-colors active:bg-slate-50" :class="activeTab==='scan'?'text-brand-600':'text-slate-400'">
-                <i class="text-2xl mb-1" :class="activeTab==='scan'?'ph-fill ph-barcode':'ph-duotone ph-barcode'"></i>
-                <span class="text-[9px] font-black tracking-wider uppercase">Opname</span>
+            <button @click="changeTab('scan')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='scan'?'text-brand-600':'text-slate-400'">
+                <i class="text-xl mb-1" :class="activeTab==='scan'?'ph-fill ph-barcode':'ph-duotone ph-barcode'"></i>
+                <span class="text-[8px] font-black tracking-wider uppercase">Opname</span>
             </button>
-            <button @click="changeTab('recap')" class="flex flex-col items-center justify-center py-2.5 px-2 w-full transition-colors active:bg-slate-50" :class="activeTab==='recap'?'text-brand-600':'text-slate-400'">
-                <i class="text-2xl mb-1" :class="activeTab==='recap'?'ph-fill ph-list-numbers':'ph-duotone ph-list-numbers'"></i>
-                <span class="text-[9px] font-black tracking-wider uppercase">Rekap</span>
+            <button @click="changeTab('recap')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='recap'?'text-brand-600':'text-slate-400'">
+                <i class="text-xl mb-1" :class="activeTab==='recap'?'ph-fill ph-list-numbers':'ph-duotone ph-list-numbers'"></i>
+                <span class="text-[8px] font-black tracking-wider uppercase">Rekap</span>
             </button>
-            <button @click="changeTab('inventory')" class="flex flex-col items-center justify-center py-2.5 px-2 w-full transition-colors active:bg-slate-50" :class="activeTab==='inventory'?'text-brand-600':'text-slate-400'">
-                <i class="text-2xl mb-1" :class="activeTab==='inventory'?'ph-fill ph-database':'ph-duotone ph-database'"></i>
-                <span class="text-[9px] font-black tracking-wider uppercase">Master</span>
+            <button @click="changeTab('inventory')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='inventory'?'text-brand-600':'text-slate-400'">
+                <i class="text-xl mb-1" :class="activeTab==='inventory'?'ph-fill ph-database':'ph-duotone ph-database'"></i>
+                <span class="text-[8px] font-black tracking-wider uppercase">Master</span>
             </button>
-            <button @click="changeTab('history')" class="flex flex-col items-center justify-center py-2.5 px-2 w-full transition-colors active:bg-slate-50" :class="activeTab==='history'?'text-brand-600':'text-slate-400'">
-                <i class="text-2xl mb-1" :class="activeTab==='history'?'ph-fill ph-clock-counter-clockwise':'ph-duotone ph-clock-counter-clockwise'"></i>
-                <span class="text-[9px] font-black tracking-wider uppercase">Log</span>
+            <button @click="changeTab('settings')" class="flex flex-col items-center justify-center py-2 px-1 w-full transition-colors active:bg-slate-50" :class="activeTab==='settings'?'text-slate-800':'text-slate-400'">
+                <i class="text-xl mb-1" :class="activeTab==='settings'?'ph-fill ph-gear':'ph-duotone ph-gear'"></i>
+                <span class="text-[8px] font-black tracking-wider uppercase">Setting</span>
             </button>
         </div>
 
@@ -776,19 +860,26 @@
         
         try { Chart.register(ChartDataLabels); } catch(e) { console.warn("ChartJS plugin skipped."); }
         
+        // -------------------------------------------------------------
+        // WAJIB TEMPELKAN URL WEB APP ANDA DI BAWAH INI
+        // -------------------------------------------------------------
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
 
         createApp({
             setup() {
                 const isLoggedIn = ref(false);
                 const currentUser = ref({ username: '', role: '', location: '' });
+                const authToken = ref(null); 
+                
                 const loginForm = ref({ username: '', password: '' });
                 const loginError = ref('');
                 const currentTime = ref(new Date());
+                
                 let timerInterval;
+                let syncInterval;
+                let idleTimeout; 
 
                 let hasNotifiedLowStock = false;
-                
                 const showNotifMenu = ref(false);
 
                 const activeTab = ref('dashboard');
@@ -797,6 +888,7 @@
                 
                 const inventory = ref([]);
                 const transactions = ref([]);
+                const settingsData = ref([]); 
 
                 const dashboardFilter = ref('ALL');
                 const opnamePic = ref(localStorage.getItem('savedPic') || '');
@@ -822,6 +914,13 @@
                 const barcodeInput = ref(null);
                 const actualStockInput = ref(null);
                 const actualStock = ref(0);
+                
+                const variance = computed(() => {
+                    if (!activeItem.value) return null;
+                    const numStock = typeof actualStock.value === 'number' ? actualStock.value : 0;
+                    return numStock - activeItem.value.qty;
+                });
+                
                 const isCameraOpen = ref(false);
                 let html5QrCode = null;
 
@@ -830,6 +929,8 @@
                 const isEditing = ref(false);
                 const formItem = ref({ barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: 'CIP Store' });
                 
+                const passwordForm = ref({ old: '', new: '', confirm: '' });
+
                 const excelFileInput = ref(null);
                 const historyFileInput = ref(null);
 
@@ -839,8 +940,6 @@
                 let categoryChartObj = null;
 
                 const isSyncing = ref(false);
-                let syncInterval = null;
-
                 const isPreview = !GAS_API_URL || !GAS_API_URL.startsWith("http");
 
                 const currentDateStr = computed(() => currentTime.value.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }));
@@ -913,12 +1012,6 @@
                 });
                 const invTotalPages = computed(() => Math.ceil(processedInventory.value.length / invItemsPerPage.value) || 1);
                 
-                const variance = computed(() => {
-                    if (!activeItem.value) return null;
-                    const numStock = typeof actualStock.value === 'number' ? actualStock.value : 0;
-                    return numStock - activeItem.value.qty;
-                });
-                
                 const availableDates = computed(() => {
                     const dates = baseTransactions.value.map(t => new Date(t.date).toISOString().split('T')[0]);
                     return [...new Set(dates)].sort((a, b) => b.localeCompare(a));
@@ -985,6 +1078,7 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     if (tab === 'dashboard') nextTick(() => renderCharts());
                     if (tab === 'scan') resetScanner();
+                    if (tab === 'settings') { passwordForm.value = { old: '', new: '', confirm: '' }; }
                 };
 
                 const filterLowStockAndGo = () => { searchQuery.value = '@low'; changeTab('inventory'); };
@@ -1057,24 +1151,52 @@
                     }
                 };
 
+                const resetIdleTimer = () => {
+                    clearTimeout(idleTimeout);
+                    if (isLoggedIn.value) {
+                        idleTimeout = setTimeout(() => {
+                            Swal.fire('Sesi Berakhir', 'Anda telah diam terlalu lama. Sistem Logout otomatis untuk keamanan.', 'info');
+                            logout(true);
+                        }, 30 * 60 * 1000);
+                    }
+                };
+
+                window.addEventListener('mousemove', resetIdleTimer);
+                window.addEventListener('keypress', resetIdleTimer);
+                window.addEventListener('touchstart', resetIdleTimer);
+
                 const apiCall = async (action, payload = {}) => {
                     if (isPreview) {
-                        Swal.fire("URL API Belum Diatur", "Silakan atur GAS URL.", "error");
+                        Swal.fire("URL API Belum Diatur", "Silakan masukkan URL API ke variabel GAS_API_URL di dalam file HTML.", "error");
                         return { success: false, error: "URL API Belum Diatur" }; 
-                    }
-                    if (!GAS_API_URL.endsWith("/exec")) {
-                        Swal.fire("URL API Salah Format", "URL Web App Anda harus berakhiran dengan <b>/exec</b>.", "error");
-                        return { success: false, error: "URL tidak valid" }; 
                     }
                     try {
                         const response = await fetch(GAS_API_URL, {
-                            redirect: "follow", method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-                            body: JSON.stringify({ action: action, payload: payload })
+                            redirect: "follow", 
+                            method: "POST", 
+                            headers: { "Content-Type": "text/plain;charset=utf-8" },
+                            body: JSON.stringify({ action: action, payload: payload, token: authToken.value })
                         });
+                        
                         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
                         const text = await response.text();
-                        try { return JSON.parse(text); } catch(e) { throw new Error("Respons server bukan JSON (Akses Diblokir)."); }
+                        
+                        if (text.includes("<html") || text.includes("Sign in - Google Accounts")) {
+                            throw new Error("Akses Web App Google diblokir! Wajib Deploy dengan akses: <b>Anyone</b>");
+                        }
+                        
+                        const resData = JSON.parse(text);
+                        
+                        if (resData.error === "SESSION_EXPIRED") {
+                            logout(true);
+                            Swal.fire("Sesi Berakhir", resData.message, "warning");
+                            throw new Error(resData.message);
+                        }
+                        
+                        return resData;
+                        
                     } catch (err) {
+                        console.error("API Call Error:", err);
                         return { success: false, error: err.message };
                     }
                 };
@@ -1082,30 +1204,29 @@
                 const fetchData = async () => {
                     loading.value = true;
                     try {
-                        if (isPreview) {
-                            await new Promise(r => setTimeout(r, 500));
-                        } else {
+                        if (isPreview) { await new Promise(r => setTimeout(r, 500)); } else {
                             const res = await apiCall('getInitialData');
                             if (res && res.success) {
                                 inventory.value = res.data.inventory;
                                 transactions.value = res.data.transactions;
+                                if (res.data.settings) settingsData.value = res.data.settings; 
+
                                 if (availableDates.value.length > 0) selectedRecapDate.value = availableDates.value[0];
                                 if (baseInventory.value.length > 0 && !selectedTrendItem.value) selectedTrendItem.value = baseInventory.value[0].barcode;
                                 
                                 triggerLowStockAlert();
-
                                 if (activeTab.value === 'dashboard') nextTick(() => renderCharts());
-                            } else {
+                            } else if (res && res.error !== "SESSION_EXPIRED") {
                                 Swal.fire({title: 'Koneksi Gagal', html: res?.error || 'Periksa koneksi database Anda', icon: 'error'});
                             }
                         }
-                    } catch(e) { Swal.fire('Error Sistem', 'Gagal memuat data.', 'error'); } 
-                    finally { loading.value = false; }
+                    } catch(e) {} finally { loading.value = false; }
                 };
 
                 const silentFetchData = async () => {
                     if (isPreview || !isLoggedIn.value || isProcessing.value || loading.value) return; 
                     if (selectedInventoryItems.value.length > 0 || selectedLogItems.value.length > 0 || selectedRecapItems.value.length > 0) return;
+                    if (activeTab.value === 'settings') return;
 
                     isSyncing.value = true;
                     try {
@@ -1162,23 +1283,39 @@
                     if (trendChartObj) trendChartObj.destroy();
                     const tData = processTrendData();
                     
+                    const gradientFill = tCtx.createLinearGradient(0, 0, 0, 300);
+                    gradientFill.addColorStop(0, 'rgba(14, 165, 233, 0.4)');
+                    gradientFill.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+
                     trendChartObj = new Chart(tCtx, {
                         type: 'line',
                         data: {
                             labels: tData.labels,
                             datasets: [{
                                 label: `Stok Aktual: ${tData.itemName}`, data: tData.data,
-                                borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                                borderColor: '#0ea5e9', backgroundColor: gradientFill,
                                 borderWidth: 3, pointBackgroundColor: '#0284c7', pointBorderColor: '#fff',
-                                pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, fill: true, tension: 0.3
+                                pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, fill: true, tension: 0.4 
                             }]
                         },
                         options: {
-                            responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30 } },
+                            responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30, right: 20 } },
                             plugins: {
                                 legend: { display: true, position: 'top', labels: { usePointStyle: true, font: {weight: 'bold'} } },
                                 tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 12, titleFont: { size: 13 } },
-                                datalabels: { align: 'top', anchor: 'end', backgroundColor: '#0f172a', borderRadius: 6, color: 'white', font: { weight: 'bold', size: 10 }, formatter: Math.round, padding: 4 }
+                                datalabels: { 
+                                    align: 'end', 
+                                    anchor: 'end', 
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                                    borderColor: '#0ea5e9',
+                                    borderWidth: 1,
+                                    borderRadius: 4, 
+                                    color: '#0f172a', 
+                                    font: { weight: 'bold', size: 11 }, 
+                                    formatter: Math.round, 
+                                    padding: { top: 4, bottom: 4, left: 6, right: 6 },
+                                    offset: 4
+                                }
                             },
                             scales: {
                                 y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9' }, title: { display: true, text: 'Jumlah Stok Fisik', font: { weight: 'bold' } } },
@@ -1202,7 +1339,23 @@
                             labels: Object.keys(categoryCounts),
                             datasets: [{ data: Object.values(categoryCounts), backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b'], borderWidth: 0, hoverOffset: 4 }]
                         },
-                        options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true, font:{weight:'bold', size:10} } }, datalabels: { display: false } } }
+                        options: { 
+                            responsive: true, maintainAspectRatio: false, cutout: '65%', 
+                            plugins: { 
+                                legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true, font:{weight:'bold', size:10} } }, 
+                                datalabels: { 
+                                    display: true,
+                                    color: '#ffffff',
+                                    font: { weight: '900', size: 12 },
+                                    formatter: (value, ctx) => {
+                                        let sum = 0;
+                                        let dataArr = ctx.chart.data.datasets[0].data;
+                                        dataArr.map(data => { sum += data; });
+                                        return (value * 100 / sum).toFixed(0) + "%";
+                                    }
+                                } 
+                            } 
+                        }
                     });
                 };
 
@@ -1218,9 +1371,15 @@
                         } else {
                             const res = await apiCall('authenticateUser', { username: loginForm.value.username, password: loginForm.value.password });
                             if (res && res.success) {
-                                currentUser.value = res.data; 
+                                currentUser.value = res.data;
+                                authToken.value = res.token;
+                                
+                                localStorage.setItem('currentUser', JSON.stringify(res.data));
+                                localStorage.setItem('authToken', res.token);
+
                                 dashboardFilter.value = currentUser.value.location === 'ALL' ? 'ALL' : currentUser.value.location;
                                 isLoggedIn.value = true;
+                                resetIdleTimer();
                                 await fetchData();
                             } else {
                                 loginError.value = res?.error || 'Gagal login';
@@ -1229,13 +1388,79 @@
                     } catch(e) { loginError.value = e.message; } finally { isProcessing.value = false; }
                 };
                 
-                const logout = () => {
+                const logout = (isForce = false) => {
+                    const doLogout = () => {
+                        isLoggedIn.value = false; 
+                        inventory.value = []; transactions.value = []; settingsData.value = [];
+                        loginForm.value.password = ''; 
+                        hasNotifiedLowStock = false;
+                        authToken.value = null;
+                        localStorage.removeItem('currentUser');
+                        localStorage.removeItem('authToken');
+                        clearTimeout(idleTimeout);
+                    };
+
+                    if (isForce) { doLogout(); return; }
+
                     Swal.fire({ title: 'Keluar dari Sistem?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Logout' }).then((r) => {
-                        if (r.isConfirmed) { 
-                            isLoggedIn.value = false; inventory.value = []; transactions.value = []; loginForm.value.password = ''; 
-                            hasNotifiedLowStock = false; 
-                        }
+                        if (r.isConfirmed) { doLogout(); }
                     });
+                };
+
+                const submitChangePassword = async () => {
+                    if (passwordForm.value.new !== passwordForm.value.confirm) {
+                        Swal.fire('Validasi Gagal', 'Konfirmasi password baru tidak cocok!', 'warning');
+                        return;
+                    }
+                    if (passwordForm.value.new.length < 3) {
+                        Swal.fire('Validasi Gagal', 'Password baru terlalu pendek.', 'warning');
+                        return;
+                    }
+
+                    isProcessing.value = true;
+                    try {
+                        if (isPreview) {
+                            await new Promise(r => setTimeout(r, 500));
+                            Swal.fire('Berhasil', 'Password diubah (Mock).', 'success');
+                            passwordForm.value = { old: '', new: '', confirm: '' };
+                        } else {
+                            const payload = {
+                                username: currentUser.value.username,
+                                oldPassword: passwordForm.value.old,
+                                newPassword: passwordForm.value.new
+                            };
+                            const res = await apiCall('changePassword', payload);
+                            if (res && res.success) {
+                                Swal.fire('Berhasil', res.data, 'success');
+                                passwordForm.value = { old: '', new: '', confirm: '' };
+                            } else {
+                                Swal.fire('Gagal Mengubah Password', res?.error || 'Password lama salah atau error server.', 'error');
+                            }
+                        }
+                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
+                };
+
+                const submitSaveSettings = async () => {
+                    const hasEmptyLoc = settingsData.value.some(s => !s.Location || s.Location.trim() === '');
+                    if (hasEmptyLoc) {
+                        Swal.fire('Validasi Gagal', 'Ada baris yang kolom Gudang/Lokasinya masih kosong.', 'warning');
+                        return;
+                    }
+
+                    isProcessing.value = true;
+                    try {
+                        if (isPreview) {
+                            await new Promise(r => setTimeout(r, 500));
+                            Swal.fire('Berhasil', 'Konfigurasi Email disimpan (Mock).', 'success');
+                        } else {
+                            const res = await apiCall('saveSettings', { settingsData: settingsData.value });
+                            if (res && res.success) {
+                                Swal.fire('Tersimpan', res.data, 'success');
+                            } else {
+                                Swal.fire('Gagal Menyimpan', res?.error, 'error');
+                            }
+                        }
+                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
                 };
 
                 const handleScan = () => {
@@ -1535,15 +1760,28 @@
                 };
 
                 onMounted(() => {
+                    const savedUser = localStorage.getItem('currentUser');
+                    const savedToken = localStorage.getItem('authToken');
+                    
+                    if (savedUser && savedToken) {
+                        currentUser.value = JSON.parse(savedUser);
+                        authToken.value = savedToken;
+                        dashboardFilter.value = currentUser.value.location === 'ALL' ? 'ALL' : currentUser.value.location;
+                        isLoggedIn.value = true;
+                        resetIdleTimer();
+                        fetchData();
+                    }
+
                     timerInterval = setInterval(() => { currentTime.value = new Date(); }, 1000);
-                    syncInterval = setInterval(silentFetchData, 10000); 
+                    syncInterval = setInterval(silentFetchData, 5000); 
                 });
-                onUnmounted(() => { clearInterval(timerInterval); clearInterval(syncInterval); });
+                
+                onUnmounted(() => { clearInterval(timerInterval); clearInterval(syncInterval); clearTimeout(idleTimeout); });
 
                 return {
                     isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr,
                     activeTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
-                    inventory, transactions, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
+                    inventory, transactions, settingsData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, availableLocations, opnamePic, savePicToLocal,
                     uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch,
                     showModal, isEditing, formItem, excelFileInput, historyFileInput, selectedTrendItem, trendFilter, renderCharts,
@@ -1555,7 +1793,8 @@
                     selectedRecapItems, toggleAllRecaps, toggleRecapSelection, deleteSelectedRecaps,
                     formatDate, formatDateString, handleScan, submitUpdate, openCamera, closeCamera, resetScanner,
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname,
-                    exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel
+                    exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
+                    passwordForm, submitChangePassword, submitSaveSettings
                 };
             }
         }).mount('#app');
