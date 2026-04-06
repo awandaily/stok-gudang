@@ -231,7 +231,7 @@
                             </div>
                             <div class="h-8 w-px bg-brand-700 hidden md:block"></div>
                             <div class="flex items-center space-x-2 bg-black/20 hover:bg-black/30 transition-colors px-2 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-white/10 cursor-pointer">
-                                <div class="bg-brand-500 rounded-full p-1"><i class="ph-duotone ph-user text-lg"></i></div>
+                                <div class="bg-brand-500 full p-1"><i class="ph-duotone ph-user text-lg"></i></div>
                                 <div class="flex flex-col max-w-[80px] sm:max-w-none overflow-hidden">
                                     <span class="text-xs sm:text-sm font-bold leading-tight truncate">{{ currentUser.username }}</span>
                                     <span class="text-[9px] sm:text-xs text-brand-200 leading-tight uppercase truncate">{{ currentUser.location }}</span>
@@ -273,7 +273,7 @@
                                 </div>
                                 <select v-model="dashboardFilter" class="w-full sm:w-auto px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none cursor-pointer shadow-inner transition-all uppercase">
                                     <option value="ALL">📍 Semua Lokasi Gudang</option>
-                                    <option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option>
+                                    <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">📍 {{ loc }}</option>
                                 </select>
                             </div>
                             
@@ -344,7 +344,7 @@
                             </div>
                         </div>
 
-                        <!-- TRACKER AKTIVITAS PIC (OPERATOR) -->
+                        <!-- TRACKER AKTIVITAS PIC -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 mb-8 flex flex-col relative overflow-hidden">
                             <div class="absolute -left-24 -bottom-24 w-64 h-64 bg-teal-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50 pointer-events-none"></div>
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
@@ -433,13 +433,17 @@
                             </div>
                             
                             <div class="p-5 sm:p-8">
-                                <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
-                                    <label class="block text-xs font-black uppercase tracking-wider text-blue-800 mb-2 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Nama PIC / Petugas Opname</label>
-                                    <select v-model="opnamePic" class="w-full px-4 py-3 border-2 border-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white bg-white text-sm font-bold text-slate-900 shadow-sm transition-all outline-none uppercase cursor-pointer" @change="savePicToLocal">
-                                        <option value="" disabled>-- PILIH NAMA PETUGAS PIC --</option>
-                                        <option v-for="pic in availablePicsForDropdown" :key="pic" :value="pic">{{ pic }}</option>
-                                    </select>
-                                    <p v-if="availablePicsForDropdown.length === 0" class="text-[10px] text-red-500 mt-2 font-bold"><i class="ph-fill ph-warning-circle"></i> Admin belum mengatur daftar PIC untuk gudang ini di menu Pengaturan.</p>
+                                <!-- 🔴 IDENTITAS PIC DIKUNCI BERDASARKAN LOGIN 🔴 -->
+                                <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex justify-between items-center">
+                                    <div>
+                                        <label class="block text-xs font-black uppercase tracking-wider text-blue-800 mb-1 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Petugas Opname (PIC)</label>
+                                        <div class="text-sm font-black text-slate-800 uppercase flex items-center">
+                                            <i class="ph-fill ph-user-circle mr-2 text-blue-500 text-xl"></i> {{ currentUser.username }}
+                                        </div>
+                                    </div>
+                                    <div class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-200 flex items-center shadow-sm">
+                                        <i class="ph-bold ph-shield-check mr-1.5 text-blue-600 text-sm"></i> Terotentikasi
+                                    </div>
                                 </div>
 
                                 <form @submit.prevent="handleScan" class="mb-6">
@@ -936,107 +940,171 @@
                     </div>
 
                     <!-- ================= TAB: PENGATURAN (SETTINGS) ENTERPRISE ================= -->
-                    <div v-else-if="activeTab === 'settings'" key="settings" class="max-w-4xl mx-auto mb-10 space-y-6">
+                    <div v-else-if="activeTab === 'settings'" key="settings" class="max-w-4xl mx-auto mb-10">
                         
-                        <!-- Panel 1: Keamanan Akun (Ganti Password) -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            <div class="p-5 sm:p-6 border-b border-slate-100 bg-slate-50">
-                                <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-brand-100 text-brand-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-shield-check text-xl"></i></div>Keamanan Akun</h2>
-                                <p class="text-xs text-slate-500 mt-1 ml-11">Kelola kata sandi akun Anda ({{ currentUser.username }}).</p>
-                            </div>
-                            <div class="p-5 sm:p-6">
-                                <form @submit.prevent="submitChangePassword" class="space-y-4 max-w-md">
-                                    <div>
-                                        <label class="block text-xs font-black uppercase text-slate-600 mb-1">Password Lama</label>
-                                        <div class="relative">
-                                            <input v-model="passwordForm.old" :type="showPass.old ? 'text' : 'password'" required :disabled="isProcessing" class="w-full px-4 py-2 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
-                                            <button type="button" @click="showPass.old = !showPass.old" class="absolute right-3 top-2 text-slate-400 hover:text-brand-600 focus:outline-none">
-                                                <i class="ph-bold text-lg" :class="showPass.old ? 'ph-eye' : 'ph-eye-slash'"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black uppercase text-slate-600 mb-1">Password Baru</label>
-                                        <div class="relative">
-                                            <input v-model="passwordForm.new" :type="showPass.new ? 'text' : 'password'" required :disabled="isProcessing" class="w-full px-4 py-2 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
-                                            <button type="button" @click="showPass.new = !showPass.new" class="absolute right-3 top-2 text-slate-400 hover:text-brand-600 focus:outline-none">
-                                                <i class="ph-bold text-lg" :class="showPass.new ? 'ph-eye' : 'ph-eye-slash'"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black uppercase text-slate-600 mb-1">Konfirmasi Password Baru</label>
-                                        <div class="relative">
-                                            <input v-model="passwordForm.confirm" :type="showPass.confirm ? 'text' : 'password'" required :disabled="isProcessing" class="w-full px-4 py-2 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
-                                            <button type="button" @click="showPass.confirm = !showPass.confirm" class="absolute right-3 top-2 text-slate-400 hover:text-brand-600 focus:outline-none">
-                                                <i class="ph-bold text-lg" :class="showPass.confirm ? 'ph-eye' : 'ph-eye-slash'"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="w-full sm:w-auto mt-2 px-6 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-md hover:bg-brand-700 transition-colors disabled:opacity-50 flex items-center justify-center" :disabled="isProcessing">
-                                        <i v-if="!isProcessing" class="ph-bold ph-floppy-disk mr-2 text-lg"></i>
-                                        <i v-else class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i>
-                                        Update Password
-                                    </button>
-                                </form>
-                            </div>
+                        <!-- 🔴 NEW: SUB-NAVIGATION (PILLS) UNTUK PENGATURAN 🔴 -->
+                        <div class="flex space-x-2 sm:space-x-3 mb-6 overflow-x-auto hide-scrollbar pb-2">
+                            <button @click="activeSettingsTab = 'security'" :class="activeSettingsTab === 'security' ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
+                                <i class="ph-duotone ph-shield-check text-lg mr-2"></i> Keamanan Akun
+                            </button>
+                            <button v-if="currentUser.role === 'Super Admin'" @click="activeSettingsTab = 'warehouse'" :class="activeSettingsTab === 'warehouse' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
+                                <i class="ph-duotone ph-buildings text-lg mr-2"></i> Konfigurasi Gudang
+                            </button>
+                            <button v-if="currentUser.role === 'Super Admin'" @click="activeSettingsTab = 'users'" :class="activeSettingsTab === 'users' ? 'bg-teal-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
+                                <i class="ph-duotone ph-users text-lg mr-2"></i> Manajemen Akses
+                            </button>
                         </div>
 
-                        <!-- Panel 2: Manajemen Email PIC Khusus Super Admin -->
-                        <div v-if="currentUser.role === 'Super Admin'" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
-                            <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-envelope text-[15rem] text-indigo-500"></i></div>
-                            <div class="p-5 sm:p-6 border-b border-slate-100 bg-indigo-50/50 relative z-10">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-envelope-simple text-xl"></i></div>Konfigurasi Gudang (Email & PIC)</h2>
-                                        <p class="text-xs text-slate-500 mt-1 ml-11">Atur email tujuan peringatan reorder dan daftar nama PIC untuk dropdown scanner.</p>
-                                    </div>
-                                    <div class="bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-1 rounded border border-indigo-200">SUPER ADMIN</div>
+                        <transition name="fade-slide" mode="out-in">
+                            <!-- Panel 1: Keamanan Akun (Ganti Password) -->
+                            <div v-if="activeSettingsTab === 'security'" key="sec" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                                <div class="p-5 sm:p-6 border-b border-slate-100 bg-slate-50">
+                                    <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-brand-100 text-brand-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-shield-check text-xl"></i></div>Keamanan Akun</h2>
+                                    <p class="text-xs text-slate-500 mt-1 ml-11">Kelola kata sandi akun Anda ({{ currentUser.username }}).</p>
+                                </div>
+                                <div class="p-5 sm:p-6">
+                                    <form @submit.prevent="submitChangePassword" class="space-y-4 max-w-md">
+                                        <div>
+                                            <label class="block text-xs font-black uppercase text-slate-600 mb-1">Password Lama</label>
+                                            <div class="relative">
+                                                <input v-model="passwordForm.old" :type="showPass.old ? 'text' : 'password'" required :disabled="isProcessing" class="w-full px-4 py-2 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                                <button type="button" @click="showPass.old = !showPass.old" class="absolute right-3 top-2 text-slate-400 hover:text-brand-600 focus:outline-none">
+                                                    <i class="ph-bold text-lg" :class="showPass.old ? 'ph-eye' : 'ph-eye-slash'"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-black uppercase text-slate-600 mb-1">Password Baru</label>
+                                            <div class="relative">
+                                                <input v-model="passwordForm.new" :type="showPass.new ? 'text' : 'password'" required :disabled="isProcessing" class="w-full px-4 py-2 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                                <button type="button" @click="showPass.new = !showPass.new" class="absolute right-3 top-2 text-slate-400 hover:text-brand-600 focus:outline-none">
+                                                    <i class="ph-bold text-lg" :class="showPass.new ? 'ph-eye' : 'ph-eye-slash'"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-black uppercase text-slate-600 mb-1">Konfirmasi Password Baru</label>
+                                            <div class="relative">
+                                                <input v-model="passwordForm.confirm" :type="showPass.confirm ? 'text' : 'password'" required :disabled="isProcessing" class="w-full px-4 py-2 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 outline-none transition-colors">
+                                                <button type="button" @click="showPass.confirm = !showPass.confirm" class="absolute right-3 top-2 text-slate-400 hover:text-brand-600 focus:outline-none">
+                                                    <i class="ph-bold text-lg" :class="showPass.confirm ? 'ph-eye' : 'ph-eye-slash'"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="w-full sm:w-auto mt-2 px-6 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-md hover:bg-brand-700 transition-colors disabled:opacity-50 flex items-center justify-center" :disabled="isProcessing">
+                                            <i v-if="!isProcessing" class="ph-bold ph-floppy-disk mr-2 text-lg"></i>
+                                            <i v-else class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i>
+                                            Update Password
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                            <div class="p-5 sm:p-6 relative z-10">
-                                <div class="space-y-4">
-                                    <div v-for="(set, index) in settingsData" :key="index" class="flex flex-col p-4 bg-slate-50 border border-slate-200 rounded-xl relative group gap-3">
-                                        
-                                        <!-- Baris Atas -->
-                                        <div class="flex flex-col sm:flex-row gap-3">
-                                            <div class="flex-1">
+
+                            <!-- Panel 2: Manajemen Email Gudang Khusus Super Admin -->
+                            <div v-else-if="activeSettingsTab === 'warehouse' && currentUser.role === 'Super Admin'" key="wh" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+                                <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-buildings text-[15rem] text-indigo-500"></i></div>
+                                <div class="p-5 sm:p-6 border-b border-slate-100 bg-indigo-50/50 relative z-10">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-buildings text-xl"></i></div>Konfigurasi Gudang & Email</h2>
+                                            <p class="text-xs text-slate-500 mt-1 ml-11">Daftarkan lokasi gudang beserta email tujuan peringatan stok.</p>
+                                        </div>
+                                        <div class="bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-1 rounded border border-indigo-200">SUPER ADMIN</div>
+                                    </div>
+                                </div>
+                                <div class="p-5 sm:p-6 relative z-10">
+                                    <div class="space-y-4">
+                                        <div v-for="(set, index) in settingsData" :key="index" class="flex flex-col sm:flex-row gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl relative group items-end">
+                                            <div class="flex-1 w-full">
                                                 <label class="block text-xs font-black uppercase text-slate-500 mb-1">Nama Gudang / Lokasi</label>
                                                 <input v-model="set.Location" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 uppercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="Cth: CIP STORE">
                                             </div>
-                                            <div class="flex-[2]">
+                                            <div class="flex-[2] w-full">
                                                 <label class="block text-xs font-black uppercase text-slate-500 mb-1">Email Penerima Peringatan Stok</label>
                                                 <input v-model="set.EmailPIC" type="email" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-800 lowercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="email.pic@perusahaan.com">
                                             </div>
-                                        </div>
-
-                                        <!-- Baris Bawah: Daftar Nama -->
-                                        <div class="flex flex-col sm:flex-row gap-3">
-                                            <div class="flex-[3]">
-                                                <label class="block text-xs font-black uppercase text-slate-500 mb-1 flex items-center"><i class="ph-fill ph-users mr-1"></i> Daftar Nama PIC (Pisahkan Dengan Koma)</label>
-                                                <input v-model="set.PICList" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 uppercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="Budi, Andi, Joko Santoso">
-                                                <p class="text-[10px] text-slate-400 mt-1">Nama-nama ini akan muncul sebagai dropdown di form Scan Opname Gudang terkait.</p>
-                                            </div>
-                                            <button @click="settingsData.splice(index, 1)" class="sm:self-start sm:mt-5 px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors border border-red-200 flex items-center justify-center shrink-0" title="Hapus Aturan">
+                                            <button @click="settingsData.splice(index, 1)" class="w-full sm:w-auto px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors border border-red-200 flex items-center justify-center shrink-0" title="Hapus Gudang">
                                                 <i class="ph-bold ph-trash text-lg mr-2 sm:mr-0"></i> <span class="sm:hidden text-xs font-bold">Hapus Gudang</span>
                                             </button>
                                         </div>
-                                    </div>
 
-                                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                                        <button @click="settingsData.push({Location: '', EmailPIC: '', PICList: ''})" class="px-4 py-2 border-2 border-dashed border-indigo-300 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 font-bold text-sm rounded-xl transition-colors flex items-center justify-center w-full sm:w-auto">
-                                            <i class="ph-bold ph-plus mr-1.5"></i> Tambah Gudang Baru
-                                        </button>
-                                        <button @click="submitSaveSettings" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center w-full sm:w-auto" :disabled="isProcessing">
-                                            <i v-if="!isProcessing" class="ph-bold ph-floppy-disk mr-2 text-lg"></i>
-                                            <i v-else class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i>
-                                            Simpan Konfigurasi
-                                        </button>
+                                        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                                            <button @click="settingsData.push({Location: '', EmailPIC: ''})" class="px-4 py-2 border-2 border-dashed border-indigo-300 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 font-bold text-sm rounded-xl transition-colors flex items-center justify-center w-full sm:w-auto">
+                                                <i class="ph-bold ph-plus mr-1.5"></i> Tambah Lokasi Gudang
+                                            </button>
+                                            <button @click="submitSaveSettings" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black shadow-md hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center w-full sm:w-auto" :disabled="isProcessing">
+                                                <i v-if="!isProcessing" class="ph-bold ph-floppy-disk mr-2 text-lg"></i>
+                                                <i v-else class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i>
+                                                Simpan Lokasi Gudang
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
+                            <!-- Panel 3: Manajemen Pengguna Khusus Super Admin -->
+                            <div v-else-if="activeSettingsTab === 'users' && currentUser.role === 'Super Admin'" key="usr" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+                                <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-users text-[15rem] text-teal-500"></i></div>
+                                <div class="p-5 sm:p-6 border-b border-slate-100 bg-teal-50/50 relative z-10">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-teal-100 text-teal-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-users text-xl"></i></div>Manajemen Akun Operator</h2>
+                                            <p class="text-xs text-slate-500 mt-1 ml-11">Atur username, password, level akses, dan penempatan gudang untuk setiap staf.</p>
+                                        </div>
+                                        <div class="bg-teal-100 text-teal-700 text-[10px] font-black px-2 py-1 rounded border border-teal-200">SUPER ADMIN</div>
+                                    </div>
+                                </div>
+                                <div class="p-5 sm:p-6 relative z-10">
+                                    <div class="space-y-4">
+                                        <div v-for="(u, index) in usersData" :key="index" class="p-4 bg-slate-50 border border-slate-200 rounded-xl relative group">
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                                                <div>
+                                                    <label class="block text-xs font-black uppercase text-slate-500 mb-1">Username (ID)</label>
+                                                    <input v-model="u.username" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 lowercase outline-none focus:ring-2 focus:ring-teal-500 transition-colors" placeholder="user123">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-black uppercase text-slate-500 mb-1">Password</label>
+                                                    <div class="relative">
+                                                        <input v-model="u.password" :type="u.showPass ? 'text' : 'password'" class="w-full px-3 py-2 pr-10 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-teal-500 transition-colors" placeholder="***">
+                                                        <button type="button" @click="u.showPass = !u.showPass" class="absolute right-2 top-2 text-slate-400 hover:text-teal-600 focus:outline-none">
+                                                            <i class="ph-bold" :class="u.showPass ? 'ph-eye' : 'ph-eye-slash'"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-black uppercase text-slate-500 mb-1">Level Akses</label>
+                                                    <select v-model="u.role" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer">
+                                                        <option value="Staff Gudang">Staff Gudang</option>
+                                                        <option value="Super Admin">Super Admin</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-black uppercase text-slate-500 mb-1">Penempatan Gudang</label>
+                                                    <select v-model="u.location" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 uppercase outline-none focus:ring-2 focus:ring-teal-500 transition-colors cursor-pointer">
+                                                        <option value="ALL" class="font-bold text-teal-600">-- ALL (Semua Gudang) --</option>
+                                                        <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <button @click="usersData.splice(index, 1)" class="mt-3 w-full px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors border border-red-200 flex items-center justify-center text-xs font-bold" title="Hapus Akun">
+                                                <i class="ph-bold ph-trash text-base mr-1.5"></i> Hapus Akun Ini
+                                            </button>
+                                        </div>
+
+                                        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                                            <button @click="usersData.push({username: '', password: '', role: 'Staff Gudang', location: 'ALL', showPass: false})" class="px-4 py-2 border-2 border-dashed border-teal-300 text-teal-600 bg-teal-50 hover:bg-teal-100 font-bold text-sm rounded-xl transition-colors flex items-center justify-center w-full sm:w-auto">
+                                                <i class="ph-bold ph-plus mr-1.5"></i> Tambah Akun Baru
+                                            </button>
+                                            <button @click="submitSaveUsers" class="px-6 py-2.5 bg-teal-600 text-white rounded-xl font-black shadow-md hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center justify-center w-full sm:w-auto" :disabled="isProcessing">
+                                                <i v-if="!isProcessing" class="ph-bold ph-floppy-disk mr-2 text-lg"></i>
+                                                <i v-else class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i>
+                                                Simpan Data Pengguna
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </transition>
                     </div>
                 </transition>
             </main>
@@ -1084,9 +1152,6 @@
         
         try { Chart.register(ChartDataLabels); } catch(e) { console.warn("ChartJS plugin skipped."); }
         
-        // -------------------------------------------------------------
-        // WAJIB TEMPELKAN URL WEB APP ANDA DI BAWAH INI
-        // -------------------------------------------------------------
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
 
         createApp({
@@ -1110,12 +1175,14 @@
                 const loading = ref(false);
                 const isProcessing = ref(false);
                 
+                const activeSettingsTab = ref('security'); // 🔴 NEW: State untuk Sub-Tab Pengaturan
+
                 const inventory = ref([]);
                 const transactions = ref([]);
                 const settingsData = ref([]); 
+                const usersData = ref([]);
 
                 const dashboardFilter = ref('ALL');
-                const opnamePic = ref(localStorage.getItem('savedPic') || '');
 
                 const searchQuery = ref('');
                 const invSortKey = ref('name'); const invSortAsc = ref(true); 
@@ -1187,6 +1254,11 @@
                     return [...new Set(locs)].filter(Boolean);
                 });
 
+                const availableLocationsFromSettings = computed(() => {
+                    let locs = settingsData.value.map(s => String(s.Location).toUpperCase().trim());
+                    return [...new Set(locs)].filter(Boolean);
+                });
+
                 const uniquePics = computed(() => {
                     const pics = transactions.value.map(t => t.pic ? t.pic.toUpperCase() : '');
                     return [...new Set(pics)].filter(Boolean);
@@ -1195,28 +1267,6 @@
                 const uniqueItemNames = computed(() => {
                     const names = inventory.value.map(i => i.name ? i.name.toUpperCase() : '');
                     return [...new Set(names)].filter(Boolean);
-                });
-
-                const availablePicsForDropdown = computed(() => {
-                    let pics = [];
-                    const userLoc = String(currentUser.value.location || '').toUpperCase().trim();
-                    
-                    if (userLoc === 'ALL') {
-                        settingsData.value.forEach(s => {
-                            const picListStr = s.PICList || s.piclist || s.picList || s.PICLIST || '';
-                            if (picListStr) pics.push(...String(picListStr).split(',').map(p => p.trim().toUpperCase()));
-                        });
-                    } else {
-                        const setting = settingsData.value.find(s => {
-                            const sLoc = s.Location || s.location || s.LOCATION || '';
-                            return String(sLoc).toUpperCase().trim() === userLoc;
-                        });
-                        if (setting) {
-                            const picListStr = setting.PICList || setting.piclist || setting.picList || setting.PICLIST || '';
-                            if (picListStr) pics.push(...String(picListStr).split(',').map(p => p.trim().toUpperCase()));
-                        }
-                    }
-                    return [...new Set(pics)].filter(Boolean);
                 });
 
                 const baseInventory = computed(() => {
@@ -1256,7 +1306,6 @@
                     );
                 };
 
-                // FIX: Menangani spasi yang tidak terduga pada Split Tanggal & mencegah error NaN Date
                 const isDateInRange = (dateIsoStr, rangeStr) => {
                     if (!rangeStr) return true; 
                     
@@ -1396,7 +1445,6 @@
                 const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
                 const showToast = (msg, type='success') => { Toast.fire({ icon: type, title: msg }); };
 
-                // FIX: Gunakan ID agar kalender tetap bisa diikat meskipun transisi DOM belum selesai secara visual
                 const initFlatpickrSafe = () => {
                     if (activeTab.value === 'recap') {
                         const el = document.getElementById('recapDateInputId');
@@ -1410,7 +1458,7 @@
                                 mode: "range", 
                                 dateFormat: "Y-m-d", 
                                 locale: "id", 
-                                disableMobile: true, // 🔥 PENTING UNTUK HP
+                                disableMobile: true,
                                 defaultDate: defDate,
                                 onChange: function(selectedDates, dateStr, instance) { 
                                     selectedRecapDate.value = dateStr; 
@@ -1430,7 +1478,7 @@
                                 mode: "range", 
                                 dateFormat: "Y-m-d", 
                                 locale: "id", 
-                                disableMobile: true, // 🔥 PENTING UNTUK HP
+                                disableMobile: true,
                                 defaultDate: defDate,
                                 onChange: function(selectedDates, dateStr, instance) { 
                                     logFilterDate.value = dateStr; 
@@ -1490,7 +1538,6 @@
                     isProcessing.value = false;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     
-                    // FIX: Delay agar transisi DOM fade-slide selesai sebelum inisialisasi flatpickr/chart
                     setTimeout(() => {
                         if (tab === 'dashboard') {
                             renderCharts();
@@ -1501,7 +1548,13 @@
                     }, 350);
                     
                     if (tab === 'scan') resetScanner();
-                    if (tab === 'settings') { passwordForm.value = { old: '', new: '', confirm: '' }; }
+                    if (tab === 'settings') { 
+                        passwordForm.value = { old: '', new: '', confirm: '' }; 
+                        // Jika bukan Super Admin, paksa selalu di tab keamanan
+                        if(currentUser.value.role !== 'Super Admin') {
+                            activeSettingsTab.value = 'security';
+                        }
+                    }
                 };
 
                 const filterLowStockAndGo = () => { searchQuery.value = '@low'; changeTab('inventory'); };
@@ -1510,10 +1563,6 @@
                     searchQuery.value = barcode;
                     changeTab('inventory');
                     showNotifMenu.value = false;
-                };
-
-                const savePicToLocal = () => {
-                    localStorage.setItem('savedPic', opnamePic.value);
                 };
 
                 const toggleAllInventory = (e) => {
@@ -1661,6 +1710,7 @@
                                 inventory.value = res.data.inventory;
                                 transactions.value = res.data.transactions;
                                 if (res.data.settings) settingsData.value = res.data.settings; 
+                                if (res.data.users) usersData.value = res.data.users; 
 
                                 if (availableDates.value.length > 0 && !selectedRecapDate.value) {
                                     setDateRange('recap', 'today');
@@ -1720,7 +1770,7 @@
                     const filteredLogs = transactions.value.filter(t => new Date(t.date) >= cutoff && t.barcode === selectedTrendItem.value);
                     
                     const grouped = {};
-                    const dateMap = {}; // 🔥 Enterprise Fix: Menyimpan timestamp asli untuk pengurutan presisi tinggi
+                    const dateMap = {}; 
 
                     filteredLogs.forEach(log => {
                         const d = new Date(log.date); let key = '';
@@ -1730,11 +1780,10 @@
                         
                         if (!grouped[key]) { 
                             grouped[key] = log.newQty; 
-                            dateMap[key] = d.getTime(); // Rekam jejak waktu
+                            dateMap[key] = d.getTime(); 
                         }
                     });
 
-                    // 🔥 Memaksa urutan dari paling lama ke paling baru menggunakan data Map waktu
                     const labels = Object.keys(grouped).sort((a, b) => dateMap[a] - dateMap[b]);
                     const data = labels.map(l => grouped[l]);
                     
@@ -1955,7 +2004,7 @@
                 const logout = (isForce = false) => {
                     const doLogout = () => {
                         isLoggedIn.value = false; 
-                        inventory.value = []; transactions.value = []; settingsData.value = [];
+                        inventory.value = []; transactions.value = []; settingsData.value = []; usersData.value = [];
                         loginForm.value.password = ''; 
                         hasNotifiedLowStock = false;
                         authToken.value = null;
@@ -2027,12 +2076,39 @@
                     } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
                 };
 
-                const handleScan = () => {
-                    if (!scannedCode.value.trim()) return;
-                    if (!opnamePic.value.trim()) {
-                        Swal.fire({ icon: 'warning', title: 'PIC Belum Dipilih', text: 'Harap pilih Nama PIC / Petugas terlebih dahulu di form bagian atas.' });
+                const submitSaveUsers = async () => {
+                    const hasEmpty = usersData.value.some(u => !u.username || !u.password || !u.role || !u.location);
+                    if (hasEmpty) {
+                        Swal.fire('Validasi Gagal', 'Harap isi seluruh kolom Username, Password, Role, dan Lokasi.', 'warning');
                         return;
                     }
+                    
+                    const usernames = usersData.value.map(u => String(u.username).trim().toLowerCase());
+                    const uniqueUsernames = new Set(usernames);
+                    if (uniqueUsernames.size !== usernames.length) {
+                        Swal.fire('Validasi Gagal', 'Ditemukan Username yang sama/ganda. Username harus unik.', 'warning');
+                        return;
+                    }
+
+                    isProcessing.value = true;
+                    try {
+                        if (isPreview) {
+                            await new Promise(r => setTimeout(r, 500));
+                            Swal.fire('Berhasil', 'Data Pengguna disimpan (Mock).', 'success');
+                        } else {
+                            const res = await apiCall('saveUsers', { usersData: usersData.value });
+                            if (res && res.success) {
+                                Swal.fire('Tersimpan', res.data, 'success');
+                            } else {
+                                Swal.fire('Gagal Menyimpan', res?.error, 'error');
+                            }
+                        }
+                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
+                };
+
+                const handleScan = () => {
+                    if (!scannedCode.value.trim()) return;
+                    
                     const scanStr = scannedCode.value.trim().toUpperCase();
                     
                     const item = baseInventory.value.find(i => String(i.barcode).trim().toUpperCase() === scanStr);
@@ -2056,7 +2132,6 @@
 
                 const submitUpdate = async () => {
                     if (!activeItem.value || actualStock.value === '' || actualStock.value < 0 || typeof actualStock.value !== 'number') return;
-                    if (!opnamePic.value.trim()) { Swal.fire({ icon: 'warning', title: 'PIC Kosong', text: 'Harap pilih Nama PIC / Petugas.' }); return; }
                     
                     isProcessing.value = true;
                     try {
@@ -2064,7 +2139,7 @@
                             id: Date.now(), date: currentTime.value.toISOString(), barcode: activeItem.value.barcode.toUpperCase(), 
                             name: activeItem.value.name.toUpperCase(), oldQty: activeItem.value.qty, newQty: actualStock.value, 
                             variance: actualStock.value - activeItem.value.qty, user: currentUser.value.username.toUpperCase() || 'SISTEM',
-                            location: activeItem.value.location.toUpperCase(), pic: opnamePic.value.toUpperCase()
+                            location: activeItem.value.location.toUpperCase(), pic: currentUser.value.username.toUpperCase()
                         };
                         
                         const isBecomingLowStock = actualStock.value <= activeItem.value.minQty;
@@ -2359,11 +2434,11 @@
 
                 return {
                     isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr,
-                    activeTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
+                    activeTab, activeSettingsTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
                     manualRefresh, resetFilters, 
-                    inventory, transactions, settingsData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
-                    selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, availableLocations, opnamePic, savePicToLocal,
-                    uniquePics, uniqueItemNames, availablePicsForDropdown, showNotifMenu, goToInventoryAndSearch,
+                    inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
+                    selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, availableLocations, availableLocationsFromSettings,
+                    uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch,
                     showModal, isEditing, formItem, excelFileInput, historyFileInput, selectedTrendItem, trendFilter, renderCharts,
                     selectedOperator, operatorFilter,
                     searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
@@ -2376,7 +2451,7 @@
                     formatDate, formatDateString, handleScan, submitUpdate, openCamera, closeCamera, resetScanner,
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname,
                     exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
-                    passwordForm, showPass, submitChangePassword, submitSaveSettings,
+                    passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers,
                     setDateRange, isRecapToday, isRecapYesterday, 
                     recapDateInput, logDateInput
                 };
