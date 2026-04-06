@@ -73,7 +73,7 @@
             display: none !important;
         }
 
-        /* ENTERPRISE FLATPIKCR THEME OVERRIDES */
+        /* ENTERPRISE FLATPIKCR THEME OVERRIDES (SEXY & MODERN) */
         .flatpickr-calendar {
             border: none !important;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
@@ -99,6 +99,25 @@
         .flatpickr-day:hover { background: #f1f5f9 !important; }
         .flatpickr-current-month .flatpickr-monthDropdown-months { font-weight: 900 !important; }
         .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { top: 15px !important; }
+
+        /* 🔴 NEW: CUSTOM TABLE SCROLLBAR ENTERPRISE 🔴 */
+        .table-scrollbar::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+        }
+        .table-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .table-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #94a3b8;
+        }
+        .table-scrollbar::-webkit-scrollbar-track {
+            background: #f8fafc;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
@@ -176,7 +195,7 @@
         <!-- MAIN APP -->
         <div v-if="isLoggedIn" class="flex-1 flex flex-col h-full w-full">
             <nav class="bg-gradient-to-r from-brand-900 to-brand-800 text-white shadow-lg sticky top-0 z-40">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
                     <div class="flex justify-between h-16 sm:h-20">
                         <div class="flex items-center">
                             <div class="p-2 bg-white/10 rounded-xl mr-3 backdrop-blur-sm shadow-sm hidden sm:block">
@@ -245,7 +264,8 @@
                 </div>
             </nav>
 
-            <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <!-- 🔴 NEW: LEBAR KONTEN MAXIMAL UNTUK DESKTOP 🔴 -->
+            <main class="flex-1 max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 
                 <div class="hidden sm:flex space-x-4 mb-8 overflow-x-auto pb-3 border-b border-slate-200 hide-scrollbar snap-x">
                     <button @click="changeTab('dashboard')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'dashboard' ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-chart-line-up text-xl mr-2" :class="activeTab==='dashboard'?'text-brand-100':''"></i> Dashboard</button>
@@ -535,7 +555,7 @@
                         </div>
                     </div>
 
-                    <!-- ================= TAB: REKAP HARIAN (TABLE) ================= -->
+                    <!-- ================= TAB: REKAP HARIAN (TABLE) - ENTERPRISE DESIGN ================= -->
                     <div v-else-if="activeTab === 'recap'" key="recap" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                             
@@ -550,12 +570,14 @@
                                 </div>
                                 
                                 <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto relative z-10">
+                                    <!-- Smart Date Chips -->
                                     <div class="hidden lg:flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm whitespace-nowrap">
                                         <button @click="setDateRange('recap', 'today')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="isRecapToday ? 'bg-purple-100 text-purple-700' : 'text-slate-500 hover:bg-slate-50'">Hari Ini</button>
                                         <button @click="setDateRange('recap', 'yesterday')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="isRecapYesterday ? 'bg-purple-100 text-purple-700' : 'text-slate-500 hover:bg-slate-50'">Kemarin</button>
                                         <button @click="setDateRange('recap', '7days')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:bg-slate-50">7 Hari</button>
                                         <button @click="setDateRange('recap', 'thisMonth')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:bg-slate-50">Bulan Ini</button>
                                     </div>
+                                    <!-- Beautiful Range Date Picker -->
                                     <div class="relative group w-full sm:w-64">
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
                                             <i class="ph-duotone ph-calendar-blank text-purple-500 text-lg group-focus-within:text-purple-600 transition-colors"></i>
@@ -598,16 +620,17 @@
                                             <h3 class="text-lg font-black text-slate-700 mb-1">Tidak Ada Opname</h3>
                                             <p class="text-sm text-slate-500">Tidak ada data riwayat opname pada rentang tanggal yang dipilih.</p>
                                         </div>
-                                        <div v-else class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-                                            <div v-if="selectedRecapDate.includes(' to ') || selectedRecapDate.includes(' - ')" class="px-4 py-2 bg-purple-50 border-b border-purple-100 text-xs font-bold text-purple-700 flex items-center">
+                                        <!-- 🔴 ENTERPRISE TABLE SCROLLBAR FIX 🔴 -->
+                                        <div v-else class="overflow-auto max-h-[65vh] sm:max-h-[70vh] table-scrollbar rounded-xl border border-slate-200 shadow-sm relative">
+                                            <div v-if="selectedRecapDate.includes(' to ') || selectedRecapDate.includes(' - ')" class="px-4 py-2 bg-purple-50 border-b border-purple-100 text-xs font-bold text-purple-700 flex items-center sticky top-0 z-30">
                                                 <i class="ph-fill ph-info mr-2"></i> Menampilkan agregasi data gabungan dari rentang tanggal yang dipilih.
                                             </div>
                                             <table class="w-full text-left border-collapse whitespace-nowrap min-w-[700px]">
                                                 <thead>
-                                                    <tr class="bg-slate-50 text-slate-500 text-[10px] sm:text-[11px] uppercase tracking-widest border-b border-slate-200 select-none">
-                                                        <th class="p-3 sm:p-4 w-10 sm:w-12 text-center"><input type="checkbox" @change="toggleAllRecaps" :checked="selectedRecapItems.length === paginatedRecapSummary.length && paginatedRecapSummary.length > 0" class="rounded text-purple-600 w-4 h-4 cursor-pointer"></th>
+                                                    <tr class="text-slate-500 text-[10px] sm:text-[11px] uppercase tracking-widest select-none">
+                                                        <th class="p-3 sm:p-4 w-10 sm:w-12 text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]"><input type="checkbox" @change="toggleAllRecaps" :checked="selectedRecapItems.length === paginatedRecapSummary.length && paginatedRecapSummary.length > 0" class="rounded text-purple-600 w-4 h-4 cursor-pointer"></th>
                                                         
-                                                        <th @click="toggleSort('recap', 'name')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none">
+                                                        <th @click="toggleSort('recap', 'name')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">
                                                             <div class="flex items-center gap-1.5">
                                                                 Nama Barang & Barcode
                                                                 <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="recapSortKey === 'name' ? 'bg-purple-100 text-purple-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
@@ -616,9 +639,9 @@
                                                             </div>
                                                         </th>
                                                         
-                                                        <th class="p-3 sm:p-4 font-black text-center">PIC Terakhir</th>
+                                                        <th class="p-3 sm:p-4 font-black text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">PIC Terakhir</th>
                                                         
-                                                        <th @click="toggleSort('recap', 'firstOldQty')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none">
+                                                        <th @click="toggleSort('recap', 'firstOldQty')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">
                                                             <div class="flex items-center justify-center gap-1.5">
                                                                 Stok Awal (Range)
                                                                 <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="recapSortKey === 'firstOldQty' ? 'bg-purple-100 text-purple-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
@@ -627,7 +650,7 @@
                                                             </div>
                                                         </th>
                                                         
-                                                        <th @click="toggleSort('recap', 'lastNewQty')" class="p-3 sm:p-4 font-bold bg-purple-50/50 text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors group select-none">
+                                                        <th @click="toggleSort('recap', 'lastNewQty')" class="p-3 sm:p-4 font-bold bg-purple-50/90 text-purple-700 cursor-pointer hover:bg-purple-100 transition-colors group select-none sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0] backdrop-blur">
                                                             <div class="flex items-center justify-center gap-1.5">
                                                                 Stok Final
                                                                 <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="recapSortKey === 'lastNewQty' ? 'bg-white text-purple-600 shadow-sm' : 'bg-transparent text-purple-300 group-hover:bg-purple-200 group-hover:text-purple-600'">
@@ -636,7 +659,7 @@
                                                             </div>
                                                         </th>
                                                         
-                                                        <th @click="toggleSort('recap', 'totalVariance')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none text-right">
+                                                        <th @click="toggleSort('recap', 'totalVariance')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none text-right sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">
                                                             <div class="flex items-center justify-end gap-1.5">
                                                                 <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="recapSortKey === 'totalVariance' ? 'bg-purple-100 text-purple-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
                                                                     <i class="ph-bold" :class="recapSortKey === 'totalVariance' ? (recapSortAsc ? 'ph-caret-up' : 'ph-caret-down') : 'ph-arrows-down-up'"></i>
@@ -724,20 +747,21 @@
                                 </div>
                             </div>
 
-                            <div class="overflow-x-auto">
+                            <!-- 🔴 ENTERPRISE TABLE SCROLLBAR FIX 🔴 -->
+                            <div class="overflow-auto max-h-[65vh] sm:max-h-[70vh] table-scrollbar border-t border-slate-100 relative">
                                 <table class="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
                                     <thead>
-                                        <tr class="bg-slate-50 text-slate-500 text-[10px] sm:text-[11px] uppercase tracking-widest border-b border-slate-200 select-none">
-                                            <th class="p-3 sm:p-4 w-10 sm:w-12 text-center"><input type="checkbox" @change="toggleAllInventory" :checked="selectedInventoryItems.length === paginatedInventory.length && paginatedInventory.length > 0" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></th>
-                                            <th @click="toggleSort('inv', 'name')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 group">Barcode / Nama <i class="ph-bold ml-1" :class="invSortKey === 'name' ? (invSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i></th>
-                                            <th @click="toggleSort('inv', 'location')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 group">Lokasi <i class="ph-bold ml-1" :class="invSortKey === 'location' ? (invSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i></th>
-                                            <th @click="toggleSort('inv', 'category')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 group">Kategori <i class="ph-bold ml-1" :class="invSortKey === 'category' ? (invSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i></th>
-                                            <th @click="toggleSort('inv', 'qty')" class="p-3 sm:p-4 font-black text-right cursor-pointer hover:bg-slate-100 group"><i class="ph-bold mr-1" :class="invSortKey === 'qty' ? (invSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i> Stok Sistem</th>
-                                            <th class="p-3 sm:p-4 font-black text-center">Status Minimum</th>
-                                            <th class="p-3 sm:p-4 font-black text-center">Aksi</th>
+                                        <tr class="text-slate-500 text-[10px] sm:text-[11px] uppercase tracking-widest select-none">
+                                            <th class="p-3 sm:p-4 w-10 sm:w-12 text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]"><input type="checkbox" @change="toggleAllInventory" :checked="selectedInventoryItems.length === paginatedInventory.length && paginatedInventory.length > 0" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></th>
+                                            <th @click="toggleSort('inv', 'name')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 group sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Barcode / Nama <i class="ph-bold ml-1" :class="invSortKey === 'name' ? (invSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i></th>
+                                            <th @click="toggleSort('inv', 'location')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 group sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Lokasi <i class="ph-bold ml-1" :class="invSortKey === 'location' ? (invSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i></th>
+                                            <th @click="toggleSort('inv', 'category')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 group sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Kategori <i class="ph-bold ml-1" :class="invSortKey === 'category' ? (invSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i></th>
+                                            <th @click="toggleSort('inv', 'qty')" class="p-3 sm:p-4 font-black text-right cursor-pointer hover:bg-slate-100 group sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]"><i class="ph-bold mr-1" :class="invSortKey === 'qty' ? (invSortAsc ? 'ph-caret-up text-brand-600' : 'ph-caret-down text-brand-600') : 'ph-arrows-down-up text-slate-300 opacity-0 group-hover:opacity-100'"></i> Stok Sistem</th>
+                                            <th class="p-3 sm:p-4 font-black text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Status Minimum</th>
+                                            <th class="p-3 sm:p-4 font-black text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Aksi</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-slate-100 text-xs sm:text-sm">
+                                    <tbody class="divide-y divide-slate-100 text-xs sm:text-sm bg-white">
                                         <tr v-if="paginatedInventory.length === 0"><td colspan="7" class="p-10 text-center text-slate-500"><i class="ph-duotone ph-ghost text-4xl text-slate-300 mb-3"></i><br>Tidak ada data ditemukan.</td></tr>
                                         <tr v-for="item in paginatedInventory" :key="item.barcode" class="hover:bg-slate-50/80 transition-colors group/row" :class="{'bg-brand-50/50': selectedInventoryItems.includes(item.barcode)}">
                                             <td class="p-3 sm:p-4 text-center"><input type="checkbox" :value="item.barcode" v-model="selectedInventoryItems" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></td>
@@ -851,17 +875,18 @@
                                 </div>
                             </div>
 
-                            <div class="overflow-x-auto">
+                            <!-- 🔴 ENTERPRISE TABLE SCROLLBAR FIX 🔴 -->
+                            <div class="overflow-auto max-h-[65vh] sm:max-h-[70vh] table-scrollbar border-t border-slate-100 relative">
                                 <!-- Notifikasi Rentang Tanggal -->
-                                <div v-if="logFilterDate && (logFilterDate.includes(' to ') || logFilterDate.includes(' - '))" class="px-6 py-2 bg-orange-50 border-b border-orange-100 text-xs font-bold text-orange-700 flex items-center">
+                                <div v-if="logFilterDate && (logFilterDate.includes(' to ') || logFilterDate.includes(' - '))" class="px-6 py-2 bg-orange-50 border-b border-orange-100 text-xs font-bold text-orange-700 flex items-center sticky top-0 z-30">
                                     <i class="ph-fill ph-info mr-2"></i> Menampilkan riwayat transaksi dari rentang tanggal yang dipilih.
                                 </div>
                                 <table class="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
                                     <thead>
-                                        <tr class="bg-slate-50 text-slate-500 text-[10px] sm:text-[11px] uppercase tracking-widest border-b border-slate-200 select-none">
-                                            <th class="p-3 sm:p-4 w-10 sm:w-12 text-center"><input type="checkbox" @change="toggleAllLogs" :checked="selectedLogItems.length === paginatedTransactions.length && paginatedTransactions.length > 0" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></th>
+                                        <tr class="text-slate-500 text-[10px] sm:text-[11px] uppercase tracking-widest select-none">
+                                            <th class="p-3 sm:p-4 w-10 sm:w-12 text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]"><input type="checkbox" @change="toggleAllLogs" :checked="selectedLogItems.length === paginatedTransactions.length && paginatedTransactions.length > 0" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></th>
                                             
-                                            <th @click="toggleSort('log', 'date')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none">
+                                            <th @click="toggleSort('log', 'date')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">
                                                 <div class="flex items-center gap-1.5">
                                                     Waktu Scan
                                                     <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="logSortKey === 'date' ? 'bg-orange-100 text-orange-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
@@ -870,9 +895,9 @@
                                                 </div>
                                             </th>
                                             
-                                            <th class="p-3 sm:p-4 font-black group">Gudang & PIC</th>
+                                            <th class="p-3 sm:p-4 font-black group sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Gudang & PIC</th>
                                             
-                                            <th @click="toggleSort('log', 'user')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none">
+                                            <th @click="toggleSort('log', 'user')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">
                                                 <div class="flex items-center gap-1.5">
                                                     Sistem User
                                                     <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="logSortKey === 'user' ? 'bg-orange-100 text-orange-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
@@ -881,7 +906,7 @@
                                                 </div>
                                             </th>
                                             
-                                            <th @click="toggleSort('log', 'name')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none">
+                                            <th @click="toggleSort('log', 'name')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">
                                                 <div class="flex items-center gap-1.5">
                                                     Item & Barcode
                                                     <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="logSortKey === 'name' ? 'bg-orange-100 text-orange-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
@@ -890,7 +915,7 @@
                                                 </div>
                                             </th>
                                             
-                                            <th @click="toggleSort('log', 'oldQty')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none text-center">
+                                            <th @click="toggleSort('log', 'oldQty')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">
                                                 <div class="flex items-center justify-center gap-1.5">
                                                     Awal
                                                     <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="logSortKey === 'oldQty' ? 'bg-orange-100 text-orange-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
@@ -899,7 +924,7 @@
                                                 </div>
                                             </th>
                                             
-                                            <th @click="toggleSort('log', 'newQty')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none text-center">
+                                            <th @click="toggleSort('log', 'newQty')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">
                                                 <div class="flex items-center justify-center gap-1.5">
                                                     Baru
                                                     <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="logSortKey === 'newQty' ? 'bg-orange-100 text-orange-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
@@ -908,7 +933,7 @@
                                                 </div>
                                             </th>
                                             
-                                            <th @click="toggleSort('log', 'variance')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none text-right">
+                                            <th @click="toggleSort('log', 'variance')" class="p-3 sm:p-4 font-black cursor-pointer hover:bg-slate-100 transition-colors group select-none text-right sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">
                                                 <div class="flex items-center justify-end gap-1.5">
                                                     <span class="flex items-center justify-center w-5 h-5 rounded-md transition-colors" :class="logSortKey === 'variance' ? 'bg-orange-100 text-orange-600' : 'bg-transparent text-slate-300 group-hover:bg-slate-200 group-hover:text-slate-500'">
                                                         <i class="ph-bold" :class="logSortKey === 'variance' ? (logSortAsc ? 'ph-caret-up' : 'ph-caret-down') : 'ph-arrows-down-up'"></i>
@@ -918,7 +943,7 @@
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-slate-100 text-xs sm:text-sm">
+                                    <tbody class="divide-y divide-slate-100 text-xs sm:text-sm bg-white">
                                         <tr v-if="paginatedTransactions.length === 0"><td colspan="8" class="p-10 text-center text-slate-500"><i class="ph-duotone ph-magnifying-glass text-4xl text-slate-300 mb-3"></i><br>Tidak ada data riwayat ditemukan sesuai filter.</td></tr>
                                         <tr v-for="log in paginatedTransactions" :key="log.id" class="hover:bg-slate-50 transition-colors group/row" :class="{'bg-orange-50/50': selectedLogItems.includes(log.id)}">
                                             <td class="p-3 sm:p-4 text-center"><input type="checkbox" :value="log.id" v-model="selectedLogItems" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></td>
@@ -948,7 +973,7 @@
                     </div>
 
                     <!-- ================= TAB: PENGATURAN (SETTINGS) ENTERPRISE ================= -->
-                    <div v-else-if="activeTab === 'settings'" key="settings" class="max-w-4xl mx-auto mb-10 space-y-6">
+                    <div v-else-if="activeTab === 'settings'" key="settings" class="max-w-5xl mx-auto mb-10 space-y-6">
                         
                         <!-- 🔴 NEW: SUB-NAVIGATION (PILLS) UNTUK PENGATURAN 🔴 -->
                         <div class="flex space-x-2 sm:space-x-3 mb-6 overflow-x-auto hide-scrollbar pb-2">
@@ -2654,7 +2679,7 @@
                 return {
                     isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr,
                     activeTab, activeSettingsTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
-                    manualRefresh, resetFilters, 
+                    manualRefresh, resetFilters,
                     inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, availableLocations, availableLocationsFromSettings,
                     uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch,
@@ -2672,7 +2697,7 @@
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname,
                     exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers,
-                    setDateRange, isRecapToday, isRecapYesterday, 
+                    setDateRange, isRecapToday, isRecapYesterday,
                     recapDateInput, logDateInput
                 };
             }
