@@ -231,7 +231,7 @@
                             </div>
                             <div class="h-8 w-px bg-brand-700 hidden md:block"></div>
                             <div class="flex items-center space-x-2 bg-black/20 hover:bg-black/30 transition-colors px-2 py-1.5 sm:px-4 sm:py-2 rounded-xl border border-white/10 cursor-pointer">
-                                <div class="bg-brand-500 full p-1"><i class="ph-duotone ph-user text-lg"></i></div>
+                                <div class="bg-brand-500 rounded-full p-1"><i class="ph-duotone ph-user text-lg"></i></div>
                                 <div class="flex flex-col max-w-[80px] sm:max-w-none overflow-hidden">
                                     <span class="text-xs sm:text-sm font-bold leading-tight truncate">{{ currentUser.username }}</span>
                                     <span class="text-[9px] sm:text-xs text-brand-200 leading-tight uppercase truncate">{{ currentUser.location }}</span>
@@ -429,11 +429,10 @@
                                     <div class="bg-brand-100 text-brand-600 p-2 rounded-lg mr-3 shadow-inner"><i class="ph-duotone ph-scan text-2xl"></i></div>
                                     Form Opname Harian
                                 </h2>
-                                <p class="text-[11px] sm:text-sm text-slate-500 mt-2 sm:ml-12">Siapa petugas hari ini? Lengkapi form dan scan barcode untuk update aktual.</p>
+                                <p class="text-[11px] sm:text-sm text-slate-500 mt-2 sm:ml-12">Otomatis melacak akun yang masuk. Lengkapi form dan scan barcode untuk update aktual.</p>
                             </div>
                             
                             <div class="p-5 sm:p-8">
-                                <!-- 🔴 IDENTITAS PIC DIKUNCI BERDASARKAN LOGIN 🔴 -->
                                 <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex justify-between items-center">
                                     <div>
                                         <label class="block text-xs font-black uppercase tracking-wider text-blue-800 mb-1 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Petugas Opname (PIC)</label>
@@ -498,10 +497,21 @@
                                                 <label class="block text-xs sm:text-sm font-black text-brand-900 mb-3 flex items-center"><i class="ph-duotone ph-clipboard-text text-xl mr-2 text-brand-500"></i> Input Sisa Fisik Aktual ({{ activeItem.unit }})</label>
                                                 <div class="flex shadow-md rounded-xl bg-white border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 transition-all">
                                                     <button @click="actualStock > 0 && actualStock--" class="px-5 py-3 sm:py-4 bg-slate-50 hover:bg-slate-100 font-black text-slate-600 transition-colors text-xl border-r border-slate-200 active:bg-slate-200" :disabled="isProcessing">-</button>
-                                                    <input ref="actualStockInput" v-model.number="actualStock" @keyup.enter="submitUpdate" type="number" min="0" class="flex-1 w-full px-2 py-3 sm:py-4 text-center text-3xl font-black text-brand-800 bg-white focus:bg-brand-50 outline-none transition-colors" :disabled="isProcessing">
+                                                    <input ref="actualStockInput" v-model.number="actualStock" @keyup.enter="isNitrogenItem ? focusPressure() : submitUpdate()" type="number" min="0" class="flex-1 w-full px-2 py-3 sm:py-4 text-center text-3xl font-black text-brand-800 bg-white focus:bg-brand-50 outline-none transition-colors" :disabled="isProcessing">
                                                     <button @click="actualStock++" class="px-5 py-3 sm:py-4 bg-slate-50 hover:bg-slate-100 font-black text-slate-600 transition-colors text-xl border-l border-slate-200 active:bg-slate-200" :disabled="isProcessing">+</button>
                                                 </div>
-                                                <p class="text-[10px] sm:text-[11px] text-brand-600/70 font-medium mt-3 text-center flex items-center justify-center"><i class="ph-fill ph-lightbulb mr-1.5 text-yellow-500 text-sm"></i> Ubah angka lalu tekan Enter.</p>
+                                                
+                                                <transition name="fade-slide">
+                                                    <div v-if="isNitrogenItem" class="mt-4 pt-4 border-t border-brand-200/50">
+                                                        <label class="block text-xs sm:text-sm font-black text-purple-900 mb-3 flex items-center"><i class="ph-duotone ph-gauge text-xl mr-2 text-purple-500"></i> Input Pressure Aktual (Bar)</label>
+                                                        <div class="flex shadow-md rounded-xl bg-white border border-slate-200 overflow-hidden focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-all">
+                                                            <input ref="actualPressureInput" v-model.number="actualPressure" @keyup.enter="submitUpdate" type="number" step="0.01" min="0" class="flex-1 w-full px-4 py-3 sm:py-4 text-center text-2xl font-black text-purple-800 bg-white focus:bg-purple-50 outline-none transition-colors" :disabled="isProcessing" placeholder="0">
+                                                            <div class="px-5 py-3 sm:py-4 bg-slate-50 font-black text-slate-500 border-l border-slate-200 flex items-center">Bar</div>
+                                                        </div>
+                                                    </div>
+                                                </transition>
+
+                                                <p class="text-[10px] sm:text-[11px] text-brand-600/70 font-medium mt-4 text-center flex items-center justify-center"><i class="ph-fill ph-lightbulb mr-1.5 text-yellow-500 text-sm"></i> Ubah angka lalu tekan Enter.</p>
 
                                                 <transition name="fade-slide">
                                                     <div v-if="variance !== null" class="mt-4 text-xs sm:text-sm font-bold text-center p-3 rounded-xl border shadow-sm transition-all" :class="variance === 0 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-orange-50 text-orange-700 border-orange-200'">
@@ -525,7 +535,7 @@
                         </div>
                     </div>
 
-                    <!-- ================= TAB: REKAP HARIAN (TABLE) - ENTERPRISE DESIGN ================= -->
+                    <!-- ================= TAB: REKAP HARIAN (TABLE) ================= -->
                     <div v-else-if="activeTab === 'recap'" key="recap" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                             
@@ -940,7 +950,7 @@
                     </div>
 
                     <!-- ================= TAB: PENGATURAN (SETTINGS) ENTERPRISE ================= -->
-                    <div v-else-if="activeTab === 'settings'" key="settings" class="max-w-4xl mx-auto mb-10">
+                    <div v-else-if="activeTab === 'settings'" key="settings" class="max-w-4xl mx-auto mb-10 space-y-6">
                         
                         <!-- 🔴 NEW: SUB-NAVIGATION (PILLS) UNTUK PENGATURAN 🔴 -->
                         <div class="flex space-x-2 sm:space-x-3 mb-6 overflow-x-auto hide-scrollbar pb-2">
@@ -1172,11 +1182,10 @@
                 const showNotifMenu = ref(false);
 
                 const activeTab = ref('dashboard');
+                const activeSettingsTab = ref('security'); // Menambahkan ref aktif untuk tab pengaturan
                 const loading = ref(false);
                 const isProcessing = ref(false);
                 
-                const activeSettingsTab = ref('security'); // 🔴 NEW: State untuk Sub-Tab Pengaturan
-
                 const inventory = ref([]);
                 const transactions = ref([]);
                 const settingsData = ref([]); 
@@ -1209,6 +1218,10 @@
                 const actualStockInput = ref(null);
                 const actualStock = ref(0);
                 
+                // 🔴 NEW: State untuk Pressure Nitrogen 🔴
+                const actualPressure = ref(0);
+                const actualPressureInput = ref(null);
+
                 const variance = computed(() => {
                     if (!activeItem.value) return null;
                     const numStock = typeof actualStock.value === 'number' ? actualStock.value : 0;
@@ -1284,6 +1297,11 @@
                 });
 
                 const lowStockItems = computed(() => baseInventory.value.filter(item => item.qty <= item.minQty));
+
+                // 🔴 NEW: Deteksi Item Nitrogen 🔴
+                const isNitrogenItem = computed(() => {
+                    return activeItem.value && activeItem.value.name.toUpperCase().includes('NITROGEN');
+                });
                 
                 const sortArray = (arr, key, asc) => {
                     return [...arr].sort((a, b) => {
@@ -1549,12 +1567,20 @@
                     
                     if (tab === 'scan') resetScanner();
                     if (tab === 'settings') { 
-                        passwordForm.value = { old: '', new: '', confirm: '' }; 
-                        // Jika bukan Super Admin, paksa selalu di tab keamanan
-                        if(currentUser.value.role !== 'Super Admin') {
+                        passwordForm.value = { old: '', new: '', confirm: '' };
+                        if (currentUser.value.role !== 'Super Admin') {
                             activeSettingsTab.value = 'security';
                         }
                     }
+                };
+
+                const focusPressure = () => {
+                    nextTick(() => {
+                        if (actualPressureInput.value) {
+                            actualPressureInput.value.focus();
+                            actualPressureInput.value.select();
+                        }
+                    });
                 };
 
                 const filterLowStockAndGo = () => { searchQuery.value = '@low'; changeTab('inventory'); };
@@ -1563,6 +1589,10 @@
                     searchQuery.value = barcode;
                     changeTab('inventory');
                     showNotifMenu.value = false;
+                };
+
+                const savePicToLocal = () => {
+                    localStorage.setItem('savedPic', opnamePic.value);
                 };
 
                 const toggleAllInventory = (e) => {
@@ -2126,18 +2156,29 @@
                 };
 
                 const resetScanner = () => { 
-                    activeItem.value = null; actualStock.value = 0; scannedCode.value = ''; isProcessing.value = false; 
+                    activeItem.value = null; actualStock.value = 0; actualPressure.value = 0; scannedCode.value = ''; isProcessing.value = false; 
                     if(activeTab.value === 'scan') nextTick(() => { if (barcodeInput.value) barcodeInput.value.focus(); }); 
                 };
 
                 const submitUpdate = async () => {
                     if (!activeItem.value || actualStock.value === '' || actualStock.value < 0 || typeof actualStock.value !== 'number') return;
                     
+                    if (isNitrogenItem.value && (actualPressure.value === '' || actualPressure.value < 0 || typeof actualPressure.value !== 'number')) {
+                        Swal.fire({ icon: 'warning', title: 'Pressure Kosong', text: 'Khusus item Nitrogen, wajib mengisi data Pressure Aktual (Bar).' });
+                        return;
+                    }
+
                     isProcessing.value = true;
                     try {
+                        let finalName = activeItem.value.name.toUpperCase();
+                        
+                        if (isNitrogenItem.value) {
+                            finalName += ` [Pressure: ${actualPressure.value} Bar]`;
+                        }
+
                         const payload = { 
                             id: Date.now(), date: currentTime.value.toISOString(), barcode: activeItem.value.barcode.toUpperCase(), 
-                            name: activeItem.value.name.toUpperCase(), oldQty: activeItem.value.qty, newQty: actualStock.value, 
+                            name: finalName, oldQty: activeItem.value.qty, newQty: actualStock.value, 
                             variance: actualStock.value - activeItem.value.qty, user: currentUser.value.username.toUpperCase() || 'SISTEM',
                             location: activeItem.value.location.toUpperCase(), pic: currentUser.value.username.toUpperCase()
                         };
@@ -2172,7 +2213,7 @@
                                         icon: 'success', title: 'Opname Tersimpan!',
                                         html: `<div class="text-sm text-slate-600 mb-4">Data stok berhasil diperbarui di Server.</div>
                                                <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-pulse text-left">
-                                                   <div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div>
+                                                    <div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div>
                                                    <p class="text-xs text-red-600 font-medium">Stok menyentuh batas minimum.<br>Sistem telah <b>otomatis mengirim email notifikasi reorder</b> ke PIC Gudang.</p>
                                                </div>`,
                                         confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!', customClass: { popup: 'rounded-3xl shadow-2xl border border-slate-100' }
@@ -2445,6 +2486,7 @@
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
                     logSearchQuery, logSortKey, logSortAsc, logCurrentPage, logItemsPerPage, processedTransactions, paginatedTransactions, logTotalPages,
                     logFilterDate, logFilterLocation, logFilterPic,
+                    actualPressure, actualPressureInput, focusPressure, isNitrogenItem,
                     toggleSort, selectedInventoryItems, toggleAllInventory, toggleInventorySelection, deleteSelectedInventory,
                     selectedLogItems, toggleAllLogs, toggleLogSelection, deleteSelectedLogs,
                     selectedRecapItems, toggleAllRecaps, toggleRecapSelection, deleteSelectedRecaps,
