@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Monitoring Stok Gudang</title>
+    <!-- Favicon Enterprise (Box Icon) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' fill='none'/><path d='M224,177.32V78.68a16,16,0,0,0-8.26-14l-80-44a16,16,0,0,0-15.48,0l-80,44A16,16,0,0,0,32,78.68v98.64a16,16,0,0,0,8.26,14l80,44a16,16,0,0,0,15.48,0l80-44A16,16,0,0,0,224,177.32Z' fill='%230ea5e9' stroke='%230ea5e9' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><polyline points='222.89 74.63 128 128 33.11 74.63' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='128' y1='128' x2='128' y2='234.82' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='176' y1='101.44' x2='80' y2='48.56' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/></svg>">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 -->
@@ -1716,18 +1718,26 @@
                     else if (trendFilter.value === 'month') cutoff.setMonth(now.getMonth() - 12);
 
                     const filteredLogs = transactions.value.filter(t => new Date(t.date) >= cutoff && t.barcode === selectedTrendItem.value);
+                    
                     const grouped = {};
+                    const dateMap = {}; // 🔥 Enterprise Fix: Menyimpan timestamp asli untuk pengurutan presisi tinggi
+
                     filteredLogs.forEach(log => {
                         const d = new Date(log.date); let key = '';
                         if (trendFilter.value === 'day') key = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
                         else if (trendFilter.value === 'week') key = `Minggu ${Math.ceil(d.getDate()/7)}, ${d.toLocaleDateString('id-ID', { month: 'short'})}`;
                         else key = d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
                         
-                        if (!grouped[key]) { grouped[key] = log.newQty; }
+                        if (!grouped[key]) { 
+                            grouped[key] = log.newQty; 
+                            dateMap[key] = d.getTime(); // Rekam jejak waktu
+                        }
                     });
 
-                    const labels = Object.keys(grouped).reverse();
+                    // 🔥 Memaksa urutan dari paling lama ke paling baru menggunakan data Map waktu
+                    const labels = Object.keys(grouped).sort((a, b) => dateMap[a] - dateMap[b]);
                     const data = labels.map(l => grouped[l]);
+                    
                     return { labels, data, itemName };
                 };
 
