@@ -73,23 +73,23 @@
             display: none !important;
         }
 
-        /* ENTERPRISE FLATPIKCR THEME OVERRIDES (SEXY & MODERN) */
+        /* ENTERPRISE FLATPIKCR THEME OVERRIDES */
         .flatpickr-calendar {
             border: none !important;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
             border-radius: 1.5rem !important;
             padding: 15px !important;
             font-family: inherit !important;
-            z-index: 99999 !important; /* Mencegah kalender tertutup elemen lain secara mutlak */
+            z-index: 99999 !important; 
         }
         .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
-            background: #8b5cf6 !important; /* Tailwind Purple 500 */
+            background: #8b5cf6 !important; 
             border-color: #8b5cf6 !important;
             font-weight: 900 !important;
             border-radius: 8px !important;
         }
         .flatpickr-day.inRange {
-            background: #f3e8ff !important; /* Tailwind Purple 100 */
+            background: #f3e8ff !important; 
             border-color: #f3e8ff !important;
             box-shadow: -5px 0 0 #f3e8ff, 5px 0 0 #f3e8ff !important;
             font-weight: 700 !important;
@@ -501,6 +501,7 @@
                                                     <button @click="actualStock++" class="px-5 py-3 sm:py-4 bg-slate-50 hover:bg-slate-100 font-black text-slate-600 transition-colors text-xl border-l border-slate-200 active:bg-slate-200" :disabled="isProcessing">+</button>
                                                 </div>
                                                 
+                                                <!-- Pengecualian Nitrogen -->
                                                 <transition name="fade-slide">
                                                     <div v-if="isNitrogenItem" class="mt-4 pt-4 border-t border-brand-200/50">
                                                         <label class="block text-xs sm:text-sm font-black text-purple-900 mb-3 flex items-center"><i class="ph-duotone ph-gauge text-xl mr-2 text-purple-500"></i> Input Pressure Aktual (Bar)</label>
@@ -550,14 +551,12 @@
                                 </div>
                                 
                                 <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto relative z-10">
-                                    <!-- Smart Date Chips -->
                                     <div class="hidden lg:flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm whitespace-nowrap">
                                         <button @click="setDateRange('recap', 'today')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="isRecapToday ? 'bg-purple-100 text-purple-700' : 'text-slate-500 hover:bg-slate-50'">Hari Ini</button>
                                         <button @click="setDateRange('recap', 'yesterday')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="isRecapYesterday ? 'bg-purple-100 text-purple-700' : 'text-slate-500 hover:bg-slate-50'">Kemarin</button>
                                         <button @click="setDateRange('recap', '7days')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:bg-slate-50">7 Hari</button>
                                         <button @click="setDateRange('recap', 'thisMonth')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:bg-slate-50">Bulan Ini</button>
                                     </div>
-                                    <!-- Beautiful Range Date Picker -->
                                     <div class="relative group w-full sm:w-64">
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
                                             <i class="ph-duotone ph-calendar-blank text-purple-500 text-lg group-focus-within:text-purple-600 transition-colors"></i>
@@ -1147,6 +1146,131 @@
                 <span class="text-[8px] font-black tracking-wider uppercase">Setting</span>
             </button>
         </div>
+
+        <!-- CRUD MODAL (TAMBAH MASSAL / EDIT) -->
+        <transition name="fade-slide">
+            <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm pb-20 sm:pb-0">
+                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in">
+                    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h3 class="font-black text-lg text-slate-800 flex items-center"><div class="bg-brand-100 text-brand-600 p-1.5 rounded-lg mr-3"><i class="ph-bold text-xl" :class="isEditing ? 'ph-pencil-simple' : 'ph-plus-circle'"></i></div>{{ isEditing ? 'Edit Barang' : 'Tambah Barang Massal' }}</h3>
+                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 bg-white hover:bg-red-50 p-2 rounded-xl transition-all" :disabled="isProcessing"><i class="ph-bold ph-x text-lg"></i></button>
+                    </div>
+                    <div class="p-5 overflow-y-auto bg-white max-h-[75vh]">
+                        
+                        <!-- FORM EDIT (SINGLE) -->
+                        <form v-if="isEditing" @submit.prevent="saveItem" class="space-y-4">
+                            <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Barcode ID *</label>
+                                <input v-model="formItem.barcode" @input="formItem.barcode = formItem.barcode.toUpperCase()" type="text" required :disabled="isEditing || isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 font-mono uppercase text-slate-900 bg-white disabled:bg-slate-100 outline-none transition-colors">
+                            </div>
+                            <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Nama Barang *</label>
+                                <input v-model="formItem.name" @input="formItem.name = formItem.name.toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors uppercase" placeholder="Ketik nama barang...">
+                                <datalist id="itemNameList">
+                                    <option v-for="name in uniqueItemNames" :key="name" :value="name"></option>
+                                </datalist>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-xs font-black uppercase text-slate-600 mb-1">Lokasi Gudang *</label>
+                                <select v-model="formItem.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 font-bold bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-500 outline-none cursor-pointer transition-colors uppercase">
+                                    <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Kategori</label>
+                                    <select v-model="formItem.category" :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 uppercase text-slate-900 bg-white outline-none transition-colors cursor-pointer">
+                                        <option value="CHEMICAL">CHEMICAL</option>
+                                        <option value="CONSUMABLE">CONSUMABLE</option>
+                                        <option value="PACKAGING">PACKAGING</option>
+                                        <option value="SPAREPART">SPAREPART</option>
+                                    </select>
+                                </div>
+                                <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Satuan</label>
+                                    <input v-model="formItem.unit" @input="formItem.unit = formItem.unit.toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors uppercase">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Stok Awal</label>
+                                    <input v-model.number="formItem.qty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors">
+                                </div>
+                                <div><label class="block text-xs font-black uppercase text-slate-600 mb-1">Min. Stok</label>
+                                    <input v-model.number="formItem.minQty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors">
+                                </div>
+                            </div>
+                            <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
+                                <button type="button" @click="closeModal" class="px-4 sm:px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm sm:text-base" :disabled="isProcessing">Batal</button>
+                                <button type="submit" class="px-4 sm:px-5 py-2.5 bg-brand-600 text-white rounded-xl font-black flex items-center shadow-lg shadow-brand-500/30 disabled:opacity-50 text-sm sm:text-base" :disabled="isProcessing">
+                                    <span v-if="isProcessing"><i class="ph ph-spinner animate-spin text-xl mr-2"></i> Memproses...</span>
+                                    <span v-else><i class="ph-bold ph-floppy-disk mr-2"></i> Simpan Edit</span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- FORM TAMBAH MASSAL (BULK) -->
+                        <div v-else class="space-y-4">
+                            <div v-for="(item, index) in addFormItems" :key="index" class="p-4 sm:p-5 bg-slate-50 border border-slate-200 rounded-2xl relative mb-4">
+                                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-200">
+                                    <span class="font-black text-brand-700 text-sm bg-brand-100 px-2 py-1 rounded-md">Barang #{{ index + 1 }}</span>
+                                    <button v-if="addFormItems.length > 1" @click="removeNewItemRow(index)" type="button" class="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded-lg transition-colors border border-red-100"><i class="ph-bold ph-trash"></i></button>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <div><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Barcode ID *</label>
+                                        <input v-model="item.barcode" @input="item.barcode = item.barcode.toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 font-mono uppercase text-slate-900 bg-white outline-none transition-colors text-sm">
+                                    </div>
+                                    <div><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Nama Barang *</label>
+                                        <input v-model="item.name" @input="item.name = item.name.toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors uppercase text-sm" placeholder="Ketik nama...">
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Lokasi Gudang *</label>
+                                        <select v-model="item.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 font-bold bg-white text-slate-900 disabled:bg-slate-100 disabled:text-slate-500 outline-none cursor-pointer transition-colors uppercase text-sm">
+                                            <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Kategori</label>
+                                            <select v-model="item.category" :disabled="isProcessing" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 uppercase text-slate-900 bg-white outline-none transition-colors cursor-pointer text-sm">
+                                                <option value="CHEMICAL">CHEMICAL</option>
+                                                <option value="CONSUMABLE">CONSUMABLE</option>
+                                                <option value="PACKAGING">PACKAGING</option>
+                                                <option value="SPAREPART">SPAREPART</option>
+                                            </select>
+                                        </div>
+                                        <div><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Satuan</label>
+                                            <input v-model="item.unit" @input="item.unit = item.unit.toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors uppercase text-sm">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Stok Awal</label>
+                                            <input v-model.number="item.qty" type="number" required :disabled="isProcessing" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors text-sm">
+                                        </div>
+                                        <div><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Min. Stok</label>
+                                            <input v-model.number="item.minQty" type="number" required :disabled="isProcessing" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-brand-50 text-slate-900 bg-white outline-none transition-colors text-sm">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button @click="addNewItemRow" type="button" class="w-full py-3 border-2 border-dashed border-brand-300 text-brand-600 bg-brand-50 rounded-xl font-bold hover:bg-brand-100 transition-colors flex items-center justify-center text-sm" :disabled="isProcessing">
+                                <i class="ph-bold ph-plus mr-2"></i> Tambah Baris Barang Lagi
+                            </button>
+
+                            <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
+                                <button type="button" @click="closeModal" class="px-4 sm:px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm sm:text-base" :disabled="isProcessing">Batal</button>
+                                <button @click="saveItem" type="button" class="px-4 sm:px-5 py-2.5 bg-brand-600 text-white rounded-xl font-black flex items-center shadow-lg shadow-brand-500/30 disabled:opacity-50 text-sm sm:text-base" :disabled="isProcessing">
+                                    <span v-if="isProcessing"><i class="ph ph-spinner animate-spin text-xl mr-2"></i> Menyimpan...</span>
+                                    <span v-else><i class="ph-bold ph-floppy-disk mr-2"></i> Simpan Semua Data</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </transition>
+
     </div>
 
     <script>
@@ -1182,7 +1306,7 @@
                 const showNotifMenu = ref(false);
 
                 const activeTab = ref('dashboard');
-                const activeSettingsTab = ref('security'); // Menambahkan ref aktif untuk tab pengaturan
+                const activeSettingsTab = ref('security'); 
                 const loading = ref(false);
                 const isProcessing = ref(false);
                 
@@ -1218,7 +1342,6 @@
                 const actualStockInput = ref(null);
                 const actualStock = ref(0);
                 
-                // 🔴 NEW: State untuk Pressure Nitrogen 🔴
                 const actualPressure = ref(0);
                 const actualPressureInput = ref(null);
 
@@ -1234,7 +1357,9 @@
                 const selectedRecapDate = ref('');
                 const showModal = ref(false);
                 const isEditing = ref(false);
+                
                 const formItem = ref({ barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: 'CIP Store' });
+                const addFormItems = ref([]);
                 
                 const passwordForm = ref({ old: '', new: '', confirm: '' });
                 const showPass = ref({ login: false, old: false, new: false, confirm: false });
@@ -1298,7 +1423,6 @@
 
                 const lowStockItems = computed(() => baseInventory.value.filter(item => item.qty <= item.minQty));
 
-                // 🔴 NEW: Deteksi Item Nitrogen 🔴
                 const isNitrogenItem = computed(() => {
                     return activeItem.value && activeItem.value.name.toUpperCase().includes('NITROGEN');
                 });
@@ -2213,7 +2337,7 @@
                                         icon: 'success', title: 'Opname Tersimpan!',
                                         html: `<div class="text-sm text-slate-600 mb-4">Data stok berhasil diperbarui di Server.</div>
                                                <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-pulse text-left">
-                                                    <div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div>
+                                                   <div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div>
                                                    <p class="text-xs text-red-600 font-medium">Stok menyentuh batas minimum.<br>Sistem telah <b>otomatis mengirim email notifikasi reorder</b> ke PIC Gudang.</p>
                                                </div>`,
                                         confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!', customClass: { popup: 'rounded-3xl shadow-2xl border border-slate-100' }
@@ -2245,32 +2369,86 @@
 
                 const openAddModal = () => { 
                     isEditing.value = false; 
-                    formItem.value = { barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: currentUser.value.location === 'ALL' ? 'CIP Store' : currentUser.value.location }; 
+                    let defLoc = currentUser.value.location === 'ALL' ? (availableLocationsFromSettings.value[0] || '') : currentUser.value.location;
+                    
+                    addFormItems.value = [{ 
+                        barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: defLoc 
+                    }]; 
+                    
                     showModal.value = true; 
                 };
-                const openEditModal = (item) => { isEditing.value = true; formItem.value = { ...item }; showModal.value = true; };
+
+                const addNewItemRow = () => {
+                    let defLoc = currentUser.value.location === 'ALL' ? (availableLocationsFromSettings.value[0] || '') : currentUser.value.location;
+                    addFormItems.value.push({ barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: defLoc });
+                };
+
+                const removeNewItemRow = (index) => {
+                    addFormItems.value.splice(index, 1);
+                };
+
+                const openEditModal = (item) => { 
+                    isEditing.value = true; 
+                    formItem.value = { ...item }; 
+                    showModal.value = true; 
+                };
+                
                 const closeModal = () => { showModal.value = false; };
                 
                 const saveItem = async () => { 
-                    formItem.value.barcode = formItem.value.barcode.toUpperCase().trim(); 
-                    formItem.value.category = formItem.value.category.toUpperCase().trim();
-                    formItem.value.name = formItem.value.name.toUpperCase().trim();
-                    formItem.value.unit = formItem.value.unit.toUpperCase().trim();
-
-                    const exists = inventory.value.find(i => String(i.barcode).trim().toUpperCase() === formItem.value.barcode);
-                    if (!isEditing.value && exists) { Swal.fire('Error', 'Barcode ini sudah terdaftar!', 'error'); return; }
-
                     isProcessing.value = true;
                     try {
-                        if (isPreview) { closeModal(); Swal.fire('Berhasil', "Barang disimpan.", 'success'); } else {
-                            const res = await apiCall('saveMasterItem', { itemData: formItem.value, isEditing: isEditing.value });
-                            if (res && res.success) {
-                                if(isEditing.value) {
+                        if (isEditing.value) {
+                            formItem.value.barcode = formItem.value.barcode.toUpperCase().trim(); 
+                            formItem.value.category = formItem.value.category.toUpperCase().trim();
+                            formItem.value.name = formItem.value.name.toUpperCase().trim();
+                            formItem.value.unit = formItem.value.unit.toUpperCase().trim();
+
+                            const exists = inventory.value.find(i => String(i.barcode).trim().toUpperCase() === formItem.value.barcode);
+                            if (exists) { Swal.fire('Error', 'Barcode ini sudah terdaftar!', 'error'); isProcessing.value = false; return; }
+
+                            if (isPreview) { 
+                                closeModal(); Swal.fire('Berhasil', "Barang disimpan.", 'success'); 
+                            } else {
+                                const res = await apiCall('saveMasterItem', { itemData: formItem.value, isEditing: true });
+                                if (res && res.success) {
                                     const index = inventory.value.findIndex(i => String(i.barcode).trim().toUpperCase() === formItem.value.barcode);
                                     if(index !== -1) inventory.value[index] = { ...formItem.value };
-                                } else { inventory.value.push({ ...formItem.value }); }
-                                Swal.fire('Berhasil', res.data, 'success'); closeModal(); silentFetchData();
-                            } else { Swal.fire({title: 'Error', html: res?.error || 'Kesalahan sistem', icon: 'error'}); }
+                                    Swal.fire('Berhasil', res.data, 'success'); closeModal(); silentFetchData();
+                                } else { Swal.fire({title: 'Error', html: res?.error || 'Kesalahan sistem', icon: 'error'}); }
+                            }
+                        } else {
+                            const hasEmpty = addFormItems.value.some(i => !i.barcode.trim() || !i.name.trim());
+                            if (hasEmpty) {
+                                Swal.fire('Validasi Gagal', 'Barcode dan Nama Barang harus diisi di semua baris!', 'warning');
+                                isProcessing.value = false; return;
+                            }
+
+                            const barcodesInForm = addFormItems.value.map(i => i.barcode.toUpperCase().trim());
+                            const uniqueBarcodes = new Set(barcodesInForm);
+                            if (uniqueBarcodes.size !== barcodesInForm.length) {
+                                Swal.fire('Validasi Gagal', 'Ditemukan Barcode ganda/sama di dalam baris yang Anda input!', 'warning');
+                                isProcessing.value = false; return;
+                            }
+
+                            const existingDbBarcodes = inventory.value.map(i => i.barcode.toUpperCase().trim());
+                            const duplicateMatch = addFormItems.value.find(i => existingDbBarcodes.includes(i.barcode.toUpperCase().trim()));
+                            if (duplicateMatch) {
+                                Swal.fire('Gagal Menyimpan', `Barcode <b>${duplicateMatch.barcode}</b> sudah terdaftar sebelumnya di Master Data!`, 'error');
+                                isProcessing.value = false; return;
+                            }
+
+                            if (isPreview) {
+                                closeModal(); Swal.fire('Berhasil', `${addFormItems.value.length} Barang disimpan (Mock).`, 'success');
+                            } else {
+                                const res = await apiCall('addMasterItemsBulk', { itemsData: addFormItems.value });
+                                if (res && res.success) {
+                                    Swal.fire('Berhasil', res.data, 'success');
+                                    closeModal(); silentFetchData();
+                                } else {
+                                    Swal.fire('Gagal Menyimpan', res?.error || 'Server error', 'error');
+                                }
+                            }
                         }
                     } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
                 };
@@ -2476,11 +2654,11 @@
                 return {
                     isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr,
                     activeTab, activeSettingsTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
-                    manualRefresh, resetFilters, 
+                    manualRefresh, resetFilters,
                     inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, availableLocations, availableLocationsFromSettings,
                     uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch,
-                    showModal, isEditing, formItem, excelFileInput, historyFileInput, selectedTrendItem, trendFilter, renderCharts,
+                    showModal, isEditing, formItem, addFormItems, addNewItemRow, removeNewItemRow, excelFileInput, historyFileInput, selectedTrendItem, trendFilter, renderCharts,
                     selectedOperator, operatorFilter,
                     searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
@@ -2494,7 +2672,7 @@
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname,
                     exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers,
-                    setDateRange, isRecapToday, isRecapYesterday, 
+                    setDateRange, isRecapToday, isRecapYesterday,
                     recapDateInput, logDateInput
                 };
             }
