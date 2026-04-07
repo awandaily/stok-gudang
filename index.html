@@ -2285,7 +2285,15 @@
                 const handleScan = () => {
                     if (!scannedCode.value.trim()) return;
                     
-                    const scanStr = scannedCode.value.trim().toUpperCase();
+                    let scanStr = scannedCode.value.trim().toUpperCase();
+                    
+                    // 🔴 SMART QR URL EXTRACTOR: Memotong link HTTP/HTTPS dari QR Code Generator 🔴
+                    if (scanStr.startsWith('HTTP://') || scanStr.startsWith('HTTPS://')) {
+                        const urlParts = scanStr.split('/');
+                        // Mengambil teks terakhir setelah garis miring "/"
+                        scanStr = urlParts.pop() || scanStr; 
+                        scannedCode.value = scanStr; // Perbarui tampilan di input box menjadi kode bersih
+                    }
                     
                     const item = baseInventory.value.find(i => String(i.barcode).trim().toUpperCase() === scanStr);
                     
