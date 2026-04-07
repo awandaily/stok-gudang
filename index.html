@@ -73,7 +73,7 @@
             display: none !important;
         }
 
-        /* ENTERPRISE FLATPIKCR THEME OVERRIDES (SEXY & MODERN) */
+        /* ENTERPRISE FLATPIKCR THEME OVERRIDES */
         .flatpickr-calendar {
             border: none !important;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
@@ -100,7 +100,7 @@
         .flatpickr-current-month .flatpickr-monthDropdown-months { font-weight: 900 !important; }
         .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { top: 15px !important; }
 
-        /* 🔴 NEW: CUSTOM TABLE SCROLLBAR ENTERPRISE 🔴 */
+        /* TABLE SCROLLBAR ENTERPRISE */
         .table-scrollbar::-webkit-scrollbar {
             height: 10px;
             width: 10px;
@@ -264,7 +264,6 @@
                 </div>
             </nav>
 
-            <!-- 🔴 NEW: LEBAR KONTEN MAXIMAL UNTUK DESKTOP 🔴 -->
             <main class="flex-1 max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 
                 <div class="hidden sm:flex space-x-4 mb-8 overflow-x-auto pb-3 border-b border-slate-200 hide-scrollbar snap-x">
@@ -453,6 +452,7 @@
                             </div>
                             
                             <div class="p-5 sm:p-8">
+                                <!-- 🔴 IDENTITAS PIC DIKUNCI BERDASARKAN LOGIN 🔴 -->
                                 <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex justify-between items-center">
                                     <div>
                                         <label class="block text-xs font-black uppercase tracking-wider text-blue-800 mb-1 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Petugas Opname (PIC)</label>
@@ -1437,14 +1437,14 @@
                     let loc = currentUser.value.location;
                     if (loc === 'ALL') loc = dashboardFilter.value;
                     if (loc === 'ALL') return inventory.value;
-                    return inventory.value.filter(i => String(i.location).toUpperCase() === String(loc).toUpperCase());
+                    return inventory.value.filter(i => String(i.location).trim().toUpperCase() === String(loc).trim().toUpperCase());
                 });
                 
                 const baseTransactions = computed(() => {
                     let loc = currentUser.value.location;
                     if (loc === 'ALL') loc = dashboardFilter.value;
                     if (loc === 'ALL') return transactions.value;
-                    return transactions.value.filter(t => String(t.location).toUpperCase() === String(loc).toUpperCase());
+                    return transactions.value.filter(t => String(t.location).trim().toUpperCase() === String(loc).trim().toUpperCase());
                 });
 
                 const lowStockItems = computed(() => baseInventory.value.filter(item => item.qty <= item.minQty));
@@ -1565,11 +1565,11 @@
                     }
                     
                     if (logFilterLocation.value !== 'ALL') {
-                        res = res.filter(t => String(t.location).toUpperCase() === logFilterLocation.value.toUpperCase());
+                        res = res.filter(t => String(t.location).trim().toUpperCase() === String(logFilterLocation.value).trim().toUpperCase());
                     }
                     
                     if (logFilterPic.value !== 'ALL') {
-                        res = res.filter(t => String(t.pic).toUpperCase() === logFilterPic.value.toUpperCase());
+                        res = res.filter(t => String(t.pic).trim().toUpperCase() === String(logFilterPic.value).trim().toUpperCase());
                     }
 
                     if (logSearchQuery.value) {
