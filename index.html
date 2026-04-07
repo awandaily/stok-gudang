@@ -774,7 +774,10 @@
                                                 <div v-else class="inline-flex items-center px-2 py-1 bg-slate-50 text-slate-500 text-[10px] sm:text-xs rounded-lg border border-slate-200 font-bold"><i class="ph-fill ph-check-circle mr-1 text-green-500"></i> Aman</div>
                                             </td>
                                             <td class="p-3 sm:p-4 text-center">
-                                                <button @click="openEditModal(item)" class="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-100" title="Edit"><i class="ph-bold ph-pencil-simple text-base sm:text-lg"></i></button>
+                                                <div class="flex items-center justify-center space-x-2">
+                                                    <button @click="showQRCode(item)" class="p-1.5 sm:p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-100" title="Tampilkan QR Code"><i class="ph-bold ph-qr-code text-base sm:text-lg"></i></button>
+                                                    <button @click="openEditModal(item)" class="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-100" title="Edit"><i class="ph-bold ph-pencil-simple text-base sm:text-lg"></i></button>
+                                                </div>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -1433,18 +1436,27 @@
                     return [...new Set(names)].filter(Boolean);
                 });
 
+                // 🔴 NEW: Enterprise Smart Match untuk mengatasi spasi yang berbeda ("STORE ROOM" vs "STOREROOM") 🔴
+                const isMatchLoc = (loc1, loc2) => {
+                    if (!loc1 || !loc2) return false;
+                    // Menghapus SEMUA spasi dan mengubah jadi huruf besar
+                    return String(loc1).replace(/\s+/g, '').toUpperCase() === String(loc2).replace(/\s+/g, '').toUpperCase();
+                };
+
                 const baseInventory = computed(() => {
                     let loc = currentUser.value.location;
                     if (loc === 'ALL') loc = dashboardFilter.value;
                     if (loc === 'ALL') return inventory.value;
-                    return inventory.value.filter(i => String(i.location).trim().toUpperCase() === String(loc).trim().toUpperCase());
+                    // Menggunakan isMatchLoc alih-alih perbandingan kaku
+                    return inventory.value.filter(i => isMatchLoc(i.location, loc));
                 });
                 
                 const baseTransactions = computed(() => {
                     let loc = currentUser.value.location;
                     if (loc === 'ALL') loc = dashboardFilter.value;
                     if (loc === 'ALL') return transactions.value;
-                    return transactions.value.filter(t => String(t.location).trim().toUpperCase() === String(loc).trim().toUpperCase());
+                    // Menggunakan isMatchLoc alih-alih perbandingan kaku
+                    return transactions.value.filter(t => isMatchLoc(t.location, loc));
                 });
 
                 const lowStockItems = computed(() => baseInventory.value.filter(item => item.qty <= item.minQty));
@@ -1565,7 +1577,8 @@
                     }
                     
                     if (logFilterLocation.value !== 'ALL') {
-                        res = res.filter(t => String(t.location).trim().toUpperCase() === String(logFilterLocation.value).trim().toUpperCase());
+                        // Menggunakan isMatchLoc untuk filter tabel history
+                        res = res.filter(t => isMatchLoc(t.location, logFilterLocation.value));
                     }
                     
                     if (logFilterPic.value !== 'ALL') {
@@ -2424,6 +2437,24 @@
                 };
                 
                 const closeModal = () => { showModal.value = false; };
+
+                // 🔴 NEW: Fungsi Tampilkan QR Code Bersih (Tanpa Tracking Link) 🔴
+                const showQRCode = (item) => {
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(item.barcode)}`;
+                    Swal.fire({
+                        title: `<span class="text-lg font-black uppercase text-slate-800">${item.name}</span>`,
+                        html: `<div class="flex flex-col items-center justify-center p-4">
+                                   <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-100 mb-4">
+                                       <img src="${qrUrl}" alt="QR Code" class="w-[200px] h-[200px] mx-auto">
+                                   </div>
+                                   <p class="font-mono font-black text-xl text-brand-700 tracking-widest bg-brand-50 px-4 py-2 rounded-xl border border-brand-100">${item.barcode}</p>
+                                   <p class="text-[10px] sm:text-xs text-slate-500 font-medium mt-4"><i class="ph-fill ph-info text-brand-500"></i> Scan QR ini saat Opname. Klik Kanan / Tahan gambar (di HP) untuk Simpan/Download.</p>
+                               </div>`,
+                        confirmButtonText: 'Tutup',
+                        confirmButtonColor: '#0ea5e9',
+                        customClass: { popup: 'rounded-3xl shadow-2xl border border-slate-100' }
+                    });
+                };
                 
                 const saveItem = async () => { 
                     isProcessing.value = true;
@@ -2702,10 +2733,10 @@
                     selectedLogItems, toggleAllLogs, toggleLogSelection, deleteSelectedLogs,
                     selectedRecapItems, toggleAllRecaps, toggleRecapSelection, deleteSelectedRecaps,
                     formatDate, formatDateString, handleScan, submitUpdate, openCamera, closeCamera, resetScanner,
-                    openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname,
+                    openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname, showQRCode,
                     exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers,
-                    setDateRange, isRecapToday, isRecapYesterday,
+                    setDateRange, isRecapToday, isRecapYesterday, 
                     recapDateInput, logDateInput
                 };
             }
