@@ -14,6 +14,8 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- HTML5 QRCode Library -->
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- QRious (Untuk Local Label Generation) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <!-- SheetJS for Excel Export/Import -->
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <!-- Chart.js for Analytics -->
@@ -555,7 +557,7 @@
                         </div>
                     </div>
 
-                    <!-- ================= TAB: REKAP HARIAN (TABLE) - ENTERPRISE DESIGN ================= -->
+                    <!-- ================= TAB: REKAP HARIAN (TABLE) ================= -->
                     <div v-else-if="activeTab === 'recap'" key="recap" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                             
@@ -1436,10 +1438,8 @@
                     return [...new Set(names)].filter(Boolean);
                 });
 
-                // 🔴 NEW: Enterprise Smart Match untuk mengatasi spasi yang berbeda ("STORE ROOM" vs "STOREROOM") 🔴
                 const isMatchLoc = (loc1, loc2) => {
                     if (!loc1 || !loc2) return false;
-                    // Menghapus SEMUA spasi dan mengubah jadi huruf besar
                     return String(loc1).replace(/\s+/g, '').toUpperCase() === String(loc2).replace(/\s+/g, '').toUpperCase();
                 };
 
@@ -1447,7 +1447,6 @@
                     let loc = currentUser.value.location;
                     if (loc === 'ALL') loc = dashboardFilter.value;
                     if (loc === 'ALL') return inventory.value;
-                    // Menggunakan isMatchLoc alih-alih perbandingan kaku
                     return inventory.value.filter(i => isMatchLoc(i.location, loc));
                 });
                 
@@ -1455,7 +1454,6 @@
                     let loc = currentUser.value.location;
                     if (loc === 'ALL') loc = dashboardFilter.value;
                     if (loc === 'ALL') return transactions.value;
-                    // Menggunakan isMatchLoc alih-alih perbandingan kaku
                     return transactions.value.filter(t => isMatchLoc(t.location, loc));
                 });
 
@@ -1577,7 +1575,6 @@
                     }
                     
                     if (logFilterLocation.value !== 'ALL') {
-                        // Menggunakan isMatchLoc untuk filter tabel history
                         res = res.filter(t => isMatchLoc(t.location, logFilterLocation.value));
                     }
                     
@@ -2300,12 +2297,10 @@
                     
                     let scanStr = scannedCode.value.trim().toUpperCase();
                     
-                    // 🔴 SMART QR URL EXTRACTOR: Memotong link HTTP/HTTPS dari QR Code Generator 🔴
                     if (scanStr.startsWith('HTTP://') || scanStr.startsWith('HTTPS://')) {
                         const urlParts = scanStr.split('/');
-                        // Mengambil teks terakhir setelah garis miring "/"
                         scanStr = urlParts.pop() || scanStr; 
-                        scannedCode.value = scanStr; // Perbarui tampilan di input box menjadi kode bersih
+                        scannedCode.value = scanStr; 
                     }
                     
                     const item = baseInventory.value.find(i => String(i.barcode).trim().toUpperCase() === scanStr);
@@ -2438,21 +2433,85 @@
                 
                 const closeModal = () => { showModal.value = false; };
 
-                // 🔴 NEW: Fungsi Tampilkan QR Code Bersih (Tanpa Tracking Link) 🔴
+                // 🔴 NEW: Fungsi Cetak Label Local QR Code 🔴
                 const showQRCode = (item) => {
-                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(item.barcode)}`;
                     Swal.fire({
-                        title: `<span class="text-lg font-black uppercase text-slate-800">${item.name}</span>`,
-                        html: `<div class="flex flex-col items-center justify-center p-4">
-                                   <div class="bg-white p-4 rounded-2xl shadow-md border border-slate-100 mb-4">
-                                       <img src="${qrUrl}" alt="QR Code" class="w-[200px] h-[200px] mx-auto">
-                                   </div>
-                                   <p class="font-mono font-black text-xl text-brand-700 tracking-widest bg-brand-50 px-4 py-2 rounded-xl border border-brand-100">${item.barcode}</p>
-                                   <p class="text-[10px] sm:text-xs text-slate-500 font-medium mt-4"><i class="ph-fill ph-info text-brand-500"></i> Scan QR ini saat Opname. Klik Kanan / Tahan gambar (di HP) untuk Simpan/Download.</p>
-                               </div>`,
-                        confirmButtonText: 'Tutup',
-                        confirmButtonColor: '#0ea5e9',
-                        customClass: { popup: 'rounded-3xl shadow-2xl border border-slate-100' }
+                        title: `<span class="text-lg font-black uppercase text-slate-800">Label Barang</span>`,
+                        html: `
+                            <div class="flex flex-col items-center justify-center p-2">
+                               <p class="font-bold text-slate-600 mb-4 px-2 line-clamp-2 leading-snug">${item.name}</p>
+                               <div class="bg-white p-4 rounded-2xl shadow-inner border border-slate-200 mb-4 flex justify-center w-full">
+                                   <!-- Canvas tersembunyi yang dirender oleh library QR Code JS lokal -->
+                                   <canvas id="local-qr-canvas" class="mx-auto"></canvas>
+                               </div>
+                               <p class="font-mono font-black text-2xl text-brand-700 tracking-widest bg-brand-50 px-5 py-2 rounded-xl border border-brand-100">${item.barcode}</p>
+                               <button id="download-qr-btn" class="mt-6 w-full py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-black rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 flex items-center justify-center">
+                                   <i class="ph-bold ph-printer mr-2 text-xl"></i> DOWNLOAD LABEL PRINT
+                               </button>
+                           </div>
+                        `,
+                        showConfirmButton: false,
+                        showCloseButton: true,
+                        customClass: { popup: 'rounded-3xl shadow-2xl border border-slate-100' },
+                        didOpen: () => {
+                            const canvas = document.getElementById('local-qr-canvas');
+                            
+                            // Menggunakan QRious untuk generasi QR yang lebih stabil
+                            new QRious({
+                                element: canvas,
+                                value: item.barcode,
+                                size: 220,
+                                level: 'H', // High error correction
+                                foreground: '#000000', // Warna QR Code (Hitam Pekat)
+                                background: '#ffffff'
+                            });
+
+                            const btn = document.getElementById('download-qr-btn');
+                            btn.addEventListener('click', () => {
+                                const printCanvas = document.createElement('canvas');
+                                const ctx = printCanvas.getContext('2d');
+                                
+                                const qrSize = 300;
+                                const padding = 20;
+                                const topTextHeight = 60;
+                                const bottomTextHeight = 60;
+                                
+                                printCanvas.width = qrSize + (padding * 2);
+                                printCanvas.height = qrSize + (padding * 2) + topTextHeight + bottomTextHeight;
+                                
+                                ctx.fillStyle = "#ffffff";
+                                ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+                                
+                                ctx.strokeStyle = "#000000"; // WARNA BORDER (Hitam Pekat)
+                                ctx.lineWidth = 8;
+                                ctx.strokeRect(0, 0, printCanvas.width, printCanvas.height);
+                                
+                                ctx.fillStyle = "#000000"; // WARNA TEKS ATAS (Hitam Pekat)
+                                ctx.font = "bold 20px sans-serif";
+                                ctx.textAlign = "center";
+                                ctx.textBaseline = "middle";
+                                
+                                // 🔴 SMART TRIM: Hapus teks dalam tanda kurung (...) dan batasi panjang karakter 🔴
+                                let cleanName = item.name.replace(/\s*\(.*?\)/g, '').trim();
+                                let printName = cleanName.length > 32 ? cleanName.substring(0, 29) + '...' : cleanName;
+                                
+                                ctx.fillText(printName.toUpperCase(), printCanvas.width / 2, padding + (topTextHeight / 2));
+                                
+                                ctx.drawImage(canvas, padding, padding + topTextHeight, qrSize, qrSize);
+                                
+                                ctx.fillStyle = "#000000"; // WARNA TEKS BAWAH BARCODE (Hitam Pekat)
+                                ctx.font = "bold 32px monospace";
+                                ctx.fillText(item.barcode, printCanvas.width / 2, printCanvas.height - padding - (bottomTextHeight / 2) + 10);
+                                
+                                const dataUrl = printCanvas.toDataURL("image/png");
+                                const link = document.createElement('a');
+                                link.download = `Label_Gudang_${item.barcode}.png`;
+                                link.href = dataUrl;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            });
+                        }
                     });
                 };
                 
@@ -2736,7 +2795,7 @@
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname, showQRCode,
                     exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers,
-                    setDateRange, isRecapToday, isRecapYesterday, 
+                    setDateRange, isRecapToday, isRecapYesterday,
                     recapDateInput, logDateInput
                 };
             }
