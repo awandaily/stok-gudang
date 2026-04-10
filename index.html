@@ -149,7 +149,11 @@
                 
                 <div class="glass p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 animate-scale-in border border-white/20">
                     <div class="text-center mb-6">
-                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-lg mb-4 transform hover:rotate-12 transition-transform duration-300 relative">
+                        <!-- Logo Perusahaan di Layar Login -->
+                        <div v-if="companyLogo" class="mb-6 flex justify-center">
+                            <img :src="companyLogo" alt="Company Logo" class="max-h-20 object-contain rounded-xl drop-shadow-md">
+                        </div>
+                        <div v-else class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-lg mb-4 transform hover:rotate-12 transition-transform duration-300 relative">
                             <i class="ph-duotone ph-buildings text-5xl"></i>
                             <div class="absolute -bottom-2 -right-2 bg-green-500 text-white p-1 rounded-full shadow-md border-2 border-white"><i class="ph-fill ph-lock-key text-sm"></i></div>
                         </div>
@@ -200,7 +204,9 @@
                 <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
                     <div class="flex justify-between h-16 sm:h-20">
                         <div class="flex items-center">
-                            <div class="p-2 bg-white/10 rounded-xl mr-3 backdrop-blur-sm shadow-sm hidden sm:block">
+                            <!-- Tampilkan Logo Perusahaan Jika Ada -->
+                            <img v-if="companyLogo" :src="companyLogo" alt="Logo" class="h-8 sm:h-10 mr-3 object-contain bg-white/10 p-1 rounded-xl backdrop-blur-sm shadow-sm">
+                            <div v-else class="p-2 bg-white/10 rounded-xl mr-3 backdrop-blur-sm shadow-sm hidden sm:block">
                                 <i class="ph-duotone ph-buildings text-2xl sm:text-3xl text-brand-100"></i>
                             </div>
                             <span class="font-bold text-lg sm:text-2xl tracking-wide truncate">Monitoring <span class="text-brand-300">Stok</span></span>
@@ -429,10 +435,12 @@
                                         </div>
                                         <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-green-500 group-hover:translate-x-1 transition-all"></i>
                                     </button>
-                                    <button @click="exportExcel" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md transition-all group bg-white">
+                                    
+                                    <!-- 🔴 Tombol Baru: EXPORT CHECK SHEET RESMI 🔴 -->
+                                    <button @click="exportOfficialReport" class="flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md transition-all group bg-white">
                                         <div class="flex items-center">
                                             <div class="bg-indigo-100 p-3 rounded-xl text-indigo-600 mr-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors shadow-sm"><i class="ph-duotone ph-file-xls text-2xl"></i></div>
-                                            <div class="text-left"><h4 class="font-bold text-slate-800">Download Laporan Excel</h4><p class="text-xs text-slate-500">Unduh master data barang terkini</p></div>
+                                            <div class="text-left"><h4 class="font-bold text-slate-800">Download Check Sheet Resmi</h4><p class="text-xs text-slate-500">Excel format FR/BDA-INV/PSC/006</p></div>
                                         </div>
                                         <i class="ph-bold ph-caret-right text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all"></i>
                                     </button>
@@ -454,7 +462,6 @@
                             </div>
                             
                             <div class="p-5 sm:p-8">
-                                <!-- 🔴 IDENTITAS PIC DIKUNCI BERDASARKAN LOGIN 🔴 -->
                                 <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex justify-between items-center">
                                     <div>
                                         <label class="block text-xs font-black uppercase tracking-wider text-blue-800 mb-1 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Petugas Opname (PIC)</label>
@@ -572,20 +579,22 @@
                                 </div>
                                 
                                 <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto relative z-10">
-                                    <!-- Smart Date Chips -->
                                     <div class="hidden lg:flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm whitespace-nowrap">
                                         <button @click="setDateRange('recap', 'today')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="isRecapToday ? 'bg-purple-100 text-purple-700' : 'text-slate-500 hover:bg-slate-50'">Hari Ini</button>
                                         <button @click="setDateRange('recap', 'yesterday')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all" :class="isRecapYesterday ? 'bg-purple-100 text-purple-700' : 'text-slate-500 hover:bg-slate-50'">Kemarin</button>
                                         <button @click="setDateRange('recap', '7days')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:bg-slate-50">7 Hari</button>
                                         <button @click="setDateRange('recap', 'thisMonth')" class="px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:bg-slate-50">Bulan Ini</button>
                                     </div>
-                                    <!-- Beautiful Range Date Picker -->
                                     <div class="relative group w-full sm:w-64">
                                         <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
                                             <i class="ph-duotone ph-calendar-blank text-purple-500 text-lg group-focus-within:text-purple-600 transition-colors"></i>
                                         </div>
                                         <input id="recapDateInputId" type="text" placeholder="Pilih Rentang Tanggal..." class="bg-white border border-slate-200 text-slate-800 text-sm font-bold rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:bg-purple-50 block w-full pl-10 pr-4 py-2.5 shadow-sm transition-all outline-none cursor-pointer hover:border-purple-300">
                                     </div>
+                                    <!-- 🔴 NEW: Tombol Export Rekap Tabel 🔴 -->
+                                    <button @click="exportRecapExcel" class="w-full sm:w-auto px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-sm transition-all shadow-sm flex items-center justify-center whitespace-nowrap">
+                                        <i class="ph-bold ph-file-xls mr-2 text-lg"></i> Export Rekap
+                                    </button>
                                 </div>
                             </div>
 
@@ -715,7 +724,10 @@
                                 <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
                                     <input type="file" ref="excelFileInput" @change="handleImportExcel" accept=".xlsx, .xls, .csv" class="hidden">
                                     <button @click="triggerImportExcel" class="px-3 sm:px-4 py-2 bg-white border border-slate-300 text-slate-800 rounded-xl hover:bg-slate-50 transition text-xs sm:text-sm font-bold shadow-sm flex items-center flex-1 sm:flex-none justify-center"><i class="ph-bold ph-upload-simple mr-1.5 sm:mr-2 text-slate-400 text-lg"></i> Import</button>
-                                    <button @click="exportExcel" class="px-3 sm:px-4 py-2 bg-white border border-slate-300 text-slate-800 rounded-xl hover:bg-slate-50 transition text-xs sm:text-sm font-bold shadow-sm flex items-center flex-1 sm:flex-none justify-center"><i class="ph-bold ph-download-simple mr-1.5 sm:mr-2 text-slate-400 text-lg"></i> Export</button>
+                                    
+                                    <!-- 🔴 Tombol Download Diganti Menjadi Check Sheet Resmi 🔴 -->
+                                    <button @click="exportOfficialReport" class="px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition text-xs sm:text-sm font-bold shadow-sm flex items-center flex-1 sm:flex-none justify-center"><i class="ph-bold ph-download-simple mr-1.5 sm:mr-2 text-lg"></i> Download Form Check Sheet</button>
+                                    
                                     <button @click="openAddModal" class="px-4 sm:px-5 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-all text-xs sm:text-sm font-black shadow-brand-500/30 flex items-center flex-1 sm:flex-none justify-center"><i class="ph-bold ph-plus mr-1.5 sm:mr-2 text-lg"></i> Tambah Item</button>
                                 </div>
                             </div>
@@ -985,8 +997,14 @@
                             <button @click="activeSettingsTab = 'security'" :class="activeSettingsTab === 'security' ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
                                 <i class="ph-duotone ph-shield-check text-lg mr-2"></i> Keamanan Akun
                             </button>
+                            
+                            <!-- Tab Baru: Identitas Perusahaan -->
+                            <button v-if="currentUser.role === 'Super Admin'" @click="activeSettingsTab = 'company'" :class="activeSettingsTab === 'company' ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
+                                <i class="ph-duotone ph-buildings text-lg mr-2"></i> Identitas Perusahaan
+                            </button>
+
                             <button v-if="currentUser.role === 'Super Admin'" @click="activeSettingsTab = 'warehouse'" :class="activeSettingsTab === 'warehouse' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
-                                <i class="ph-duotone ph-buildings text-lg mr-2"></i> Konfigurasi Gudang
+                                <i class="ph-duotone ph-warehouse text-lg mr-2"></i> Konfigurasi Gudang
                             </button>
                             <button v-if="currentUser.role === 'Super Admin'" @click="activeSettingsTab = 'users'" :class="activeSettingsTab === 'users' ? 'bg-teal-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
                                 <i class="ph-duotone ph-users text-lg mr-2"></i> Manajemen Akses
@@ -1038,13 +1056,47 @@
                                 </div>
                             </div>
 
+                            <!-- 🔴 Panel Baru: Identitas Perusahaan (Logo Upload) 🔴 -->
+                            <div v-else-if="activeSettingsTab === 'company' && currentUser.role === 'Super Admin'" key="cmp" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
+                                <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-buildings text-[15rem] text-amber-500"></i></div>
+                                <div class="p-5 sm:p-6 border-b border-slate-100 bg-amber-50/50 relative z-10">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-amber-100 text-amber-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-buildings text-xl"></i></div>Identitas Perusahaan</h2>
+                                            <p class="text-xs text-slate-500 mt-1 ml-11">Upload logo resmi perusahaan untuk dipasang di aplikasi.</p>
+                                        </div>
+                                        <div class="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded border border-amber-200">SUPER ADMIN</div>
+                                    </div>
+                                </div>
+                                <div class="p-5 sm:p-6 relative z-10">
+                                    <div class="max-w-md space-y-5">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-24 h-24 bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl flex items-center justify-center overflow-hidden relative group">
+                                                <img v-if="companyLogo" :src="companyLogo" class="w-full h-full object-contain p-1">
+                                                <i v-else class="ph-duotone ph-image text-3xl text-slate-400"></i>
+                                            </div>
+                                            <div class="flex-1">
+                                                <label class="block text-xs font-black uppercase text-slate-500 mb-2">Upload Logo Perusahaan</label>
+                                                <input type="file" ref="logoInput" @change="handleLogoUpload" accept="image/png, image/jpeg, image/svg+xml" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-black file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 cursor-pointer">
+                                                <p class="text-[10px] text-slate-400 mt-2">Gunakan format PNG transparan atau SVG. Maks 1MB.</p>
+                                            </div>
+                                        </div>
+                                        <div v-if="companyLogo" class="pt-2">
+                                            <button @click="removeLogo" type="button" class="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition-colors border border-red-100">
+                                                <i class="ph-bold ph-trash mr-1"></i> Hapus Logo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Panel 2: Manajemen Email Gudang Khusus Super Admin -->
                             <div v-else-if="activeSettingsTab === 'warehouse' && currentUser.role === 'Super Admin'" key="wh" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative">
-                                <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-buildings text-[15rem] text-indigo-500"></i></div>
+                                <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-warehouse text-[15rem] text-indigo-500"></i></div>
                                 <div class="p-5 sm:p-6 border-b border-slate-100 bg-indigo-50/50 relative z-10">
                                     <div class="flex items-center justify-between">
                                         <div>
-                                            <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-buildings text-xl"></i></div>Konfigurasi Gudang & Email</h2>
+                                            <h2 class="text-lg font-black flex items-center text-slate-800"><div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-warehouse text-xl"></i></div>Konfigurasi Gudang & Email</h2>
                                             <p class="text-xs text-slate-500 mt-1 ml-11">Daftarkan lokasi gudang beserta email tujuan peringatan stok.</p>
                                         </div>
                                         <div class="bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-1 rounded border border-indigo-200">SUPER ADMIN</div>
@@ -1058,8 +1110,8 @@
                                                 <input v-model="set.Location" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800 uppercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="Cth: CIP STORE">
                                             </div>
                                             <div class="flex-[2] w-full">
-                                                <label class="block text-xs font-black uppercase text-slate-500 mb-1">Email Penerima Peringatan Stok</label>
-                                                <input v-model="set.EmailPIC" type="email" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-800 lowercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="email.pic@perusahaan.com">
+                                                <label class="block text-xs font-black uppercase text-slate-500 mb-1">Email (Pisahkan dgn koma jika > 1)</label>
+                                                <input v-model="set.EmailPIC" type="text" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-800 lowercase outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" placeholder="email1@corp.com, email2@corp.com">
                                             </div>
                                             <button @click="settingsData.splice(index, 1)" class="w-full sm:w-auto px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors border border-red-200 flex items-center justify-center shrink-0" title="Hapus Gudang">
                                                 <i class="ph-bold ph-trash text-lg mr-2 sm:mr-0"></i> <span class="sm:hidden text-xs font-bold">Hapus Gudang</span>
@@ -1324,6 +1376,7 @@
                 const isLoggedIn = ref(false);
                 const currentUser = ref({ username: '', role: '', location: '' });
                 const authToken = ref(null); 
+                const companyLogo = ref(localStorage.getItem('companyLogo') || null);
                 
                 const loginForm = ref({ username: '', password: '' });
                 const loginError = ref('');
@@ -1622,6 +1675,28 @@
                 
                 const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
                 const showToast = (msg, type='success') => { Toast.fire({ icon: type, title: msg }); };
+
+                const handleLogoUpload = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    if (file.size > 1024 * 1024) {
+                        Swal.fire('File Terlalu Besar', 'Maksimal ukuran logo adalah 1 MB.', 'warning');
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        companyLogo.value = e.target.result;
+                        localStorage.setItem('companyLogo', e.target.result);
+                        showToast('Logo berhasil diperbarui.');
+                    };
+                    reader.readAsDataURL(file);
+                };
+
+                const removeLogo = () => {
+                    companyLogo.value = null;
+                    localStorage.removeItem('companyLogo');
+                    showToast('Logo dihapus.');
+                };
 
                 const initFlatpickrSafe = () => {
                     if (activeTab.value === 'recap') {
@@ -2433,7 +2508,6 @@
                 
                 const closeModal = () => { showModal.value = false; };
 
-                // 🔴 NEW: Fungsi Cetak Label Local QR Code 🔴
                 const showQRCode = (item) => {
                     Swal.fire({
                         title: `<span class="text-lg font-black uppercase text-slate-800">Label Barang</span>`,
@@ -2441,7 +2515,6 @@
                             <div class="flex flex-col items-center justify-center p-2">
                                <p class="font-bold text-slate-600 mb-4 px-2 line-clamp-2 leading-snug">${item.name}</p>
                                <div class="bg-white p-4 rounded-2xl shadow-inner border border-slate-200 mb-4 flex justify-center w-full">
-                                   <!-- Canvas tersembunyi yang dirender oleh library QR Code JS lokal -->
                                    <canvas id="local-qr-canvas" class="mx-auto"></canvas>
                                </div>
                                <p class="font-mono font-black text-2xl text-brand-700 tracking-widest bg-brand-50 px-5 py-2 rounded-xl border border-brand-100">${item.barcode}</p>
@@ -2456,13 +2529,12 @@
                         didOpen: () => {
                             const canvas = document.getElementById('local-qr-canvas');
                             
-                            // Menggunakan QRious untuk generasi QR yang lebih stabil
                             new QRious({
                                 element: canvas,
                                 value: item.barcode,
                                 size: 220,
-                                level: 'H', // High error correction
-                                foreground: '#000000', // Warna QR Code (Hitam Pekat)
+                                level: 'H',
+                                foreground: '#000000', 
                                 background: '#ffffff'
                             });
 
@@ -2482,16 +2554,15 @@
                                 ctx.fillStyle = "#ffffff";
                                 ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
                                 
-                                ctx.strokeStyle = "#000000"; // WARNA BORDER (Hitam Pekat)
+                                ctx.strokeStyle = "#000000"; 
                                 ctx.lineWidth = 8;
                                 ctx.strokeRect(0, 0, printCanvas.width, printCanvas.height);
                                 
-                                ctx.fillStyle = "#000000"; // WARNA TEKS ATAS (Hitam Pekat)
+                                ctx.fillStyle = "#000000"; 
                                 ctx.font = "bold 20px sans-serif";
                                 ctx.textAlign = "center";
                                 ctx.textBaseline = "middle";
                                 
-                                // 🔴 SMART TRIM: Hapus teks dalam tanda kurung (...) dan batasi panjang karakter 🔴
                                 let cleanName = item.name.replace(/\s*\(.*?\)/g, '').trim();
                                 let printName = cleanName.length > 32 ? cleanName.substring(0, 29) + '...' : cleanName;
                                 
@@ -2499,7 +2570,7 @@
                                 
                                 ctx.drawImage(canvas, padding, padding + topTextHeight, qrSize, qrSize);
                                 
-                                ctx.fillStyle = "#000000"; // WARNA TEKS BAWAH BARCODE (Hitam Pekat)
+                                ctx.fillStyle = "#000000"; 
                                 ctx.font = "bold 32px monospace";
                                 ctx.fillText(item.barcode, printCanvas.width / 2, printCanvas.height - padding - (bottomTextHeight / 2) + 10);
                                 
@@ -2526,8 +2597,6 @@
 
                             const exists = inventory.value.find(i => String(i.barcode).trim().toUpperCase() === formItem.value.barcode);
                             if (exists && exists.barcode !== activeItem?.barcode) { 
-                                // Checking existence shouldn't block if editing the same item, but keeping basic check
-                                // Actually, in edit mode, barcode is usually disabled. 
                             }
 
                             if (isPreview) { 
@@ -2673,6 +2742,151 @@
                     } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
                 };
 
+                // 🔴 NEW: Fungsi Export untuk Tabel Rekap Opname 🔴
+                const exportRecapExcel = () => {
+                    try {
+                        if (processedRecapSummary.value.length === 0) {
+                            Swal.fire('Data Kosong', 'Tidak ada data rekap untuk di-export.', 'warning');
+                            return;
+                        }
+                        const dataToExport = processedRecapSummary.value.map(summary => {
+                            const masterItem = baseInventory.value.find(i => i.barcode === summary.barcode);
+                            return {
+                                "Barcode": summary.barcode,
+                                "Nama Barang": summary.name,
+                                "PIC Terakhir": summary.pic || '-',
+                                "Stok Awal": summary.firstOldQty,
+                                "Stok Final": summary.lastNewQty,
+                                "Total Selisih": summary.totalVariance,
+                                "Satuan": masterItem ? masterItem.unit : '-'
+                            };
+                        });
+                        const ws = XLSX.utils.json_to_sheet(dataToExport);
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "RekapOpname");
+                        const dateRangeStr = selectedRecapDate.value ? selectedRecapDate.value.replace(/\s/g, '_') : 'Semua_Waktu';
+                        XLSX.writeFile(wb, `Rekap_Opname_${dateRangeStr}.xlsx`);
+                        showToast("Excel Rekap Berhasil Diunduh.");
+                    } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
+                };
+
+                // 🔴 NEW: Fungsi Cetak Format Laporan Resmi Perusahaan (AoA Pivot Table) 🔴
+                const exportOfficialReport = async () => {
+                    try {
+                        // Meminta input bulan dari user
+                        const { value: selectedMonth } = await Swal.fire({
+                            title: 'Pilih Bulan Laporan',
+                            html: '<label class="block text-left text-sm font-bold mb-2 text-slate-700">Pilih Bulan & Tahun:</label>' +
+                                  '<input type="month" id="reportMonth" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg">',
+                            showCancelButton: true,
+                            confirmButtonText: 'Download Excel',
+                            cancelButtonText: 'Batal',
+                            confirmButtonColor: '#4f46e5',
+                            preConfirm: () => {
+                                const val = document.getElementById('reportMonth').value;
+                                if (!val) Swal.showValidationMessage('Harap pilih bulan terlebih dahulu!');
+                                return val;
+                            }
+                        });
+
+                        if (!selectedMonth) return; // Dibatalkan oleh user
+
+                        const [year, month] = selectedMonth.split('-');
+                        const d = new Date(year, month - 1, 1);
+                        const monthName = d.toLocaleString('id-ID', { month: 'long', year: 'numeric' });
+                        
+                        let wsData = [
+                            ["", "", "", "", "", "FORM", "", "", "", "", "No Dok", ": FR/BDA-INV/PSC/006"],
+                            ["", "", "", "", "", "", "", "", "", "", "No Rev", ": 01"],
+                            ["", "", "", "Check Sheet Pengecekan Stock Chemical", "", "", "", "", "", "", "Tgl Berlaku", ": " + d.toLocaleDateString('id-ID')],
+                            ["", "", "", "", "", "", "", "", "", "", "Halaman", ": 1 dari 1"],
+                            [],
+                            [],
+                            [`Bulan : ${monthName}`],
+                        ];
+
+                        let rowTitle1 = ["TGL", "Jam"];
+                        let rowTitle2 = ["", ""];
+                        let rowTitle3 = ["Satuan", ""];
+                        
+                        let mergeCells = [];
+                        let colIndex = 2; 
+
+                        const items = [...baseInventory.value].sort((a,b) => a.name.localeCompare(b.name));
+                        
+                        items.forEach(item => {
+                            let cleanName = item.name.replace(/\s*\(.*?\)/g, '').trim();
+                            rowTitle1.push(cleanName);
+                            rowTitle1.push(""); 
+                            
+                            if(item.name.toUpperCase().includes('NITROGEN') || item.name.toUpperCase().includes('N2')) {
+                                rowTitle1.push(""); 
+                                rowTitle2.push("Actual", "Bar", "Sistem");
+                                rowTitle3.push(item.unit, "Mpa", item.unit);
+                                mergeCells.push({ s: { r: 7, c: colIndex }, e: { r: 7, c: colIndex + 2 } });
+                                colIndex += 3;
+                            } else {
+                                rowTitle2.push("Actual", "Sistem");
+                                rowTitle3.push(item.unit, item.unit);
+                                mergeCells.push({ s: { r: 7, c: colIndex }, e: { r: 7, c: colIndex + 1 } });
+                                colIndex += 2;
+                            }
+                        });
+                        rowTitle1.push("PIC");
+                        rowTitle2.push("");
+                        rowTitle3.push("");
+                        
+                        wsData.push(rowTitle1);
+                        wsData.push(rowTitle2);
+                        wsData.push(rowTitle3);
+
+                        const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                        const logsThisMonth = baseTransactions.value.filter(t => new Date(t.date).getMonth() === d.getMonth() && new Date(t.date).getFullYear() === d.getFullYear());
+                        
+                        for (let day = 1; day <= daysInMonth; day++) {
+                            let rowData = [day, "08:00"]; 
+                            let dayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === day);
+                            let picForDay = "";
+
+                            items.forEach(item => {
+                                let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => l.barcode === item.barcode);
+                                
+                                if (log) {
+                                    let pressureMatch = log.name.match(/\[Pressure: (.*?) Bar\]/i);
+                                    let pressure = pressureMatch ? pressureMatch[1] : "-";
+                                    
+                                    if(item.name.toUpperCase().includes('NITROGEN') || item.name.toUpperCase().includes('N2')) {
+                                        rowData.push(log.newQty, pressure, log.oldQty);
+                                    } else {
+                                        rowData.push(log.newQty, log.oldQty);
+                                    }
+                                    if(log.pic) picForDay = log.pic;
+                                } else {
+                                    if(item.name.toUpperCase().includes('NITROGEN') || item.name.toUpperCase().includes('N2')) {
+                                        rowData.push("-", "-", "-");
+                                    } else {
+                                        rowData.push("-", "-");
+                                    }
+                                }
+                            });
+                            rowData.push(picForDay);
+                            wsData.push(rowData);
+                        }
+
+                        const ws = XLSX.utils.aoa_to_sheet(wsData);
+                        ws['!merges'] = mergeCells;
+                        
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, "CheckSheet");
+                        XLSX.writeFile(wb, `Check_Sheet_${monthName.replace(/\s/g, '_')}.xlsx`);
+                        
+                        showToast("Laporan Resmi Excel Berhasil Diunduh.");
+
+                    } catch (error) { 
+                        Swal.fire('Gagal Export', error.message, 'error'); 
+                    }
+                };
+
                 const triggerImportExcel = () => { if(excelFileInput.value) excelFileInput.value.click(); };
                 const handleImportExcel = (event) => { 
                     const file = event.target.files[0]; if (!file) return;
@@ -2775,7 +2989,7 @@
                 onUnmounted(() => { clearInterval(timerInterval); clearInterval(syncInterval); clearTimeout(idleTimeout); });
 
                 return {
-                    isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr,
+                    isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr, companyLogo, handleLogoUpload, removeLogo,
                     activeTab, activeSettingsTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
                     manualRefresh, resetFilters,
                     inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
@@ -2793,7 +3007,7 @@
                     selectedRecapItems, toggleAllRecaps, toggleRecapSelection, deleteSelectedRecaps,
                     formatDate, formatDateString, handleScan, submitUpdate, openCamera, closeCamera, resetScanner,
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname, showQRCode,
-                    exportExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
+                    exportExcel, exportRecapExcel, exportOfficialReport, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers,
                     setDateRange, isRecapToday, isRecapYesterday,
                     recapDateInput, logDateInput
