@@ -46,11 +46,10 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
     
-    <!-- FALLBACK ERROR -->
     <div id="fallback-error" style="display: none; min-height: 100vh; width: 100%; background: #f8fafc; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 9999; position: fixed; inset: 0;">
         <div style="background: #fee2e2; color: #991b1b; padding: 30px; border-radius: 16px; border: 1px solid #f87171; max-width: 550px;">
             <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 12px;">⚠️ Sistem UI Berhenti Bergerak</h2>
-            <p>Sistem mendeteksi adanya <b>kesalahan sintaks (Syntax Error)</b> pada konfigurasi script awal Anda.</p>
+            <p>Sistem mendeteksi adanya <b>kesalahan sintaks (Syntax Error)</b> pada konfigurasi web Anda.</p>
         </div>
     </div>
 
@@ -349,10 +348,11 @@
                                     <div class="flex gap-3">
                                         <div class="relative flex-1">
                                             <i class="ph-duotone ph-barcode absolute left-4 top-3.5 text-slate-400 text-2xl"></i>
-                                            <input ref="barcodeInput" v-model="scannedCode" @input="scannedCode = scannedCode.toUpperCase()" type="text" class="w-full pl-12 pr-4 py-4 border-2 rounded-2xl focus:ring-brand-500 text-lg font-mono uppercase bg-slate-50" placeholder="Ketik Barcode..." :disabled="isProcessing || isCameraOpen">
+                                            <!-- 🔴 FIX QC: Pembungkus String agar menolak Input Error dari Tipe Data Number 🔴 -->
+                                            <input ref="barcodeInput" v-model="scannedCode" @input="scannedCode = String(scannedCode).toUpperCase()" type="text" class="w-full pl-12 pr-4 py-4 border-2 rounded-2xl focus:ring-brand-500 text-lg font-mono uppercase bg-slate-50" placeholder="Ketik Barcode..." :disabled="isProcessing || isCameraOpen">
                                         </div>
                                         <div class="flex gap-2 h-[60px]">
-                                            <button type="submit" class="bg-brand-600 text-white px-5 rounded-2xl font-bold shadow-md disabled:opacity-50" :disabled="isProcessing || isCameraOpen || !scannedCode.trim()">CARI</button>
+                                            <button type="submit" class="bg-brand-600 text-white px-5 rounded-2xl font-bold shadow-md disabled:opacity-50" :disabled="isProcessing || isCameraOpen || !String(scannedCode).trim()">CARI</button>
                                             <button type="button" @click="isCameraOpen ? closeCamera() : openCamera()" class="bg-slate-100 text-slate-700 w-[60px] rounded-2xl border" :class="{'bg-red-100 text-red-600 border-red-200': isCameraOpen}" :disabled="isProcessing"><i class="ph-bold text-2xl" :class="isCameraOpen ? 'ph-x' : 'ph-camera'"></i></button>
                                         </div>
                                     </div>
@@ -515,7 +515,8 @@
                             </div>
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div class="relative w-full sm:max-w-md">
-                                    <input v-model="searchQuery" type="text" placeholder="Omni Search..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none uppercase">
+                                    <!-- 🔴 FIX QC: Pembungkus String agar menolak Input Error dari Tipe Data Number 🔴 -->
+                                    <input v-model="searchQuery" @input="searchQuery = String(searchQuery).toUpperCase()" type="text" placeholder="Omni Search..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none uppercase">
                                     <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-lg"></i>
                                 </div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
@@ -551,8 +552,10 @@
                                             </td>
                                             <td class="p-3 text-center">
                                                 <div class="flex items-center justify-center space-x-2">
-                                                    <button @click="showQRCode(item)" class="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg"><i class="ph-bold ph-qr-code text-base"></i></button>
-                                                    <button @click="openEditModal(item)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg"><i class="ph-bold ph-pencil-simple text-base"></i></button>
+                                                    <button @click="showQRCode(item)" class="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg" title="Cetak QR Label"><i class="ph-bold ph-qr-code text-base"></i></button>
+                                                    <button @click="openEditModal(item)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Edit Barang"><i class="ph-bold ph-pencil-simple text-base"></i></button>
+                                                    <!-- 🔴 FIX QC: Penambahan Tombol Hapus Tunggal (Single Delete) 🔴 -->
+                                                    <button @click="deleteItem(item.barcode)" class="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg" title="Hapus Barang"><i class="ph-bold ph-trash text-base"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -799,6 +802,83 @@
             </div>
         </transition>
 
+        <!-- CRUD MODAL (TAMBAH MASSAL / EDIT) -->
+        <transition name="fade-slide">
+            <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm pb-20 sm:pb-0">
+                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in">
+                    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h3 class="font-black text-lg text-slate-800 flex items-center"><div class="bg-brand-100 text-brand-600 p-1.5 rounded-lg mr-3"><i class="ph-bold text-xl" :class="isEditing ? 'ph-pencil-simple' : 'ph-plus-circle'"></i></div>{{ isEditing ? 'Edit Barang' : 'Tambah Barang Massal' }}</h3>
+                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 bg-white hover:bg-red-50 p-2 rounded-xl transition-all" :disabled="isProcessing"><i class="ph-bold ph-x text-lg"></i></button>
+                    </div>
+                    <div class="p-5 overflow-y-auto bg-white max-h-[75vh]">
+                        
+                        <!-- FORM EDIT (SINGLE) -->
+                        <form v-if="isEditing" @submit.prevent="saveItem" class="space-y-4">
+                            <div><label class="block text-xs font-black uppercase mb-1">Barcode ID *</label>
+                                <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
+                                <input v-model="formItem.barcode" @input="formItem.barcode = String(formItem.barcode).toUpperCase()" type="text" required :disabled="isEditing || isProcessing" class="w-full px-4 py-2 border rounded-xl font-mono uppercase bg-slate-100 disabled:bg-slate-100 outline-none">
+                            </div>
+                            <div><label class="block text-xs font-black uppercase mb-1">Nama Barang *</label>
+                                <input v-model="formItem.name" @input="formItem.name = String(formItem.name).toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl uppercase outline-none" placeholder="Ketik nama barang...">
+                                <datalist id="itemNameList"><option v-for="name in uniqueItemNames" :key="name" :value="name"></option></datalist>
+                            </div>
+                            <div><label class="block text-xs font-black uppercase mb-1">Lokasi Gudang *</label><select v-model="formItem.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-4 py-2 border rounded-xl uppercase outline-none font-bold"><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-black uppercase mb-1">Kategori</label><select v-model="formItem.category" :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl uppercase outline-none"><option value="CHEMICAL">CHEMICAL</option><option value="CONSUMABLE">CONSUMABLE</option><option value="PACKAGING">PACKAGING</option><option value="SPAREPART">SPAREPART</option><option value="FUEL & GAS">FUEL & GAS</option></select></div>
+                                <div><label class="block text-xs font-black uppercase mb-1">Satuan</label><input v-model="formItem.unit" @input="formItem.unit = String(formItem.unit).toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl uppercase outline-none"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-black uppercase mb-1">Stok Awal</label><input v-model.number="formItem.qty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl outline-none"></div>
+                                <div><label class="block text-xs font-black uppercase mb-1">Min. Stok</label><input v-model.number="formItem.minQty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl outline-none"></div>
+                            </div>
+                            <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
+                                <button type="button" @click="closeModal" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold" :disabled="isProcessing">Batal</button>
+                                <button type="submit" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-lg" :disabled="isProcessing">Simpan Edit</button>
+                            </div>
+                        </form>
+
+                        <!-- FORM TAMBAH MASSAL (BULK) -->
+                        <div v-else class="space-y-4">
+                            <div v-for="(item, index) in addFormItems" :key="index" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl relative mb-4">
+                                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
+                                    <span class="font-black text-brand-700 text-sm bg-brand-100 px-2 py-1 rounded-md">Barang #{{ index + 1 }}</span>
+                                    <button v-if="addFormItems.length > 1" @click="removeNewItemRow(index)" type="button" class="text-red-500 hover:text-red-700"><i class="ph-bold ph-trash text-lg"></i></button>
+                                </div>
+                                <div class="space-y-3">
+                                    <div><label class="block text-[10px] font-black uppercase mb-1">Barcode ID *</label>
+                                        <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
+                                        <input v-model="item.barcode" @input="item.barcode = String(item.barcode).toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg font-mono uppercase text-sm outline-none">
+                                    </div>
+                                    <div><label class="block text-[10px] font-black uppercase mb-1">Nama Barang *</label>
+                                        <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
+                                        <input v-model="item.name" @input="item.name = String(item.name).toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg uppercase text-sm outline-none" placeholder="Ketik nama...">
+                                    </div>
+                                    <div><label class="block text-[10px] font-black uppercase mb-1">Lokasi Gudang *</label><select v-model="item.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-3 py-2 border rounded-lg uppercase text-sm font-bold outline-none"><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><label class="block text-[10px] font-black uppercase mb-1">Kategori</label><select v-model="item.category" :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg uppercase text-sm outline-none"><option value="CHEMICAL">CHEMICAL</option><option value="CONSUMABLE">CONSUMABLE</option><option value="PACKAGING">PACKAGING</option><option value="SPAREPART">SPAREPART</option><option value="FUEL & GAS">FUEL & GAS</option></select></div>
+                                        <div><label class="block text-[10px] font-black uppercase mb-1">Satuan</label>
+                                            <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
+                                            <input v-model="item.unit" @input="item.unit = String(item.unit).toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg uppercase text-sm outline-none">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><label class="block text-[10px] font-black uppercase mb-1">Stok Awal</label><input v-model.number="item.qty" type="number" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg text-sm outline-none"></div>
+                                        <div><label class="block text-[10px] font-black uppercase mb-1">Min. Stok</label><input v-model.number="item.minQty" type="number" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg text-sm outline-none"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button @click="addNewItemRow" type="button" class="w-full py-3 border-2 border-dashed border-brand-300 text-brand-600 bg-brand-50 rounded-xl font-bold text-sm hover:bg-brand-100" :disabled="isProcessing">+ Tambah Baris Barang Lagi</button>
+                            <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
+                                <button type="button" @click="closeModal" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm" :disabled="isProcessing">Batal</button>
+                                <button @click="saveItem" type="button" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-lg text-sm" :disabled="isProcessing">Simpan Semua Data</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </transition>
+
     </div>
 
     <script>
@@ -924,9 +1004,9 @@
                 const selectedOperator = ref('');
                 const operatorFilter = ref('month');
 
+                let fpRecap = null, fpLog = null;
                 const recapDateInput = ref(null);
                 const logDateInput = ref(null);
-                let fpRecap = null, fpLog = null;
 
                 const isSyncing = ref(false);
                 const isPreview = !GAS_API_URL || !GAS_API_URL.startsWith("http");
@@ -934,10 +1014,10 @@
                 const currentDateStr = computed(() => currentTime.value.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }));
                 const currentTimeStr = computed(() => currentTime.value.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
                 
-                const availableLocations = computed(() => [...new Set(inventory.value.map(i => String(i.location).trim()))].filter(Boolean));
-                const availableLocationsFromSettings = computed(() => [...new Set(settingsData.value.map(s => String(s.Location).toUpperCase().trim()))].filter(Boolean));
-                const uniquePics = computed(() => [...new Set(transactions.value.map(t => t.pic ? t.pic.toUpperCase() : ''))].filter(Boolean));
-                const uniqueItemNames = computed(() => [...new Set(inventory.value.map(i => i.name ? i.name.toUpperCase() : ''))].filter(Boolean));
+                const availableLocations = computed(() => [...new Set((inventory.value || []).map(i => String(i.location || '').trim()))].filter(Boolean));
+                const availableLocationsFromSettings = computed(() => [...new Set((settingsData.value || []).map(s => String(s.Location || '').toUpperCase().trim()))].filter(Boolean));
+                const uniquePics = computed(() => [...new Set((transactions.value || []).map(t => t.pic ? String(t.pic).toUpperCase() : ''))].filter(Boolean));
+                const uniqueItemNames = computed(() => [...new Set((inventory.value || []).map(i => i.name ? String(i.name).toUpperCase() : ''))].filter(Boolean));
 
                 const isMatchLoc = (loc1, loc2) => {
                     if (!loc1 || !loc2) return false;
@@ -973,7 +1053,7 @@
 
                         let pressureVal = null;
                         if (latestLog) {
-                            const pMatch = latestLog.name.match(/\[Pressure: (.*?) Bar\]/i);
+                            const pMatch = String(latestLog.name).match(/\[Pressure: (.*?) Bar\]/i);
                             if (pMatch) pressureVal = pMatch[1];
                         }
 
@@ -987,7 +1067,7 @@
                             pressure: pressureVal
                         };
                     }).sort((a, b) => {
-                        if (a.isChecked === b.isChecked) return a.name.localeCompare(b.name);
+                        if (a.isChecked === b.isChecked) return String(a.name).localeCompare(String(b.name));
                         return a.isChecked ? 1 : -1; 
                     });
                 });
@@ -997,7 +1077,7 @@
 
                 const isNitrogenItem = computed(() => {
                     if (!activeItem.value) return false;
-                    const n = activeItem.value.name.toUpperCase();
+                    const n = String(activeItem.value.name).toUpperCase();
                     return n.includes('NITROGEN') || n === 'N2' || n.includes('N2 ');
                 });
                 
@@ -1067,7 +1147,7 @@
                             if(log.pic) summary[log.barcode].pic = log.pic; 
                         }
                     });
-                    return Object.values(summary).sort((a, b) => a.name.localeCompare(b.name));
+                    return Object.values(summary).sort((a, b) => String(a.name).localeCompare(String(b.name)));
                 });
 
                 const processedRecapSummary = computed(() => {
@@ -1125,7 +1205,7 @@
                                 if (itemDef.title === "Solar") {
                                     rowData.push(log.newQty);
                                 } else if (itemDef.title === "N2") {
-                                    let pressureMatch = log.name.match(/\[Pressure: (.*?) Bar\]/i);
+                                    let pressureMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
                                     let pressure = pressureMatch ? pressureMatch[1] : "-";
                                     rowData.push(log.newQty, pressure);
                                 } else {
@@ -1314,7 +1394,7 @@
                 window.addEventListener('keypress', resetIdleTimer);
                 window.addEventListener('touchstart', resetIdleTimer);
 
-                // 🔴 QC FIX: Interceptor Error API (White-Box Security Fix) 🔴
+                // 🔴 QC FIX: Interceptor Error API & Mencegah UI Crash 🔴
                 const apiCall = async (action, payload = {}) => {
                     if (isPreview) {
                         Swal.fire("URL API Belum Diatur", "Silakan masukkan URL API ke variabel GAS_API_URL di dalam file HTML.", "error");
@@ -1330,7 +1410,8 @@
                         const text = await response.text();
                         
                         if (text.trim().startsWith("<")) {
-                            throw new Error("Akses ditolak atau Server Google Error. <br><br><b>INFO PENTING:</b> Pastikan Anda sudah mendeploy ulang Code.gs dengan versi baru (<b>New Version</b>).");
+                            console.error("HTML Error dari Google:", text);
+                            throw new Error("Koneksi ditolak oleh Server Google. <br><br><b>SOLUSI:</b> Pastikan Anda telah melakukan proses 'New Deployment' pada Code.gs di Google Apps Script.");
                         }
                         
                         const resData = JSON.parse(text);
@@ -1378,10 +1459,11 @@
                     await fetchData(); showToast('Data Gudang Terbaru Ditarik', 'success');
                 };
 
-                const silentFetchData = async () => {
-                    if (isPreview || !isLoggedIn.value || isProcessing.value || loading.value) return; 
-                    if (selectedInventoryItems.value.length > 0 || selectedLogItems.value.length > 0 || selectedRecapItems.value.length > 0) return;
-                    if (activeTab.value === 'settings') return;
+                // 🔴 QC FIX: Pemaksaan pembaruan data secara real-time 🔴
+                const silentFetchData = async (force = false) => {
+                    if (!force && (isPreview || !isLoggedIn.value || isProcessing.value || loading.value)) return; 
+                    if (!force && (selectedInventoryItems.value.length > 0 || selectedLogItems.value.length > 0 || selectedRecapItems.value.length > 0)) return;
+                    if (!force && activeTab.value === 'settings') return;
 
                     isSyncing.value = true;
                     try {
@@ -1648,14 +1730,12 @@
                             else Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data stok tersimpan!', showConfirmButton: false, timer: 2000, timerProgressBar: true });
                             resetScanner();
                         } else {
-                            const res = await apiCall('submitOpnameUpdate', payload);
+                            const res = await apiCall('submitOpnameUpdate', JSON.parse(JSON.stringify(payload)));
                             if (res && res.success) {
-                                const index = inventory.value.findIndex(i => String(i.barcode).trim().toUpperCase() === String(payload.barcode).trim().toUpperCase());
-                                if (index !== -1) inventory.value[index].qty = payload.newQty;
-                                transactions.value.unshift(payload); 
                                 if (isBecomingLowStock) Swal.fire({ icon: 'success', title: 'Opname Tersimpan!', html: `<div class="text-sm text-slate-600 mb-4">Data stok berhasil diperbarui di Server.</div><div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-pulse text-left"><div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div><p class="text-xs text-red-600 font-medium">Stok menyentuh batas minimum.<br>Sistem telah <b>otomatis mengirim email notifikasi reorder</b> ke PIC Gudang.</p></div>`, confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!' });
                                 else Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data tersimpan di Server.', showConfirmButton: false, timer: 2000, timerProgressBar: true });
-                                resetScanner(); silentFetchData();
+                                resetScanner(); 
+                                await silentFetchData(true); 
                             } else { Swal.fire({title: 'Gagal Menyimpan', html: res?.error || 'Sistem sibuk / bentrok', icon: 'error'}); }
                         }
                     } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
@@ -1674,7 +1754,7 @@
                 const openAddModal = () => { isEditing.value = false; let defLoc = currentUser.value.location === 'ALL' ? (availableLocationsFromSettings.value[0] || '') : currentUser.value.location; addFormItems.value = [{ barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: defLoc }]; showModal.value = true; };
                 const addNewItemRow = () => { let defLoc = currentUser.value.location === 'ALL' ? (availableLocationsFromSettings.value[0] || '') : currentUser.value.location; addFormItems.value.push({ barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: defLoc }); };
                 const removeNewItemRow = (index) => { addFormItems.value.splice(index, 1); };
-                const openEditModal = (item) => { isEditing.value = true; formItem.value = { ...item }; showModal.value = true; };
+                const openEditModal = (item) => { isEditing.value = true; formItem.value = JSON.parse(JSON.stringify(item)); showModal.value = true; };
                 const closeModal = () => { showModal.value = false; };
 
                 const showQRCode = (item) => {
@@ -1684,7 +1764,7 @@
                         showConfirmButton: false, showCloseButton: true, customClass: { popup: 'rounded-3xl shadow-2xl border border-slate-100' },
                         didOpen: () => {
                             const canvas = document.getElementById('local-qr-canvas');
-                            new QRious({ element: canvas, value: item.barcode, size: 220, level: 'H', foreground: '#000000', background: '#ffffff' });
+                            new QRious({ element: canvas, value: String(item.barcode), size: 220, level: 'H', foreground: '#000000', background: '#ffffff' });
                             document.getElementById('download-qr-btn').addEventListener('click', () => {
                                 const printCanvas = document.createElement('canvas'); const ctx = printCanvas.getContext('2d');
                                 const qrSize = 300; const padding = 20; const topTextHeight = 60; const bottomTextHeight = 60;
@@ -1692,7 +1772,7 @@
                                 ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
                                 ctx.strokeStyle = "#000000"; ctx.lineWidth = 8; ctx.strokeRect(0, 0, printCanvas.width, printCanvas.height);
                                 ctx.fillStyle = "#000000"; ctx.font = "bold 20px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                                let cleanName = item.name.replace(/\s*\(.*?\)/g, '').trim(); let printName = cleanName.length > 32 ? cleanName.substring(0, 29) + '...' : cleanName;
+                                let cleanName = String(item.name).replace(/\s*\(.*?\)/g, '').trim(); let printName = cleanName.length > 32 ? cleanName.substring(0, 29) + '...' : cleanName;
                                 ctx.fillText(printName.toUpperCase(), printCanvas.width / 2, padding + (topTextHeight / 2));
                                 ctx.drawImage(canvas, padding, padding + topTextHeight, qrSize, qrSize);
                                 ctx.fillStyle = "#000000"; ctx.font = "bold 32px monospace"; ctx.fillText(item.barcode, printCanvas.width / 2, printCanvas.height - padding - (bottomTextHeight / 2) + 10);
@@ -1732,7 +1812,7 @@
                     } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
                 };
                 
-                // 🔴 QC FIX: Penulisan Save Item Bulk Yang Tahan Banting 🔴
+                // 🔴 QC FIX: Deep Cloning (Mencegah Vue Proxy Block) pada Semua Transmisi Data 🔴
                 const saveItem = async () => { 
                     isProcessing.value = true;
                     try {
@@ -1744,11 +1824,12 @@
                             
                             if (isPreview) { closeModal(); Swal.fire('Berhasil', "Barang disimpan.", 'success'); } 
                             else {
-                                const res = await apiCall('saveMasterItem', { itemData: formItem.value, isEditing: true });
+                                const editPayload = JSON.parse(JSON.stringify(formItem.value));
+                                const res = await apiCall('saveMasterItem', { itemData: editPayload, isEditing: true });
                                 if (res && res.success) { 
-                                    const index = inventory.value.findIndex(i => String(i.barcode).trim().toUpperCase() === formItem.value.barcode); 
-                                    if(index !== -1) inventory.value[index] = { ...formItem.value }; 
-                                    Swal.fire('Berhasil', res.data, 'success'); closeModal(); silentFetchData(); 
+                                    Swal.fire('Berhasil', res.data, 'success'); 
+                                    closeModal(); 
+                                    await silentFetchData(true); 
                                 } 
                                 else { Swal.fire({title: 'Error', html: res?.error || 'Kesalahan sistem', icon: 'error'}); }
                             }
@@ -1774,23 +1855,13 @@
                             if (isPreview) { 
                                 closeModal(); Swal.fire('Berhasil', `${addFormItems.value.length} Barang disimpan (Mock).`, 'success'); 
                             } else {
-                                const payloadData = Array.isArray(addFormItems.value) ? addFormItems.value : Object.values(addFormItems.value);
+                                const payloadData = JSON.parse(JSON.stringify(addFormItems.value));
                                 const res = await apiCall('addMasterItemsBulk', { itemsData: payloadData });
                                 
                                 if (res && res.success) { 
-                                    addFormItems.value.forEach(newItem => { 
-                                        inventory.value.push({ 
-                                            barcode: String(newItem.barcode || '').toUpperCase().trim(), 
-                                            name: String(newItem.name || '').toUpperCase().trim(), 
-                                            category: String(newItem.category || '').toUpperCase().trim(), 
-                                            qty: Number(newItem.qty) || 0, 
-                                            minQty: Number(newItem.minQty) || 0, 
-                                            unit: String(newItem.unit || '').toUpperCase().trim(), 
-                                            location: String(newItem.location || '').toUpperCase().trim(), 
-                                            lastUpdate: new Date().toISOString() 
-                                        }); 
-                                    });
-                                    Swal.fire('Berhasil', res.data, 'success'); closeModal(); silentFetchData(); 
+                                    Swal.fire('Berhasil', res.data, 'success'); 
+                                    closeModal(); 
+                                    await silentFetchData(true); 
                                 } 
                                 else { Swal.fire('Gagal Menyimpan', res?.error || 'Server error', 'error'); }
                             }
@@ -1802,8 +1873,8 @@
                     Swal.fire({ title: 'Hapus Item ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' }).then(async (result) => {
                         if (result.isConfirmed) {
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                            const res = await apiCall('deleteMasterItem', { barcode: barcode });
-                            if (res && res.success) { inventory.value = inventory.value.filter(i => String(i.barcode).trim().toUpperCase() !== String(barcode).trim().toUpperCase()); Swal.fire('Terhapus', res.data, 'success'); silentFetchData(); } else { Swal.fire('Error', res?.error, 'error'); }
+                            const res = await apiCall('deleteMasterItem', { barcode: String(barcode).trim().toUpperCase() });
+                            if (res && res.success) { Swal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
                         }
                     });
                 };
@@ -1813,8 +1884,9 @@
                     Swal.fire({ title: `Hapus ${selectedInventoryItems.value.length} Barang?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
                         if (result.isConfirmed) {
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                            const res = await apiCall('deleteMasterItemsBulk', { barcodes: selectedInventoryItems.value });
-                            if (res && res.success) { inventory.value = inventory.value.filter(i => !selectedInventoryItems.value.includes(i.barcode)); selectedInventoryItems.value = []; Swal.fire('Terhapus', res.data, 'success'); silentFetchData(); } else { Swal.fire('Error', res?.error, 'error'); }
+                            const reqPayload = JSON.parse(JSON.stringify(selectedInventoryItems.value));
+                            const res = await apiCall('deleteMasterItemsBulk', { barcodes: reqPayload });
+                            if (res && res.success) { selectedInventoryItems.value = []; Swal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
                         }
                     });
                 };
@@ -1824,12 +1896,8 @@
                         if (result.isConfirmed || result.isDenied) {
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: log.barcode, revertToQty: log.oldQty } : null;
-                            const res = await apiCall('deleteHistoryItem', { id: log.id, revertData: revertData });
-                            if (res && res.success) {
-                                transactions.value = transactions.value.filter(t => t.id !== log.id);
-                                if (isRevert) { const index = inventory.value.findIndex(i => i.barcode === log.barcode); if (index !== -1) inventory.value[index].qty = log.oldQty; }
-                                Swal.fire('Berhasil', res.data, 'success'); silentFetchData();
-                            } else Swal.fire('Error', res?.error, 'error');
+                            const res = await apiCall('deleteHistoryItem', { id: log.id, revertData: JSON.parse(JSON.stringify(revertData)) });
+                            if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
                         }
                     });
                 };
@@ -1841,12 +1909,8 @@
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertDatas = [];
                             if (isRevert) { selectedLogItems.value.forEach(id => { const log = transactions.value.find(t => t.id === id); if (log) revertDatas.push({ barcode: log.barcode, revertToQty: log.oldQty }); }); }
-                            const res = await apiCall('deleteHistoryItemsBulk', { ids: selectedLogItems.value, revertDatas: revertDatas });
-                            if (res && res.success) {
-                                transactions.value = transactions.value.filter(t => !selectedLogItems.value.includes(t.id));
-                                if (isRevert) { revertDatas.forEach(r => { const idx = inventory.value.findIndex(i => i.barcode === r.barcode); if (idx !== -1) inventory.value[idx].qty = r.revertToQty; }); }
-                                selectedLogItems.value = []; Swal.fire('Berhasil', res.data, 'success'); silentFetchData();
-                            } else Swal.fire('Error', res?.error, 'error');
+                            const res = await apiCall('deleteHistoryItemsBulk', { ids: JSON.parse(JSON.stringify(selectedLogItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
+                            if (res && res.success) { selectedLogItems.value = []; Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
                         }
                     });
                 };
@@ -1856,12 +1920,8 @@
                         if (result.isConfirmed || result.isDenied) {
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: summary.barcode, revertToQty: summary.firstOldQty } : null;
-                            const res = await apiCall('deleteRecapOpname', { dateStr: selectedRecapDate.value, barcode: summary.barcode, revertData: revertData });
-                            if (res && res.success) {
-                                transactions.value = transactions.value.filter(t => !(t.date.startsWith(selectedRecapDate.value) && t.barcode === summary.barcode));
-                                if (isRevert) { const index = inventory.value.findIndex(i => i.barcode === summary.barcode); if (index !== -1) inventory.value[index].qty = summary.firstOldQty; }
-                                Swal.fire('Berhasil', res.data, 'success'); silentFetchData();
-                            } else Swal.fire('Error', res?.error, 'error');
+                            const res = await apiCall('deleteRecapOpname', { dateStr: selectedRecapDate.value, barcode: summary.barcode, revertData: JSON.parse(JSON.stringify(revertData)) });
+                            if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
                         }
                     });
                 };
@@ -1873,12 +1933,8 @@
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertDatas = [];
                             if (isRevert) { selectedRecapItems.value.forEach(barcode => { const summary = processedRecapSummary.value.find(s => s.barcode === barcode); if (summary) revertDatas.push({ barcode: summary.barcode, revertToQty: summary.firstOldQty }); }); }
-                            const res = await apiCall('deleteRecapsBulk', { dateStr: selectedRecapDate.value, barcodes: selectedRecapItems.value, revertDatas: revertDatas });
-                            if (res && res.success) {
-                                transactions.value = transactions.value.filter(t => !(t.date.startsWith(selectedRecapDate.value) && selectedRecapItems.value.includes(t.barcode)));
-                                if (isRevert) { revertDatas.forEach(r => { const idx = inventory.value.findIndex(i => i.barcode === r.barcode); if (idx !== -1) inventory.value[idx].qty = r.revertToQty; }); }
-                                selectedRecapItems.value = []; Swal.fire('Berhasil', res.data, 'success'); silentFetchData();
-                            } else Swal.fire('Error', res?.error, 'error');
+                            const res = await apiCall('deleteRecapsBulk', { dateStr: selectedRecapDate.value, barcodes: JSON.parse(JSON.stringify(selectedRecapItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
+                            if (res && res.success) { selectedRecapItems.value = []; Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
                         }
                     });
                 };
@@ -1912,7 +1968,7 @@
                 const handleImportExcel = (event) => { 
                     const file = event.target.files[0]; if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = async (e) => {
                         try {
                             const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
                             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
@@ -1924,15 +1980,14 @@
                                     location: (currentUser.value.location !== 'ALL') ? currentUser.value.location.toUpperCase() : String(row["Lokasi"] || row.location || row.Location || 'CIP Store').toUpperCase().trim()
                                 })).filter(item => item.barcode !== ''); 
 
-                                Swal.fire({ title: 'Konfirmasi Import', text: `Timpa master data dengan ${importedData.length} data?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Import!' }).then(async (result) => {
-                                    if(result.isConfirmed) {
-                                        if (currentUser.value.location !== 'ALL') { Swal.fire('Akses Ditolak', 'Hanya Admin (ALL) yang dapat Import Massal.', 'error'); return; }
-                                        Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                                        const res = await apiCall('importMasterDataBulk', { dataArray: importedData });
-                                        if (res && res.success) { inventory.value = importedData; Swal.fire('Berhasil', res.data, 'success'); if (activeTab.value === 'dashboard') renderCharts(); }
-                                        else Swal.fire('Error', res?.error, 'error');
-                                    }
-                                });
+                                const result = await Swal.fire({ title: 'Konfirmasi Import', text: `Timpa master data dengan ${importedData.length} data?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Import!' });
+                                if(result.isConfirmed) {
+                                    if (currentUser.value.location !== 'ALL') { Swal.fire('Akses Ditolak', 'Hanya Admin (ALL) yang dapat Import Massal.', 'error'); return; }
+                                    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                                    const res = await apiCall('importMasterDataBulk', { dataArray: importedData });
+                                    if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
+                                    else Swal.fire('Error', res?.error, 'error');
+                                }
                             } else Swal.fire('Data Kosong', 'File Excel/CSV tidak memiliki data.', 'info');
                         } catch (error) { Swal.fire('Format Salah', `Gagal membaca file. Detail: ${error.message}`, 'error'); }
                         excelFileInput.value.value = '';
@@ -1959,7 +2014,7 @@
                 const handleImportHistoryExcel = (event) => { 
                     const file = event.target.files[0]; if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = (e) => {
+                    reader.onload = async (e) => {
                         try {
                             const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
                             const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
@@ -1975,15 +2030,14 @@
                                     };
                                 }).filter(item => item.barcode !== '');
 
-                                Swal.fire({ title: 'Timpa History?', text: "Semua riwayat akan berubah.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Timpa!' }).then(async (result) => {
-                                    if(result.isConfirmed) {
-                                        if (currentUser.value.location !== 'ALL') { Swal.fire('Akses Ditolak', 'Hanya Admin yang dapat Import Massal.', 'error'); return; }
-                                        Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                                        const res = await apiCall('importHistoryDataBulk', { dataArray: importedData });
-                                        if (res && res.success) { transactions.value = importedData; if(availableDates.value.length > 0) setDateRange('recap', 'today'); Swal.fire('Berhasil', res.data, 'success'); if (activeTab.value === 'dashboard') renderCharts(); }
-                                        else Swal.fire('Error', res?.error, 'error');
-                                    }
-                                });
+                                const result = await Swal.fire({ title: 'Timpa History?', text: "Semua riwayat akan berubah.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Timpa!' });
+                                if(result.isConfirmed) {
+                                    if (currentUser.value.location !== 'ALL') { Swal.fire('Akses Ditolak', 'Hanya Admin yang dapat Import Massal.', 'error'); return; }
+                                    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                                    const res = await apiCall('importHistoryDataBulk', { dataArray: importedData });
+                                    if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
+                                    else Swal.fire('Error', res?.error, 'error');
+                                }
                             } else Swal.fire('Data Kosong', 'File tidak memiliki data.', 'info');
                         } catch (error) { Swal.fire('Format Salah', `Gagal membaca file. Detail: ${error.message}`, 'error'); }
                         historyFileInput.value.value = '';
@@ -2019,11 +2073,11 @@
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
                     logSearchQuery, logSortKey, logSortAsc, logCurrentPage, logItemsPerPage, processedTransactions, paginatedTransactions, logTotalPages,
                     logFilterDate, logFilterLocation, logFilterPic, actualPressure, actualPressureInput, focusPressure, isNitrogenItem,
-                    toggleSort, selectedInventoryItems, toggleAllInventory, toggleInventorySelection, deleteSelectedInventory,
-                    selectedLogItems, toggleAllLogs, toggleLogSelection, deleteSelectedLogs,
-                    selectedRecapItems, toggleAllRecaps, toggleRecapSelection, deleteSelectedRecaps,
+                    toggleSort, selectedInventoryItems, toggleAllInventory, toggleInventorySelection, deleteItem, deleteSelectedInventory,
+                    selectedLogItems, toggleAllLogs, toggleLogSelection, deleteLogHistory, deleteSelectedLogs,
+                    selectedRecapItems, toggleAllRecaps, toggleRecapSelection, deleteRecapOpname, deleteSelectedRecaps,
                     formatDate, formatDateString, handleScan, submitUpdate, openCamera, closeCamera, resetScanner,
-                    openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname, showQRCode,
+                    openAddModal, openEditModal, closeModal, saveItem, showQRCode,
                     exportExcel, exportRecapExcel, downloadCheckSheetExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers, submitSaveAppSettings, setDateRange, isRecapToday, isRecapYesterday,
                     recapDateInput, logDateInput, showCheckSheetModal, checkSheetMonth, checkSheetData
