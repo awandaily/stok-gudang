@@ -6,24 +6,16 @@
     <title>Monitoring Stok Gudang</title>
     <!-- Favicon Enterprise -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' fill='none'/><path d='M224,177.32V78.68a16,16,0,0,0-8.26-14l-80-44a16,16,0,0,0-15.48,0l-80,44A16,16,0,0,0,32,78.68v98.64a16,16,0,0,0,8.26,14l80,44a16,16,0,0,0,15.48,0l80-44A16,16,0,0,0,224,177.32Z' fill='%230ea5e9' stroke='%230ea5e9' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><polyline points='222.89 74.63 128 128 33.11 74.63' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='128' y1='128' x2='128' y2='234.82' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='176' y1='101.44' x2='80' y2='48.56' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/></svg>">
-    <!-- Tailwind CSS -->
+    <!-- Libraries CSS & JS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- HTML5 QRCode -->
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- QRious -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    <!-- SheetJS -->
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
@@ -34,8 +26,7 @@
     <style>
         [v-cloak] { display: none !important; }
         .fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .fade-slide-enter-from { opacity: 0; transform: translateY(10px); }
-        .fade-slide-leave-to { opacity: 0; transform: translateY(-10px); }
+        .fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(10px); }
         .animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
@@ -55,10 +46,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
     
+    <!-- FALLBACK ERROR -->
     <div id="fallback-error" style="display: none; min-height: 100vh; width: 100%; background: #f8fafc; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 9999; position: fixed; inset: 0;">
         <div style="background: #fee2e2; color: #991b1b; padding: 30px; border-radius: 16px; border: 1px solid #f87171; max-width: 550px;">
             <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 12px;">⚠️ Sistem UI Berhenti Bergerak</h2>
-            <p>Sistem mendeteksi adanya <b>kesalahan sintaks (Syntax Error)</b> pada URL API Anda.</p>
+            <p>Sistem mendeteksi adanya <b>kesalahan sintaks (Syntax Error)</b> pada konfigurasi script awal Anda.</p>
         </div>
     </div>
 
@@ -79,7 +71,7 @@
                         <div v-if="companyLogo" class="mb-6 flex justify-center">
                             <img :src="companyLogo" alt="Logo" class="max-h-20 object-contain rounded-xl drop-shadow-md">
                         </div>
-                        <div v-else class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-lg mb-4 transform hover:rotate-12 transition-transform duration-300 relative">
+                        <div v-else class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-lg mb-4">
                             <i class="ph-duotone ph-buildings text-5xl"></i>
                         </div>
                         <h1 class="text-3xl font-black text-slate-800 tracking-tight">Stok <span class="text-brand-600">Gudang</span></h1>
@@ -187,16 +179,18 @@
             </nav>
 
             <main class="flex-1 max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                
                 <div class="hidden sm:flex space-x-4 mb-8 overflow-x-auto pb-3 border-b border-slate-200 hide-scrollbar snap-x">
-                    <button @click="changeTab('dashboard')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'dashboard' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-chart-line-up text-xl mr-2"></i> Dashboard Harian</button>
-                    <button @click="changeTab('scan')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'scan' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-barcode text-xl mr-2"></i> Scan Opname</button>
-                    <button @click="changeTab('recap')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'recap' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-list-numbers text-xl mr-2"></i> Rekap Tabel</button>
-                    <button @click="changeTab('inventory')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'inventory' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-database text-xl mr-2"></i> Master Data</button>
-                    <button @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2"></i> Log History</button>
-                    <button @click="changeTab('settings')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap ml-auto" :class="activeTab === 'settings' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'"><i class="ph-duotone ph-gear text-xl mr-2"></i> Pengaturan</button>
+                    <button v-if="menuVisibility.dashboard" @click="changeTab('dashboard')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'dashboard' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-chart-line-up text-xl mr-2"></i> Dashboard Harian</button>
+                    <button v-if="menuVisibility.scan" @click="changeTab('scan')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'scan' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-barcode text-xl mr-2"></i> Scan Opname</button>
+                    <button v-if="menuVisibility.recap" @click="changeTab('recap')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'recap' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-list-numbers text-xl mr-2"></i> Rekap Tabel</button>
+                    <button v-if="menuVisibility.inventory" @click="changeTab('inventory')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'inventory' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-database text-xl mr-2"></i> Master Data</button>
+                    <button v-if="menuVisibility.history" @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2"></i> Log History</button>
+                    <button @click="changeTab('settings')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap ml-auto" :class="activeTab === 'settings' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-gear text-xl mr-2"></i> Pengaturan</button>
                 </div>
 
                 <transition name="fade-slide" mode="out-in">
+                    
                     <!-- TAB: DASHBOARD -->
                     <div v-if="activeTab === 'dashboard'" key="dashboard">
                         <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -651,6 +645,9 @@
                             <button v-if="currentUser.role === 'Super Admin'" @click="activeSettingsTab = 'company'" :class="activeSettingsTab === 'company' ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
                                 <i class="ph-duotone ph-buildings text-lg mr-2"></i> Identitas Perusahaan
                             </button>
+                            <button v-if="currentUser.role === 'Super Admin'" @click="activeSettingsTab = 'menus'" :class="activeSettingsTab === 'menus' ? 'bg-rose-500 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
+                                <i class="ph-duotone ph-app-window text-lg mr-2"></i> Tampilan Menu
+                            </button>
                             <button v-if="currentUser.role === 'Super Admin'" @click="activeSettingsTab = 'warehouse'" :class="activeSettingsTab === 'warehouse' ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
                                 <i class="ph-duotone ph-warehouse text-lg mr-2"></i> Konfigurasi Gudang
                             </button>
@@ -693,6 +690,22 @@
                                 </div>
                             </div>
 
+                            <div v-else-if="activeSettingsTab === 'menus' && currentUser.role === 'Super Admin'" key="mns" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                                <div class="p-5 border-b border-slate-100 bg-rose-50">
+                                    <h2 class="text-lg font-black flex items-center text-slate-800"><i class="ph-duotone ph-app-window text-xl mr-2"></i> Pengaturan Tampilan Menu</h2>
+                                </div>
+                                <div class="p-5 space-y-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <label class="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><input type="checkbox" v-model="menuVisibility.dashboard" class="w-5 h-5 text-rose-600 rounded focus:ring-rose-500"><span class="font-bold text-sm text-slate-700">Dashboard Harian</span></label>
+                                        <label class="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><input type="checkbox" v-model="menuVisibility.scan" class="w-5 h-5 text-rose-600 rounded focus:ring-rose-500"><span class="font-bold text-sm text-slate-700">Scan Opname</span></label>
+                                        <label class="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><input type="checkbox" v-model="menuVisibility.recap" class="w-5 h-5 text-rose-600 rounded focus:ring-rose-500"><span class="font-bold text-sm text-slate-700">Rekap Tabel</span></label>
+                                        <label class="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><input type="checkbox" v-model="menuVisibility.inventory" class="w-5 h-5 text-rose-600 rounded focus:ring-rose-500"><span class="font-bold text-sm text-slate-700">Master Data</span></label>
+                                        <label class="flex items-center space-x-3 p-3 border rounded-xl cursor-pointer hover:bg-slate-50"><input type="checkbox" v-model="menuVisibility.history" class="w-5 h-5 text-rose-600 rounded focus:ring-rose-500"><span class="font-bold text-sm text-slate-700">Log History</span></label>
+                                    </div>
+                                    <button @click="submitSaveAppSettings" class="px-6 py-2.5 bg-rose-600 text-white rounded-xl font-black shadow-md" :disabled="isProcessing">Simpan Menu</button>
+                                </div>
+                            </div>
+
                             <div v-else-if="activeSettingsTab === 'warehouse' && currentUser.role === 'Super Admin'" key="wh" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                                 <div class="p-5 border-b border-slate-100 bg-indigo-50">
                                     <h2 class="text-lg font-black flex items-center text-slate-800"><i class="ph-duotone ph-warehouse text-xl mr-2"></i> Konfigurasi Gudang</h2>
@@ -704,7 +717,7 @@
                                         <button @click="settingsData.splice(index, 1)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg"><i class="ph-bold ph-trash"></i></button>
                                     </div>
                                     <button @click="settingsData.push({Location: '', EmailPIC: ''})" class="px-4 py-2 text-indigo-600 border border-indigo-300 border-dashed rounded-xl font-bold text-sm">+ Tambah</button>
-                                    <button @click="submitSaveSettings" class="px-6 py-2 bg-indigo-600 text-white rounded-xl font-black ml-2">Simpan</button>
+                                    <button @click="submitSaveSettings" class="px-6 py-2 bg-indigo-600 text-white rounded-xl font-black ml-2" :disabled="isProcessing">Simpan</button>
                                 </div>
                             </div>
 
@@ -723,7 +736,7 @@
                                         <button @click="usersData.splice(index, 1)" class="mt-2 text-xs text-red-600 font-bold">Hapus Akun</button>
                                     </div>
                                     <button @click="usersData.push({username: '', password: '', role: 'Staff Gudang', location: 'ALL'})" class="px-4 py-2 text-teal-600 border border-teal-300 border-dashed rounded-xl font-bold text-sm">+ Akun Baru</button>
-                                    <button @click="submitSaveUsers" class="px-6 py-2 bg-teal-600 text-white rounded-xl font-black ml-2">Simpan</button>
+                                    <button @click="submitSaveUsers" class="px-6 py-2 bg-teal-600 text-white rounded-xl font-black ml-2" :disabled="isProcessing">Simpan</button>
                                 </div>
                             </div>
                         </transition>
@@ -801,6 +814,9 @@
         
         try { Chart.register(ChartDataLabels); } catch(e) { console.warn("ChartJS plugin skipped."); }
         
+        // ==========================================
+        // KONFIGURASI API KEY (URL DEPLOY CODE.GS)
+        // ==========================================
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
 
         const reportTemplateDef = [
@@ -835,6 +851,7 @@
                 
                 let timerInterval, syncInterval, idleTimeout; 
                 
+                const menuVisibility = ref({ dashboard: true, scan: true, recap: true, inventory: true, history: true });
                 const showNotifMenu = ref(false);
                 const activeTab = ref('dashboard');
                 const activeSettingsTab = ref('security'); 
@@ -907,7 +924,6 @@
                 const selectedOperator = ref('');
                 const operatorFilter = ref('month');
 
-                // 🔴 NEW: DEFINISI VARIABEL YANG HILANG DI SINI 🔴
                 const recapDateInput = ref(null);
                 const logDateInput = ref(null);
                 let fpRecap = null, fpLog = null;
@@ -999,7 +1015,7 @@
                 const omniSearch = (item, query) => {
                     if (!query) return true;
                     query = query.toLowerCase();
-                    return Object.values(item).some(val => val !== null && val !== undefined && val.toString().toLowerCase().includes(query));
+                    return Object.values(item).some(val => val !== null && val !== undefined && String(val).toLowerCase().includes(query));
                 };
 
                 const isDateInRange = (dateIsoStr, rangeStr) => {
@@ -1298,6 +1314,7 @@
                 window.addEventListener('keypress', resetIdleTimer);
                 window.addEventListener('touchstart', resetIdleTimer);
 
+                // 🔴 QC FIX: Interceptor Error API (White-Box Security Fix) 🔴
                 const apiCall = async (action, payload = {}) => {
                     if (isPreview) {
                         Swal.fire("URL API Belum Diatur", "Silakan masukkan URL API ke variabel GAS_API_URL di dalam file HTML.", "error");
@@ -1308,15 +1325,23 @@
                             redirect: "follow", method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
                             body: JSON.stringify({ action: action, payload: payload, token: authToken.value })
                         });
+                        
                         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
                         const text = await response.text();
-                        if (text.includes("<html") || text.includes("Sign in - Google Accounts")) throw new Error("Akses Web App Google diblokir! Wajib Deploy dengan akses: <b>Anyone</b>");
+                        
+                        if (text.trim().startsWith("<")) {
+                            throw new Error("Akses ditolak atau Server Google Error. <br><br><b>INFO PENTING:</b> Pastikan Anda sudah mendeploy ulang Code.gs dengan versi baru (<b>New Version</b>).");
+                        }
+                        
                         const resData = JSON.parse(text);
                         if (resData.error === "SESSION_EXPIRED") {
                             logout(true); Swal.fire("Sesi Berakhir", resData.message, "warning"); throw new Error(resData.message);
                         }
                         return resData;
-                    } catch (err) { console.error("API Call Error:", err); return { success: false, error: err.message }; }
+                    } catch (err) { 
+                        console.error("API Call Error:", err); 
+                        return { success: false, error: err.message }; 
+                    }
                 };
 
                 const fetchData = async () => {
@@ -1328,6 +1353,15 @@
                                 inventory.value = res.data.inventory; transactions.value = res.data.transactions;
                                 if (res.data.settings) settingsData.value = res.data.settings; 
                                 if (res.data.users) usersData.value = res.data.users; 
+                                
+                                if (res.data.appSettings) {
+                                    res.data.appSettings.forEach(setting => {
+                                        if (menuVisibility.value[setting.Menu] !== undefined) {
+                                            menuVisibility.value[setting.Menu] = setting.IsVisible === 'true' || setting.IsVisible === true;
+                                        }
+                                    });
+                                }
+
                                 if (availableDates.value.length > 0 && !selectedRecapDate.value) setDateRange('recap', 'today');
                                 if (baseInventory.value.length > 0 && !selectedTrendItem.value) selectedTrendItem.value = baseInventory.value[0].barcode;
                                 triggerLowStockAlert();
@@ -1359,6 +1393,15 @@
                             let dataChanged = false;
                             if (newInvStr !== curInvStr) { inventory.value = res.data.inventory; dataChanged = true; }
                             if (newTxStr !== curTxStr) { transactions.value = res.data.transactions; dataChanged = true; }
+                            
+                            if (res.data.appSettings) {
+                                res.data.appSettings.forEach(setting => {
+                                    if (menuVisibility.value[setting.Menu] !== undefined) {
+                                        menuVisibility.value[setting.Menu] = setting.IsVisible === 'true' || setting.IsVisible === true;
+                                    }
+                                });
+                            }
+
                             if (dataChanged && activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50);
                         }
                     } catch (e) {} finally { isSyncing.value = false; }
@@ -1525,7 +1568,7 @@
                 };
 
                 const submitSaveSettings = async () => {
-                    const hasEmptyLoc = settingsData.value.some(s => !s.Location || s.Location.trim() === '');
+                    const hasEmptyLoc = settingsData.value.some(s => !s.Location || String(s.Location).trim() === '');
                     if (hasEmptyLoc) { Swal.fire('Validasi Gagal', 'Ada baris yang kolom Gudang/Lokasinya masih kosong.', 'warning'); return; }
                     isProcessing.value = true;
                     try {
@@ -1551,9 +1594,22 @@
                     } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
                 };
 
+                const submitSaveAppSettings = async () => {
+                    isProcessing.value = true;
+                    try {
+                        const payloadArray = Object.keys(menuVisibility.value).map(key => ({ Menu: key, IsVisible: menuVisibility.value[key] }));
+                        if (isPreview) {
+                            await new Promise(r => setTimeout(r, 500)); Swal.fire('Berhasil', 'Pengaturan Menu disimpan (Mock).', 'success');
+                        } else {
+                            const res = await apiCall('saveAppSettings', { appSettings: payloadArray });
+                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire('Gagal Menyimpan', res?.error, 'error');
+                        }
+                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
+                };
+
                 const handleScan = () => {
-                    if (!scannedCode.value.trim()) return;
-                    let scanStr = scannedCode.value.trim().toUpperCase();
+                    if (!scannedCode.value || !String(scannedCode.value).trim()) return;
+                    let scanStr = String(scannedCode.value).trim().toUpperCase();
                     if (scanStr.startsWith('HTTP://') || scanStr.startsWith('HTTPS://')) { scanStr = scanStr.split('/').pop() || scanStr; scannedCode.value = scanStr; }
                     
                     const item = baseInventory.value.find(i => String(i.barcode).trim().toUpperCase() === scanStr);
@@ -1575,14 +1631,14 @@
 
                     isProcessing.value = true;
                     try {
-                        let finalName = activeItem.value.name.toUpperCase();
+                        let finalName = String(activeItem.value.name).toUpperCase();
                         if (isNitrogenItem.value) finalName += ` [Pressure: ${actualPressure.value} Bar]`;
 
                         const payload = { 
-                            id: Date.now(), date: currentTime.value.toISOString(), barcode: activeItem.value.barcode.toUpperCase(), 
+                            id: Date.now(), date: currentTime.value.toISOString(), barcode: String(activeItem.value.barcode).toUpperCase(), 
                             name: finalName, oldQty: activeItem.value.qty, newQty: actualStock.value, 
-                            variance: actualStock.value - activeItem.value.qty, user: currentUser.value.username.toUpperCase() || 'SISTEM',
-                            location: activeItem.value.location.toUpperCase(), pic: currentUser.value.username.toUpperCase()
+                            variance: actualStock.value - activeItem.value.qty, user: String(currentUser.value.username).toUpperCase() || 'SISTEM',
+                            location: String(activeItem.value.location).toUpperCase(), pic: String(currentUser.value.username).toUpperCase()
                         };
                         const isBecomingLowStock = actualStock.value <= activeItem.value.minQty;
 
@@ -1676,29 +1732,66 @@
                     } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
                 };
                 
+                // 🔴 QC FIX: Penulisan Save Item Bulk Yang Tahan Banting 🔴
                 const saveItem = async () => { 
                     isProcessing.value = true;
                     try {
                         if (isEditing.value) {
-                            formItem.value.barcode = formItem.value.barcode.toUpperCase().trim(); formItem.value.category = formItem.value.category.toUpperCase().trim(); formItem.value.name = formItem.value.name.toUpperCase().trim(); formItem.value.unit = formItem.value.unit.toUpperCase().trim();
+                            formItem.value.barcode = String(formItem.value.barcode || '').toUpperCase().trim(); 
+                            formItem.value.category = String(formItem.value.category || '').toUpperCase().trim(); 
+                            formItem.value.name = String(formItem.value.name || '').toUpperCase().trim(); 
+                            formItem.value.unit = String(formItem.value.unit || '').toUpperCase().trim();
+                            
                             if (isPreview) { closeModal(); Swal.fire('Berhasil', "Barang disimpan.", 'success'); } 
                             else {
                                 const res = await apiCall('saveMasterItem', { itemData: formItem.value, isEditing: true });
-                                if (res && res.success) { const index = inventory.value.findIndex(i => String(i.barcode).trim().toUpperCase() === formItem.value.barcode); if(index !== -1) inventory.value[index] = { ...formItem.value }; Swal.fire('Berhasil', res.data, 'success'); closeModal(); silentFetchData(); } 
+                                if (res && res.success) { 
+                                    const index = inventory.value.findIndex(i => String(i.barcode).trim().toUpperCase() === formItem.value.barcode); 
+                                    if(index !== -1) inventory.value[index] = { ...formItem.value }; 
+                                    Swal.fire('Berhasil', res.data, 'success'); closeModal(); silentFetchData(); 
+                                } 
                                 else { Swal.fire({title: 'Error', html: res?.error || 'Kesalahan sistem', icon: 'error'}); }
                             }
                         } else {
-                            if (addFormItems.value.some(i => !i.barcode.trim() || !i.name.trim())) { Swal.fire('Validasi Gagal', 'Barcode dan Nama Barang harus diisi di semua baris!', 'warning'); isProcessing.value = false; return; }
-                            const barcodesInForm = addFormItems.value.map(i => i.barcode.toUpperCase().trim());
-                            if (new Set(barcodesInForm).size !== barcodesInForm.length) { Swal.fire('Validasi Gagal', 'Ditemukan Barcode ganda/sama di dalam baris yang Anda input!', 'warning'); isProcessing.value = false; return; }
-                            const existingDbBarcodes = inventory.value.map(i => i.barcode.toUpperCase().trim());
-                            const duplicateMatch = addFormItems.value.find(i => existingDbBarcodes.includes(i.barcode.toUpperCase().trim()));
-                            if (duplicateMatch) { Swal.fire('Gagal Menyimpan', `Barcode <b>${duplicateMatch.barcode}</b> sudah terdaftar sebelumnya di Master Data!`, 'error'); isProcessing.value = false; return; }
+                            if (addFormItems.value.some(i => !i.barcode || !String(i.barcode).trim() || !i.name || !String(i.name).trim())) { 
+                                Swal.fire('Validasi Gagal', 'Barcode dan Nama Barang harus diisi di semua baris!', 'warning'); 
+                                isProcessing.value = false; return; 
+                            }
+                            
+                            const barcodesInForm = addFormItems.value.map(i => String(i.barcode).toUpperCase().trim());
+                            if (new Set(barcodesInForm).size !== barcodesInForm.length) { 
+                                Swal.fire('Validasi Gagal', 'Ditemukan Barcode ganda di dalam baris yang Anda input!', 'warning'); 
+                                isProcessing.value = false; return; 
+                            }
+                            
+                            const existingDbBarcodes = inventory.value.map(i => String(i.barcode).toUpperCase().trim());
+                            const duplicateMatch = addFormItems.value.find(i => existingDbBarcodes.includes(String(i.barcode).toUpperCase().trim()));
+                            if (duplicateMatch) { 
+                                Swal.fire('Gagal Menyimpan', `Barcode <b>${duplicateMatch.barcode}</b> sudah terdaftar sebelumnya di Master Data!`, 'error'); 
+                                isProcessing.value = false; return; 
+                            }
 
-                            if (isPreview) { closeModal(); Swal.fire('Berhasil', `${addFormItems.value.length} Barang disimpan (Mock).`, 'success'); } 
-                            else {
-                                const res = await apiCall('addMasterItemsBulk', { itemsData: addFormItems.value });
-                                if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); closeModal(); silentFetchData(); } 
+                            if (isPreview) { 
+                                closeModal(); Swal.fire('Berhasil', `${addFormItems.value.length} Barang disimpan (Mock).`, 'success'); 
+                            } else {
+                                const payloadData = Array.isArray(addFormItems.value) ? addFormItems.value : Object.values(addFormItems.value);
+                                const res = await apiCall('addMasterItemsBulk', { itemsData: payloadData });
+                                
+                                if (res && res.success) { 
+                                    addFormItems.value.forEach(newItem => { 
+                                        inventory.value.push({ 
+                                            barcode: String(newItem.barcode || '').toUpperCase().trim(), 
+                                            name: String(newItem.name || '').toUpperCase().trim(), 
+                                            category: String(newItem.category || '').toUpperCase().trim(), 
+                                            qty: Number(newItem.qty) || 0, 
+                                            minQty: Number(newItem.minQty) || 0, 
+                                            unit: String(newItem.unit || '').toUpperCase().trim(), 
+                                            location: String(newItem.location || '').toUpperCase().trim(), 
+                                            lastUpdate: new Date().toISOString() 
+                                        }); 
+                                    });
+                                    Swal.fire('Berhasil', res.data, 'success'); closeModal(); silentFetchData(); 
+                                } 
                                 else { Swal.fire('Gagal Menyimpan', res?.error || 'Server error', 'error'); }
                             }
                         }
@@ -1917,7 +2010,7 @@
                 return {
                     isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr, companyLogo, handleLogoUpload, removeLogo,
                     activeTab, activeSettingsTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
-                    manualRefresh, resetFilters,
+                    manualRefresh, resetFilters, menuVisibility,
                     inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, dashboardDate, dailyCheckStatus, checkedTodayCount, uncheckedTodayCount,
                     availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch,
@@ -1932,7 +2025,7 @@
                     formatDate, formatDateString, handleScan, submitUpdate, openCamera, closeCamera, resetScanner,
                     openAddModal, openEditModal, closeModal, saveItem, deleteItem, deleteLogHistory, deleteRecapOpname, showQRCode,
                     exportExcel, exportRecapExcel, downloadCheckSheetExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
-                    passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers, setDateRange, isRecapToday, isRecapYesterday,
+                    passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers, submitSaveAppSettings, setDateRange, isRecapToday, isRecapYesterday,
                     recapDateInput, logDateInput, showCheckSheetModal, checkSheetMonth, checkSheetData
                 };
             }
