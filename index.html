@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Monitoring Stok Gudang</title>
+    <title>Daily Roving</title>
     <!-- Favicon Enterprise -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' fill='none'/><path d='M224,177.32V78.68a16,16,0,0,0-8.26-14l-80-44a16,16,0,0,0-15.48,0l-80,44A16,16,0,0,0,32,78.68v98.64a16,16,0,0,0,8.26,14l80,44a16,16,0,0,0,15.48,0l80-44A16,16,0,0,0,224,177.32Z' fill='%230ea5e9' stroke='%230ea5e9' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><polyline points='222.89 74.63 128 128 33.11 74.63' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='128' y1='128' x2='128' y2='234.82' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='176' y1='101.44' x2='80' y2='48.56' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/></svg>">
     <!-- Libraries CSS & JS -->
@@ -46,6 +46,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
     
+    <!-- FALLBACK ERROR -->
     <div id="fallback-error" style="display: none; min-height: 100vh; width: 100%; background: #f8fafc; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 9999; position: fixed; inset: 0;">
         <div style="background: #fee2e2; color: #991b1b; padding: 30px; border-radius: 16px; border: 1px solid #f87171; max-width: 550px;">
             <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 12px;">⚠️ Sistem UI Berhenti Bergerak</h2>
@@ -73,7 +74,7 @@
                         <div v-else class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-400 text-white shadow-lg mb-4">
                             <i class="ph-duotone ph-buildings text-5xl"></i>
                         </div>
-                        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Stok <span class="text-brand-600">Gudang</span></h1>
+                        <h1 class="text-3xl font-black text-slate-800 tracking-tight">Daily <span class="text-brand-600">Roving</span></h1>
                         <p class="text-slate-500 text-sm mt-2 font-medium">Sistem Monitoring & Opname Terpadu</p>
                     </div>
 
@@ -117,7 +118,7 @@
                         <div class="flex items-center">
                             <img v-if="companyLogo" :src="companyLogo" alt="Logo" class="h-8 sm:h-10 mr-3 object-contain bg-white/10 p-1 rounded-xl backdrop-blur-sm">
                             <div v-else class="p-2 bg-white/10 rounded-xl mr-3 backdrop-blur-sm hidden sm:block"><i class="ph-duotone ph-buildings text-2xl sm:text-3xl text-brand-100"></i></div>
-                            <span class="font-bold text-lg sm:text-2xl tracking-wide truncate">Monitoring <span class="text-brand-300">Stok</span></span>
+                            <span class="font-bold text-lg sm:text-2xl tracking-wide truncate">Daily <span class="text-brand-300">Roving</span></span>
                         </div>
                         
                         <div class="flex items-center space-x-2 sm:space-x-5">
@@ -138,7 +139,7 @@
                                 <transition name="fade-slide">
                                     <div v-if="showNotifMenu" class="absolute right-0 mt-3 w-[300px] sm:w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 origin-top-right" @click.stop>
                                         <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                                            <h4 class="font-black text-slate-800 text-sm flex items-center"><i class="ph-duotone ph-warning-circle text-red-500 mr-2 text-lg"></i> Alert Reorder</h4>
+                                            <h4 class="font-black text-slate-800 text-sm flex items-center"><i class="ph-duotone ph-warning-circle text-red-500 mr-2 text-lg"></i> Request Kedatangan</h4>
                                             <span class="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded-lg">{{ lowStockItems.length }} Low</span>
                                         </div>
                                         <div class="max-h-64 overflow-y-auto custom-scrollbar">
@@ -147,7 +148,7 @@
                                                 <div class="bg-red-100 text-red-500 p-2 rounded-lg group-hover:bg-red-500 group-hover:text-white"><i class="ph-fill ph-package text-lg"></i></div>
                                                 <div class="flex-1 overflow-hidden">
                                                     <div class="text-xs font-black text-slate-800 uppercase truncate">{{ item.name }}</div>
-                                                    <div class="text-[10px] text-slate-500 font-medium">Stok: <b class="text-red-600 text-xs">{{ item.qty }}</b> / Min: {{ item.minQty }}</div>
+                                                    <div class="text-[10px] text-slate-500 font-medium">Stok Sebelumnya: <b class="text-red-600 text-xs">{{ item.qty }}</b> / Min: {{ item.minQty }}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -169,7 +170,7 @@
                                     <span class="text-[9px] text-brand-200 uppercase truncate">{{ currentUser.location }}</span>
                                 </div>
                             </div>
-                            <button @click="logout(false)" class="p-2 bg-red-500/10 text-red-200 hover:bg-red-500 hover:text-white rounded-xl transition-all" title="Logout">
+                            <button @click="logout(false)" class="p-2 bg-red-500/10 text-red-200 hover:bg-red-50 hover:text-white rounded-xl transition-all" title="Logout">
                                 <i class="ph-bold ph-sign-out text-xl"></i>
                             </button>
                         </div>
@@ -180,11 +181,11 @@
             <main class="flex-1 max-w-[1600px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 
                 <div class="hidden sm:flex space-x-4 mb-8 overflow-x-auto pb-3 border-b border-slate-200 hide-scrollbar snap-x">
-                    <button v-if="menuVisibility.dashboard" @click="changeTab('dashboard')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'dashboard' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-chart-line-up text-xl mr-2"></i> Dashboard Harian</button>
-                    <button v-if="menuVisibility.scan" @click="changeTab('scan')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'scan' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-barcode text-xl mr-2"></i> Scan Opname</button>
-                    <button v-if="menuVisibility.recap" @click="changeTab('recap')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'recap' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-list-numbers text-xl mr-2"></i> Rekap Tabel</button>
+                    <button v-if="menuVisibility.dashboard" @click="changeTab('dashboard')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'dashboard' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-chart-line-up text-xl mr-2"></i> Dashboard Roving</button>
+                    <button v-if="menuVisibility.scan" @click="changeTab('scan')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'scan' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-barcode text-xl mr-2"></i> Scan Roving</button>
+                    <button v-if="menuVisibility.recap" @click="changeTab('recap')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'recap' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-list-numbers text-xl mr-2"></i> Rekap Tabel Roving</button>
                     <button v-if="menuVisibility.inventory" @click="changeTab('inventory')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'inventory' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-database text-xl mr-2"></i> Master Data</button>
-                    <button v-if="menuVisibility.history" @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2"></i> Log History</button>
+                    <button v-if="menuVisibility.history" @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2"></i> Log History Transaksi Roving</button>
                     <button @click="changeTab('settings')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap ml-auto" :class="activeTab === 'settings' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-gear text-xl mr-2"></i> Pengaturan</button>
                 </div>
 
@@ -196,7 +197,7 @@
                             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center flex-1 w-full gap-4">
                                 <div class="flex items-center text-slate-700 w-full sm:w-auto">
                                     <div class="bg-indigo-100 text-indigo-600 p-2 rounded-xl mr-3"><i class="ph-duotone ph-calendar-check text-xl"></i></div>
-                                    <h4 class="font-bold text-sm whitespace-nowrap">Pantauan Opname Harian</h4>
+                                    <h4 class="font-bold text-sm whitespace-nowrap">Roving</h4>
                                 </div>
                                 <div class="flex-1 w-full flex flex-col sm:flex-row gap-3">
                                     <input type="date" v-model="dashboardDate" class="w-full sm:w-48 px-4 py-2 bg-slate-50 border rounded-xl text-sm font-bold outline-none cursor-pointer shadow-inner">
@@ -211,26 +212,27 @@
                             </button>
                         </div>
 
+                        <!-- 🔴 TABEL RINGKASAN FILTERABLE 🔴 -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8">
-                            <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-slate-100 relative overflow-hidden">
+                            <div @click="dailyCheckFilter = 'ALL'" class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-slate-100 relative overflow-hidden cursor-pointer hover:border-blue-300 transition-all" :class="{'ring-2 ring-blue-500 bg-blue-50': dailyCheckFilter === 'ALL'}">
                                 <div class="absolute -right-4 -top-4 opacity-5"><i class="ph-fill ph-database text-9xl text-blue-500"></i></div>
                                 <div class="flex items-center text-slate-500 mb-2">
                                     <div class="bg-blue-50 text-blue-500 p-1.5 rounded-xl mr-2"><i class="ph-duotone ph-database text-xl"></i></div>
-                                    <span class="text-[10px] sm:text-xs font-bold uppercase">Total Item di Gudang</span>
+                                    <span class="text-[10px] sm:text-xs font-bold uppercase" :class="{'text-blue-700': dailyCheckFilter === 'ALL'}">Total Item</span>
                                 </div>
                                 <p class="text-3xl sm:text-4xl font-black text-slate-800">{{ baseInventory.length }}</p>
                             </div>
                             
-                            <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-sm p-4 sm:p-5 border border-green-200 relative overflow-hidden">
+                            <div @click="dailyCheckFilter = 'CHECKED'" class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-sm p-4 sm:p-5 border border-green-200 relative overflow-hidden cursor-pointer hover:border-green-400 hover:shadow-md transition-all" :class="{'ring-2 ring-green-500': dailyCheckFilter === 'CHECKED'}">
                                 <div class="absolute -right-4 -top-4 opacity-10"><i class="ph-fill ph-check-circle text-9xl text-green-600"></i></div>
                                 <div class="flex items-center text-green-700 mb-2">
                                     <div class="bg-green-500 text-white p-1.5 rounded-xl mr-2 shadow-sm"><i class="ph-bold ph-check text-xl"></i></div>
-                                    <span class="text-[10px] sm:text-xs font-black uppercase">Sudah Dicek (Tgl {{ dashboardDate.slice(8,10) }})</span>
+                                    <span class="text-[10px] sm:text-xs font-black uppercase">Sudah Dicek</span>
                                 </div>
                                 <p class="text-3xl sm:text-4xl font-black text-green-700">{{ checkedTodayCount }}</p>
                             </div>
                             
-                            <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl shadow-sm p-4 sm:p-5 border border-orange-200 relative overflow-hidden">
+                            <div @click="dailyCheckFilter = 'UNCHECKED'" class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl shadow-sm p-4 sm:p-5 border border-orange-200 relative overflow-hidden cursor-pointer hover:border-orange-400 hover:shadow-md transition-all" :class="{'ring-2 ring-orange-500': dailyCheckFilter === 'UNCHECKED'}">
                                 <div class="absolute -right-4 -top-4 opacity-10"><i class="ph-fill ph-warning-circle text-9xl text-orange-600"></i></div>
                                 <div class="flex items-center text-orange-700 mb-2">
                                     <div class="bg-orange-500 text-white p-1.5 rounded-xl mr-2 shadow-sm"><i class="ph-bold ph-warning text-xl"></i></div>
@@ -239,60 +241,78 @@
                                 <p class="text-3xl sm:text-4xl font-black text-orange-700">{{ uncheckedTodayCount }}</p>
                             </div>
 
-                            <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-slate-100 relative overflow-hidden cursor-pointer hover:border-red-300" @click="filterLowStockAndGo()">
+                            <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-slate-100 relative overflow-hidden cursor-pointer hover:border-red-300 transition-all" @click="filterLowStockAndGo()">
                                 <div class="absolute -right-4 -top-4 opacity-5"><i class="ph-fill ph-trend-down text-9xl text-red-500"></i></div>
                                 <div class="flex items-center mb-2">
                                     <div class="bg-red-50 text-red-500 p-1.5 rounded-xl mr-2"><i class="ph-duotone ph-trend-down text-xl"></i></div>
-                                    <span class="text-[10px] sm:text-xs font-bold uppercase text-red-600">Perlu Reorder</span>
+                                    <span class="text-[10px] sm:text-xs font-bold uppercase text-red-600">Request Kedatangan</span>
                                 </div>
                                 <p class="text-3xl sm:text-4xl font-black text-red-600 flex items-center">{{ lowStockItems.length }} <i class="ph-bold ph-arrow-right text-sm ml-2 text-red-300"></i></p>
                             </div>
                         </div>
 
+                        <!-- 🔴 GRAFIK PINDAH KE ATAS (FULL WIDTH) 🔴 -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col relative overflow-hidden mb-8">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
+                                <h3 class="font-bold text-slate-800 flex items-center text-sm"><div class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-2"><i class="ph-duotone ph-trend-up text-lg"></i></div> Trend Stok Harian</h3>
+                                <div class="flex items-center gap-2 w-full sm:w-auto">
+                                    <input v-model="selectedTrendItemName" list="inventoryNameList" placeholder="Ketik nama barang..." class="w-full sm:w-48 px-3 py-1.5 border rounded-lg text-xs font-bold uppercase outline-none">
+                                    <datalist id="inventoryNameList"><option v-for="item in baseInventory" :key="item.barcode" :value="item.name"></option></datalist>
+                                    <select v-model="trendFilter" class="px-2 py-1.5 border rounded-lg text-xs font-bold outline-none cursor-pointer"><option value="day">7 Hari Terakhir</option><option value="week">14 Hari Terakhir</option><option value="month">30 Hari Terakhir</option></select>
+                                </div>
+                            </div>
+                            <div v-if="!selectedTrendItemName || !baseInventory.find(i => String(i.name).toUpperCase() === String(selectedTrendItemName).toUpperCase())" class="flex-1 flex flex-col items-center justify-center min-h-[250px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200"><i class="ph-duotone ph-chart-line-up text-4xl text-slate-300 mb-2"></i><p class="text-slate-400 text-xs font-medium">Pilih nama barang untuk melihat grafik.</p></div>
+                            <div v-else class="relative w-full h-[250px] z-10"><canvas id="trendChart"></canvas></div>
+                        </div>
+
+                        <!-- 🔴 RINCIAN STATUS DI BAWAH 🔴 -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
                             <div class="p-4 sm:p-6 border-b border-slate-100 bg-slate-50">
-                                <h3 class="text-lg font-black text-slate-800 flex items-center"><i class="ph-duotone ph-list-checks text-xl mr-2 text-brand-600"></i> Rincian Status Pengecekan Barang</h3>
-                                <p class="text-xs text-slate-500 mt-1 ml-7">Berdasarkan tanggal <b>{{ dashboardDate }}</b>.</p>
+                                <h3 class="text-lg font-black text-slate-800 flex items-center"><i class="ph-duotone ph-list-checks text-xl mr-2 text-brand-600"></i> Rincian Status Roving Barang</h3>
+                                <p class="text-xs text-slate-500 mt-1 ml-7">Menampilkan filter (<b class="text-brand-600">{{ dailyCheckFilter }}</b>) pada <b>{{ dashboardDate }}</b>.</p>
                             </div>
                             <div class="overflow-auto max-h-[60vh] table-scrollbar">
                                 <table class="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
                                     <thead>
                                         <tr class="bg-slate-50 text-slate-500 text-[10px] sm:text-[11px] uppercase sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0]">
-                                            <th class="p-3 sm:p-4 font-black">Status Opname</th>
+                                            <th class="p-3 sm:p-4 font-black">Status Roving</th>
                                             <th class="p-3 sm:p-4 font-black">Nama Barang & Barcode</th>
                                             <th class="p-3 sm:p-4 font-black">Lokasi Gudang</th>
                                             <th class="p-3 sm:p-4 font-black text-center">Batas Min</th>
-                                            <th class="p-3 sm:p-4 font-black text-center bg-blue-50">Sistem</th>
-                                            <th class="p-3 sm:p-4 font-black text-center bg-green-50">Actual</th>
+                                            <th class="p-3 sm:p-4 font-black text-center bg-blue-50 text-blue-800">Stok Sebelumnya</th>
+                                            <th class="p-3 sm:p-4 font-black text-center bg-green-50 text-green-800">Actual</th>
                                             <th class="p-3 sm:p-4 font-black">Waktu & PIC</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 text-xs sm:text-sm">
-                                        <tr v-if="dailyCheckStatus.length === 0"><td colspan="7" class="p-10 text-center text-slate-500">Tidak ada barang.</td></tr>
-                                        <tr v-for="item in dailyCheckStatus" :key="item.barcode" class="hover:bg-slate-50" :class="item.isChecked ? 'bg-white' : 'bg-orange-50/30'">
+                                        <tr v-if="dailyCheckStatus.length === 0"><td colspan="7" class="p-10 text-center text-slate-500">Tidak ada barang sesuai filter.</td></tr>
+                                        <tr v-for="item in dailyCheckStatus" :key="item.barcode" class="hover:bg-slate-50 transition-colors" :class="item.isChecked ? 'bg-white' : 'bg-orange-50/30'">
                                             <td class="p-3 sm:p-4">
-                                                <div v-if="item.isChecked" class="inline-flex px-2 py-1.5 bg-green-100 text-green-700 rounded-lg font-black border border-green-200"><i class="ph-bold ph-check-circle mr-1 text-base"></i> SUDAH DICEK</div>
-                                                <div v-else class="inline-flex px-2 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-black border border-orange-200 animate-pulse"><i class="ph-bold ph-warning-circle mr-1 text-base"></i> BELUM DICEK</div>
+                                                <div v-if="item.isChecked" class="inline-flex px-2.5 py-1.5 bg-green-100 text-green-700 text-xs rounded-lg font-black border border-green-200 shadow-sm"><i class="ph-bold ph-check-circle mr-1.5 text-base"></i> SUDAH DICEK</div>
+                                                <div v-else class="inline-flex px-2.5 py-1.5 bg-orange-100 text-orange-700 text-xs rounded-lg font-black border border-orange-200 shadow-sm animate-pulse"><i class="ph-bold ph-warning-circle mr-1.5 text-base"></i> BELUM DICEK</div>
                                             </td>
                                             <td class="p-3 sm:p-4">
-                                                <div class="font-bold uppercase">{{ item.name }}</div>
-                                                <div class="text-[10px] text-slate-500 font-mono mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded border border-slate-200">{{ item.barcode }}</div>
+                                                <div class="font-bold text-slate-800 uppercase">{{ item.name }}</div>
+                                                <div class="text-[10px] text-slate-500 font-mono mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded uppercase border border-slate-200">{{ item.barcode }}</div>
                                             </td>
                                             <td class="p-3 sm:p-4 font-bold text-slate-600 uppercase text-[11px]">{{ item.location }}</td>
                                             <td class="p-3 sm:p-4 text-center font-medium text-slate-500">{{ item.minQty }} {{ item.unit }}</td>
+                                            
                                             <td class="p-3 sm:p-4 text-center font-bold text-slate-400 line-through">{{ item.qty }}</td>
+                                            
                                             <td class="p-3 sm:p-4 text-center font-black">
-                                                <div v-if="item.isChecked" class="text-green-700 text-base">{{ item.checkedQty }} <span class="text-xs font-bold">{{ item.unit }}</span>
+                                                <div v-if="item.isChecked" class="text-green-700 text-base">{{ item.checkedQty }} <span class="text-xs font-bold text-green-600/70">{{ item.unit }}</span>
                                                     <div v-if="item.pressure" class="text-[10px] mt-0.5 text-purple-600 bg-purple-100 rounded px-1 border border-purple-200 inline-block">Press: {{ item.pressure }} Bar</div>
                                                 </div>
                                                 <span v-else class="text-slate-300">-</span>
                                             </td>
+                                            
                                             <td class="p-3 sm:p-4">
                                                 <div v-if="item.isChecked" class="flex flex-col">
                                                     <span class="font-bold text-blue-700 uppercase text-[11px]">{{ item.checkedBy }}</span>
-                                                    <span class="text-[10px] text-slate-500 font-mono mt-0.5"><i class="ph-fill ph-clock mr-1"></i> {{ item.checkedTime }}</span>
+                                                    <span class="text-[10px] text-slate-500 font-mono mt-0.5 flex items-center"><i class="ph-fill ph-clock mr-1"></i> Pukul {{ item.checkedTime }}</span>
                                                 </div>
-                                                <span v-else class="text-slate-300 italic">-</span>
+                                                <span v-else class="text-slate-300 text-xs italic">-</span>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -300,31 +320,6 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-8 opacity-90 hover:opacity-100 transition-opacity">
-                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col relative overflow-hidden">
-                                <div class="flex justify-between items-center mb-6 gap-4 relative z-10">
-                                    <h3 class="font-bold text-slate-800 flex items-center text-sm"><div class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-2"><i class="ph-duotone ph-trend-up text-lg"></i></div> Trend Stok</h3>
-                                    <div class="flex items-center gap-2">
-                                        <input v-model="selectedTrendItem" list="inventoryList" placeholder="Ketik barcode..." class="w-32 px-2 py-1.5 border rounded-lg text-xs font-bold uppercase">
-                                        <datalist id="inventoryList"><option v-for="item in baseInventory" :key="item.barcode" :value="item.barcode">{{ item.name }}</option></datalist>
-                                        <select v-model="trendFilter" class="px-2 py-1.5 border rounded-lg text-xs font-bold"><option value="day">7 Hari</option><option value="week">4 Minggu</option></select>
-                                    </div>
-                                </div>
-                                <div v-if="!selectedTrendItem || !baseInventory.find(i => i.barcode === selectedTrendItem)" class="flex-1 flex items-center justify-center min-h-[200px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200"><p class="text-slate-400 text-xs">Pilih barang.</p></div>
-                                <div v-else class="relative w-full h-[200px] z-10"><canvas id="trendChart"></canvas></div>
-                            </div>
-                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col relative overflow-hidden">
-                                <div class="flex justify-between items-center mb-6 gap-4 relative z-10">
-                                    <h3 class="font-bold text-slate-800 flex items-center text-sm"><div class="bg-teal-100 text-teal-600 p-1.5 rounded-lg mr-2"><i class="ph-duotone ph-user-focus text-lg"></i></div> Aktivitas PIC</h3>
-                                    <div class="flex items-center gap-2">
-                                        <select v-model="selectedOperator" class="w-32 px-2 py-1.5 border rounded-lg text-xs font-bold uppercase"><option value="">-- PIC --</option><option v-for="pic in uniquePics" :key="pic" :value="pic">{{ pic }}</option></select>
-                                        <select v-model="operatorFilter" class="px-2 py-1.5 border rounded-lg text-xs font-bold"><option value="week">7 Hari</option><option value="month">30 Hari</option></select>
-                                    </div>
-                                </div>
-                                <div v-if="!selectedOperator" class="flex-1 flex items-center justify-center min-h-[200px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200"><p class="text-slate-400 text-xs">Pilih PIC.</p></div>
-                                <div v-else class="relative w-full h-[200px] z-10"><canvas id="operatorChart"></canvas></div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- TAB: SCANNER -->
@@ -332,13 +327,13 @@
                         <div class="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden relative">
                             <div class="h-2 w-full bg-gradient-to-r from-brand-400 to-brand-600"></div>
                             <div class="p-5 sm:p-8 bg-slate-50 border-b border-slate-100">
-                                <h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800"><div class="bg-brand-100 text-brand-600 p-2 rounded-lg mr-3 shadow-inner"><i class="ph-duotone ph-scan text-2xl"></i></div> Form Opname Harian</h2>
+                                <h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800"><div class="bg-brand-100 text-brand-600 p-2 rounded-lg mr-3 shadow-inner"><i class="ph-duotone ph-scan text-2xl"></i></div> Form Roving Harian</h2>
                             </div>
                             
                             <div class="p-5 sm:p-8">
                                 <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex justify-between items-center">
                                     <div>
-                                        <label class="block text-xs font-black uppercase text-blue-800 mb-1 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Petugas Opname (PIC)</label>
+                                        <label class="block text-xs font-black uppercase tracking-wider text-blue-800 mb-1 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Petugas Roving (PIC)</label>
                                         <div class="text-sm font-black uppercase flex items-center"><i class="ph-fill ph-user-circle mr-2 text-blue-500 text-xl"></i> {{ currentUser.username }}</div>
                                     </div>
                                     <div class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase shadow-sm"><i class="ph-bold ph-shield-check mr-1"></i> Terotentikasi</div>
@@ -349,7 +344,7 @@
                                         <div class="relative flex-1">
                                             <i class="ph-duotone ph-barcode absolute left-4 top-3.5 text-slate-400 text-2xl"></i>
                                             <!-- 🔴 FIX QC: Pembungkus String agar menolak Input Error dari Tipe Data Number 🔴 -->
-                                            <input ref="barcodeInput" v-model="scannedCode" @input="scannedCode = String(scannedCode).toUpperCase()" type="text" class="w-full pl-12 pr-4 py-4 border-2 rounded-2xl focus:ring-brand-500 text-lg font-mono uppercase bg-slate-50" placeholder="Ketik Barcode..." :disabled="isProcessing || isCameraOpen">
+                                            <input ref="barcodeInput" v-model="scannedCode" @input="scannedCode = String(scannedCode).toUpperCase()" type="text" class="w-full pl-12 pr-4 py-4 border-2 rounded-2xl focus:ring-brand-500 text-lg font-mono uppercase bg-slate-50 outline-none" placeholder="Ketik Barcode..." :disabled="isProcessing || isCameraOpen">
                                         </div>
                                         <div class="flex gap-2 h-[60px]">
                                             <button type="submit" class="bg-brand-600 text-white px-5 rounded-2xl font-bold shadow-md disabled:opacity-50" :disabled="isProcessing || isCameraOpen || !String(scannedCode).trim()">CARI</button>
@@ -379,7 +374,7 @@
                                             
                                             <div class="mt-4 p-4 bg-slate-50 rounded-xl border flex justify-between items-center relative overflow-hidden">
                                                 <i class="ph-fill ph-database absolute -right-2 -bottom-4 text-slate-200 text-6xl"></i>
-                                                <span class="text-xs sm:text-sm font-bold text-slate-600 relative z-10"><i class="ph-duotone ph-desktop text-xl mr-2 text-slate-400"></i> Stok Sistem:</span>
+                                                <span class="text-xs sm:text-sm font-bold text-slate-600 relative z-10"><i class="ph-duotone ph-desktop text-xl mr-2 text-slate-400"></i> Stok Sebelumnya:</span>
                                                 <div class="text-right relative z-10 bg-white px-3 py-2 rounded-lg shadow-sm border"><span class="text-xl sm:text-2xl font-black">{{ activeItem.qty }}</span><span class="text-xs font-bold ml-1.5 uppercase">{{ activeItem.unit }}</span></div>
                                             </div>
 
@@ -432,7 +427,7 @@
                             <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 relative overflow-hidden">
                                 <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-calendar-check text-[10rem] text-purple-500"></i></div>
                                 <div class="relative z-10">
-                                    <h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800"><div class="bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-2 rounded-xl mr-3 shadow-md"><i class="ph-bold ph-list-numbers text-xl"></i></div> Tabel Rekap Opname</h2>
+                                    <h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800"><div class="bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-2 rounded-xl mr-3 shadow-md"><i class="ph-bold ph-list-numbers text-xl"></i></div> Tabel Rekap Roving</h2>
                                 </div>
                                 <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto relative z-10">
                                     <div class="hidden lg:flex bg-white p-1 rounded-xl border shadow-sm">
@@ -464,7 +459,7 @@
                                 <div v-if="selectedRecapDate">
                                     <div v-if="paginatedRecapSummary.length === 0" class="text-center py-16 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
                                         <i class="ph-duotone ph-calendar-x text-5xl text-purple-400 mb-4 block"></i>
-                                        <h3 class="text-lg font-black text-slate-700">Tidak Ada Opname</h3>
+                                        <h3 class="text-lg font-black text-slate-700">Tidak Ada Roving</h3>
                                     </div>
                                     <div v-else class="overflow-auto max-h-[65vh] table-scrollbar rounded-xl border border-slate-200 shadow-sm relative">
                                         <table class="w-full text-left border-collapse whitespace-nowrap min-w-[700px]">
@@ -473,7 +468,7 @@
                                                     <th class="p-3 text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]"><input type="checkbox" @change="toggleAllRecaps" :checked="selectedRecapItems.length === paginatedRecapSummary.length && paginatedRecapSummary.length > 0" class="rounded text-purple-600 w-4 h-4 cursor-pointer"></th>
                                                     <th @click="toggleSort('recap', 'name')" class="p-3 font-black cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Nama Barang & Barcode <i class="ph-bold ml-1" :class="recapSortKey === 'name' ? 'text-purple-600' : 'opacity-0'"></i></th>
                                                     <th class="p-3 font-black text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">PIC Terakhir</th>
-                                                    <th @click="toggleSort('recap', 'firstOldQty')" class="p-3 font-black text-center cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Stok Awal <i class="ph-bold ml-1" :class="recapSortKey === 'firstOldQty' ? 'text-purple-600' : 'opacity-0'"></i></th>
+                                                    <th @click="toggleSort('recap', 'firstOldQty')" class="p-3 font-black text-center cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Stok Sebelumnya <i class="ph-bold ml-1" :class="recapSortKey === 'firstOldQty' ? 'text-purple-600' : 'opacity-0'"></i></th>
                                                     <th @click="toggleSort('recap', 'lastNewQty')" class="p-3 font-bold text-center bg-purple-50/90 text-purple-700 cursor-pointer sticky top-0 z-20 shadow-[0_1px_0_0_#e2e8f0] backdrop-blur">Stok Final <i class="ph-bold ml-1" :class="recapSortKey === 'lastNewQty' ? 'text-purple-600' : 'opacity-0'"></i></th>
                                                     <th @click="toggleSort('recap', 'totalVariance')" class="p-3 font-black text-right cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Total Selisih <i class="ph-bold ml-1" :class="recapSortKey === 'totalVariance' ? 'text-purple-600' : 'opacity-0'"></i></th>
                                                 </tr>
@@ -504,25 +499,36 @@
                     <!-- TAB: MASTER INVENTORY -->
                     <div v-else-if="activeTab === 'inventory'" key="inventory" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-slate-50">
-                                <h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800"><div class="bg-brand-100 text-brand-600 p-1.5 rounded-lg mr-3"><i class="ph-duotone ph-database text-xl"></i></div>Master Data Barang</h2>
-                                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                            <!-- 🔴 QC FIX: HEADER MENGIKUTI CHECKSHEET PERUSAHAAN DENGAN LOGO 🔴 -->
+                            <div class="p-4 sm:p-6 border-b border-slate-100 bg-white flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
+                                <div class="flex items-center gap-4 z-10 w-full md:w-auto">
+                                    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center shadow-inner overflow-hidden shrink-0">
+                                        <img v-if="companyLogo" :src="companyLogo" alt="Logo" class="w-full h-full object-contain p-1">
+                                        <i v-else class="ph-duotone ph-image text-3xl text-slate-300"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-lg sm:text-xl font-black text-slate-800 uppercase tracking-wide">Master Data Barang</h2>
+                                        <p class="text-xs sm:text-sm font-bold text-slate-500 font-mono mt-1">FORM No Dok: FR/BDA-INV/PSC/006</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap items-center justify-start sm:justify-end gap-2 w-full md:w-auto z-10">
                                     <input type="file" ref="excelFileInput" @change="handleImportExcel" accept=".xlsx, .xls, .csv" class="hidden">
-                                    <button @click="triggerImportExcel" class="px-3 py-2 bg-white border rounded-xl text-xs font-bold shadow-sm flex items-center"><i class="ph-bold ph-upload-simple mr-1.5"></i> Import</button>
-                                    <button @click="showCheckSheetModal = true" class="px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center"><i class="ph-bold ph-table mr-1.5"></i> Buka Check Sheet Resmi</button>
-                                    <button @click="openAddModal" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-black shadow-md flex items-center"><i class="ph-bold ph-plus mr-1.5"></i> Tambah Item</button>
+                                    <button @click="triggerImportExcel" class="px-3 py-2 bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold shadow-sm flex items-center hover:bg-slate-200 transition-colors"><i class="ph-bold ph-upload-simple mr-1.5"></i> Import</button>
+                                    <button @click="showCheckSheetModal = true" class="px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center hover:bg-indigo-700 transition-colors"><i class="ph-bold ph-table mr-1.5"></i> Check Sheet Resmi</button>
+                                    <button @click="openAddModal" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-black shadow-md flex items-center hover:bg-brand-700 transition-colors"><i class="ph-bold ph-plus mr-1.5"></i> Tambah Item</button>
                                 </div>
                             </div>
-                            <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
+                            
+                            <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div class="relative w-full sm:max-w-md">
-                                    <!-- 🔴 FIX QC: Pembungkus String agar menolak Input Error dari Tipe Data Number 🔴 -->
-                                    <input v-model="searchQuery" @input="searchQuery = String(searchQuery).toUpperCase()" type="text" placeholder="Omni Search..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none uppercase">
+                                    <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
+                                    <input v-model="searchQuery" @input="searchQuery = String(searchQuery).toUpperCase()" type="text" placeholder="Omni Search..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white">
                                     <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-lg"></i>
                                 </div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
                                     <button v-if="selectedInventoryItems.length > 0" @click="deleteSelectedInventory" class="px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-bold flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedInventoryItems.length }})</button>
                                     <select v-if="currentUser.role === 'Super Admin'" v-model="dashboardFilter" class="py-2 px-3 border rounded-xl text-brand-700 bg-brand-50 text-xs font-bold outline-none uppercase"><option value="ALL">📍 Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option></select>
-                                    <select v-model.number="invItemsPerPage" class="py-2 px-3 border rounded-xl text-xs font-bold outline-none"><option value="10">10 Baris</option><option value="25">25 Baris</option><option value="50">50 Baris</option></select>
+                                    <select v-model.number="invItemsPerPage" class="py-2 px-3 border rounded-xl text-xs font-bold outline-none bg-white"><option value="10">10 Baris</option><option value="25">25 Baris</option><option value="50">50 Baris</option></select>
                                 </div>
                             </div>
                             <div class="overflow-auto max-h-[65vh] table-scrollbar relative">
@@ -533,7 +539,7 @@
                                             <th @click="toggleSort('inv', 'name')" class="p-3 font-black cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Barcode / Nama</th>
                                             <th @click="toggleSort('inv', 'location')" class="p-3 font-black cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Lokasi</th>
                                             <th @click="toggleSort('inv', 'category')" class="p-3 font-black cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Kategori</th>
-                                            <th @click="toggleSort('inv', 'qty')" class="p-3 font-black text-right cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Stok Sistem</th>
+                                            <th @click="toggleSort('inv', 'qty')" class="p-3 font-black text-right cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Stok Sebelumnya</th>
                                             <th class="p-3 font-black text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Status Min</th>
                                             <th class="p-3 font-black text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Aksi</th>
                                         </tr>
@@ -542,13 +548,13 @@
                                         <tr v-if="paginatedInventory.length === 0"><td colspan="7" class="p-10 text-center text-slate-500">Tidak ada data.</td></tr>
                                         <tr v-for="item in paginatedInventory" :key="item.barcode" class="hover:bg-slate-50" :class="{'bg-brand-50/50': selectedInventoryItems.includes(item.barcode)}">
                                             <td class="p-3 text-center"><input type="checkbox" :value="item.barcode" v-model="selectedInventoryItems" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></td>
-                                            <td class="p-3 cursor-pointer" @click="toggleInventorySelection(item.barcode)"><div class="font-bold text-slate-800 uppercase">{{ item.name }}</div><div class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-mono inline-block">{{ item.barcode }}</div></td>
+                                            <td class="p-3 cursor-pointer" @click="toggleInventorySelection(item.barcode)"><div class="font-bold text-slate-800 uppercase">{{ item.name }}</div><div class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-mono inline-block border border-slate-200 mt-0.5">{{ item.barcode }}</div></td>
                                             <td class="p-3 font-bold text-brand-700 text-[10px] uppercase">{{ item.location }}</td>
-                                            <td class="p-3"><span class="inline-flex px-2 py-1 rounded-md text-[10px] font-bold border bg-white uppercase">{{ item.category }}</span></td>
+                                            <td class="p-3"><span class="inline-flex px-2 py-1 rounded-md text-[10px] font-bold border bg-white uppercase shadow-sm">{{ item.category }}</span></td>
                                             <td class="p-3 text-right"><span class="font-black text-lg" :class="item.qty <= item.minQty ? 'text-red-600' : 'text-slate-800'">{{ item.qty }}</span> <span class="text-slate-500 text-[10px] font-bold uppercase">{{ item.unit }}</span></td>
                                             <td class="p-3 text-center">
-                                                <div v-if="item.qty <= item.minQty" class="px-2 py-1 bg-red-50 text-red-700 text-[10px] rounded-lg font-bold">Low (Min: {{item.minQty}})</div>
-                                                <div v-else class="px-2 py-1 bg-slate-50 text-slate-500 text-[10px] rounded-lg font-bold">Aman</div>
+                                                <div v-if="item.qty <= item.minQty" class="px-2 py-1 bg-red-50 text-red-700 text-[10px] rounded-lg font-bold border border-red-200">Low (Min: {{item.minQty}})</div>
+                                                <div v-else class="px-2 py-1 bg-slate-50 text-slate-500 text-[10px] rounded-lg font-bold border border-slate-200">Aman</div>
                                             </td>
                                             <td class="p-3 text-center">
                                                 <div class="flex items-center justify-center space-x-2">
@@ -576,12 +582,12 @@
                             <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 relative overflow-hidden">
                                 <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none"><i class="ph-fill ph-clock-counter-clockwise text-[10rem] text-orange-500"></i></div>
                                 <div class="relative z-10">
-                                    <h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800"><div class="bg-gradient-to-br from-orange-400 to-orange-600 text-white p-2 rounded-xl mr-3 shadow-md"><i class="ph-bold ph-clock-counter-clockwise text-xl"></i></div>Log History Transaksi</h2>
+                                    <h2 class="text-lg sm:text-xl font-black flex items-center text-slate-800"><div class="bg-gradient-to-br from-orange-400 to-orange-600 text-white p-2 rounded-xl mr-3 shadow-md"><i class="ph-bold ph-clock-counter-clockwise text-xl"></i></div>Log History Transaksi Roving</h2>
                                 </div>
                                 <div class="flex flex-wrap gap-2 relative z-10">
                                     <input type="file" ref="historyFileInput" @change="handleImportHistoryExcel" accept=".xlsx, .xls, .csv" class="hidden">
-                                    <button @click="triggerImportHistoryExcel" class="px-3 py-2 bg-white border rounded-xl text-xs font-bold flex items-center"><i class="ph-bold ph-upload-simple mr-1.5"></i> Import Log</button>
-                                    <button @click="exportHistoryExcel" class="px-3 py-2 bg-white border rounded-xl text-xs font-bold flex items-center"><i class="ph-bold ph-download-simple mr-1.5"></i> Export Log</button>
+                                    <button @click="triggerImportHistoryExcel" class="px-3 py-2 bg-white border rounded-xl text-xs font-bold flex items-center shadow-sm"><i class="ph-bold ph-upload-simple mr-1.5"></i> Import Log</button>
+                                    <button @click="exportHistoryExcel" class="px-3 py-2 bg-white border rounded-xl text-xs font-bold flex items-center shadow-sm"><i class="ph-bold ph-download-simple mr-1.5"></i> Export Log</button>
                                 </div>
                             </div>
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row gap-4 items-end">
@@ -600,8 +606,8 @@
                                 <button @click="resetFilters" class="w-full sm:w-auto px-4 py-2 bg-slate-100 rounded-xl font-bold text-sm border"><i class="ph-bold ph-x mr-1.5"></i> Clear</button>
                             </div>
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                                <input v-model="logSearchQuery" type="text" placeholder="Omni Search..." class="w-full max-w-md px-4 py-2 border rounded-xl text-sm outline-none uppercase">
-                                <select v-model.number="logItemsPerPage" class="py-2 px-3 border rounded-xl text-xs font-bold outline-none ml-4"><option value="10">10 Baris</option><option value="25">25 Baris</option><option value="50">50 Baris</option></select>
+                                <input v-model="logSearchQuery" type="text" placeholder="Omni Search..." class="w-full max-w-md px-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white shadow-sm">
+                                <select v-model.number="logItemsPerPage" class="py-2 px-3 border rounded-xl text-xs font-bold outline-none ml-4 bg-white"><option value="10">10 Baris</option><option value="25">25 Baris</option><option value="50">50 Baris</option></select>
                             </div>
                             <div class="overflow-auto max-h-[65vh] table-scrollbar border-t border-slate-100 relative">
                                 <table class="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
@@ -611,8 +617,8 @@
                                             <th @click="toggleSort('log', 'date')" class="p-3 font-black cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Waktu Scan</th>
                                             <th class="p-3 font-black sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Gudang & PIC</th>
                                             <th @click="toggleSort('log', 'name')" class="p-3 font-black cursor-pointer sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Item & Barcode</th>
-                                            <th @click="toggleSort('log', 'oldQty')" class="p-3 font-black cursor-pointer text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Awal</th>
-                                            <th @click="toggleSort('log', 'newQty')" class="p-3 font-black cursor-pointer text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Baru</th>
+                                            <th @click="toggleSort('log', 'oldQty')" class="p-3 font-black cursor-pointer text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Stok Sebelumnya</th>
+                                            <th @click="toggleSort('log', 'newQty')" class="p-3 font-black cursor-pointer text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Actual</th>
                                             <th @click="toggleSort('log', 'variance')" class="p-3 font-black cursor-pointer text-right sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Selisih</th>
                                         </tr>
                                     </thead>
@@ -622,10 +628,10 @@
                                             <td class="p-3 text-center"><input type="checkbox" :value="log.id" v-model="selectedLogItems" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></td>
                                             <td class="p-3 cursor-pointer" @click="toggleLogSelection(log.id)"><div class="font-bold text-slate-700">{{ formatDate(log.date).split(' ')[0] }}</div><div class="text-[10px] font-mono mt-0.5">{{ formatDate(log.date).split(' ')[1] }}</div></td>
                                             <td class="p-3"><div class="font-bold text-brand-700 text-[10px] uppercase">{{ log.location }}</div><div class="text-[10px] text-blue-600 mt-0.5 font-bold uppercase">PIC: {{ log.pic || log.user }}</div></td>
-                                            <td class="p-3"><div class="font-bold text-slate-800 uppercase">{{ log.name }}</div><div class="text-[10px] text-slate-500 font-mono mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded">{{ log.barcode }}</div></td>
+                                            <td class="p-3"><div class="font-bold text-slate-800 uppercase">{{ log.name }}</div><div class="text-[10px] text-slate-500 font-mono mt-0.5 bg-slate-100 inline-block px-1.5 py-0.5 rounded border">{{ log.barcode }}</div></td>
                                             <td class="p-3 text-center text-slate-400 font-bold line-through">{{ log.oldQty }}</td>
                                             <td class="p-3 text-center font-black text-brand-700">{{ log.newQty }}</td>
-                                            <td class="p-3 text-right font-black"><span v-if="log.variance === 0" class="text-slate-400">0</span><span v-else :class="log.variance > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="px-2 py-1 rounded-lg">{{ log.variance > 0 ? '+' : '' }}{{ log.variance }}</span></td>
+                                            <td class="p-3 text-right font-black"><span v-if="log.variance === 0" class="text-slate-400">0</span><span v-else :class="log.variance > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="px-2 py-1 rounded-lg border">{{ log.variance > 0 ? '+' : '' }}{{ log.variance }}</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -666,9 +672,9 @@
                                 </div>
                                 <div class="p-5">
                                     <form @submit.prevent="submitChangePassword" class="space-y-4 max-w-md">
-                                        <div><label class="block text-xs font-black mb-1">Password Lama</label><input v-model="passwordForm.old" type="password" required class="w-full px-4 py-2 border rounded-xl"></div>
-                                        <div><label class="block text-xs font-black mb-1">Password Baru</label><input v-model="passwordForm.new" type="password" required class="w-full px-4 py-2 border rounded-xl"></div>
-                                        <div><label class="block text-xs font-black mb-1">Konfirmasi Password</label><input v-model="passwordForm.confirm" type="password" required class="w-full px-4 py-2 border rounded-xl"></div>
+                                        <div><label class="block text-xs font-black mb-1">Password Lama</label><input v-model="passwordForm.old" type="password" required class="w-full px-4 py-2 border rounded-xl outline-none"></div>
+                                        <div><label class="block text-xs font-black mb-1">Password Baru</label><input v-model="passwordForm.new" type="password" required class="w-full px-4 py-2 border rounded-xl outline-none"></div>
+                                        <div><label class="block text-xs font-black mb-1">Konfirmasi Password</label><input v-model="passwordForm.confirm" type="password" required class="w-full px-4 py-2 border rounded-xl outline-none"></div>
                                         <button type="submit" class="px-6 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-md">Update Password</button>
                                     </form>
                                 </div>
@@ -687,7 +693,7 @@
                                         <div class="flex-1">
                                             <label class="block text-xs font-black uppercase mb-2">Upload Logo (PNG/SVG)</label>
                                             <input type="file" ref="logoInput" @change="handleLogoUpload" accept="image/png, image/jpeg, image/svg+xml" class="block w-full text-sm">
-                                            <button v-if="companyLogo" @click="removeLogo" type="button" class="mt-2 px-3 py-1 bg-red-50 text-red-600 rounded text-xs font-bold">Hapus</button>
+                                            <button v-if="companyLogo" @click="removeLogo" type="button" class="mt-2 px-3 py-1 bg-red-50 text-red-600 rounded text-xs font-bold border border-red-200">Hapus</button>
                                         </div>
                                     </div>
                                 </div>
@@ -715,12 +721,12 @@
                                 </div>
                                 <div class="p-5 space-y-4">
                                     <div v-for="(set, index) in settingsData" :key="index" class="flex gap-3 items-end">
-                                        <div class="flex-1"><label class="block text-xs font-black mb-1">Nama Gudang</label><input v-model="set.Location" type="text" class="w-full px-3 py-2 border rounded-lg uppercase"></div>
-                                        <div class="flex-[2]"><label class="block text-xs font-black mb-1">Email (Pisahkan koma)</label><input v-model="set.EmailPIC" type="text" class="w-full px-3 py-2 border rounded-lg lowercase"></div>
-                                        <button @click="settingsData.splice(index, 1)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg"><i class="ph-bold ph-trash"></i></button>
+                                        <div class="flex-1"><label class="block text-xs font-black mb-1">Nama Gudang</label><input v-model="set.Location" type="text" class="w-full px-3 py-2 border rounded-lg uppercase outline-none"></div>
+                                        <div class="flex-[2]"><label class="block text-xs font-black mb-1">Email (Pisahkan koma)</label><input v-model="set.EmailPIC" type="text" class="w-full px-3 py-2 border rounded-lg lowercase outline-none"></div>
+                                        <button @click="settingsData.splice(index, 1)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg border border-red-200"><i class="ph-bold ph-trash"></i></button>
                                     </div>
-                                    <button @click="settingsData.push({Location: '', EmailPIC: ''})" class="px-4 py-2 text-indigo-600 border border-indigo-300 border-dashed rounded-xl font-bold text-sm">+ Tambah</button>
-                                    <button @click="submitSaveSettings" class="px-6 py-2 bg-indigo-600 text-white rounded-xl font-black ml-2" :disabled="isProcessing">Simpan</button>
+                                    <button @click="settingsData.push({Location: '', EmailPIC: ''})" class="px-4 py-2 text-indigo-600 border border-indigo-300 border-dashed rounded-xl font-bold text-sm bg-indigo-50">+ Tambah</button>
+                                    <button @click="submitSaveSettings" class="px-6 py-2 bg-indigo-600 text-white rounded-xl font-black ml-2 shadow-md" :disabled="isProcessing">Simpan</button>
                                 </div>
                             </div>
 
@@ -731,15 +737,15 @@
                                 <div class="p-5 space-y-4">
                                     <div v-for="(u, index) in usersData" :key="index" class="p-4 bg-slate-50 border rounded-xl">
                                         <div class="grid grid-cols-4 gap-3">
-                                            <div><label class="block text-xs font-black mb-1">Username</label><input v-model="u.username" type="text" class="w-full px-3 py-2 border rounded-lg"></div>
-                                            <div><label class="block text-xs font-black mb-1">Password</label><input v-model="u.password" type="text" class="w-full px-3 py-2 border rounded-lg"></div>
-                                            <div><label class="block text-xs font-black mb-1">Level Akses</label><select v-model="u.role" class="w-full px-3 py-2 border rounded-lg"><option>Staff Gudang</option><option>Super Admin</option></select></div>
-                                            <div><label class="block text-xs font-black mb-1">Gudang</label><select v-model="u.location" class="w-full px-3 py-2 border rounded-lg uppercase"><option value="ALL">ALL</option><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
+                                            <div><label class="block text-xs font-black mb-1">Username</label><input v-model="u.username" type="text" class="w-full px-3 py-2 border rounded-lg outline-none lowercase"></div>
+                                            <div><label class="block text-xs font-black mb-1">Password</label><input v-model="u.password" type="text" class="w-full px-3 py-2 border rounded-lg outline-none"></div>
+                                            <div><label class="block text-xs font-black mb-1">Level Akses</label><select v-model="u.role" class="w-full px-3 py-2 border rounded-lg outline-none"><option>Staff Gudang</option><option>Super Admin</option></select></div>
+                                            <div><label class="block text-xs font-black mb-1">Gudang</label><select v-model="u.location" class="w-full px-3 py-2 border rounded-lg uppercase outline-none"><option value="ALL">ALL</option><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
                                         </div>
-                                        <button @click="usersData.splice(index, 1)" class="mt-2 text-xs text-red-600 font-bold">Hapus Akun</button>
+                                        <button @click="usersData.splice(index, 1)" class="mt-2 text-xs text-red-600 font-bold border border-red-200 bg-red-50 px-2 py-1 rounded">Hapus Akun</button>
                                     </div>
-                                    <button @click="usersData.push({username: '', password: '', role: 'Staff Gudang', location: 'ALL'})" class="px-4 py-2 text-teal-600 border border-teal-300 border-dashed rounded-xl font-bold text-sm">+ Akun Baru</button>
-                                    <button @click="submitSaveUsers" class="px-6 py-2 bg-teal-600 text-white rounded-xl font-black ml-2" :disabled="isProcessing">Simpan</button>
+                                    <button @click="usersData.push({username: '', password: '', role: 'Staff Gudang', location: 'ALL'})" class="px-4 py-2 text-teal-600 border border-teal-300 border-dashed rounded-xl font-bold text-sm bg-teal-50">+ Akun Baru</button>
+                                    <button @click="submitSaveUsers" class="px-6 py-2 bg-teal-600 text-white rounded-xl font-black ml-2 shadow-md" :disabled="isProcessing">Simpan</button>
                                 </div>
                             </div>
                         </transition>
@@ -797,83 +803,6 @@
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </transition>
-
-        <!-- CRUD MODAL (TAMBAH MASSAL / EDIT) -->
-        <transition name="fade-slide">
-            <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm pb-20 sm:pb-0">
-                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in">
-                    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                        <h3 class="font-black text-lg text-slate-800 flex items-center"><div class="bg-brand-100 text-brand-600 p-1.5 rounded-lg mr-3"><i class="ph-bold text-xl" :class="isEditing ? 'ph-pencil-simple' : 'ph-plus-circle'"></i></div>{{ isEditing ? 'Edit Barang' : 'Tambah Barang Massal' }}</h3>
-                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 bg-white hover:bg-red-50 p-2 rounded-xl transition-all" :disabled="isProcessing"><i class="ph-bold ph-x text-lg"></i></button>
-                    </div>
-                    <div class="p-5 overflow-y-auto bg-white max-h-[75vh]">
-                        
-                        <!-- FORM EDIT (SINGLE) -->
-                        <form v-if="isEditing" @submit.prevent="saveItem" class="space-y-4">
-                            <div><label class="block text-xs font-black uppercase mb-1">Barcode ID *</label>
-                                <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
-                                <input v-model="formItem.barcode" @input="formItem.barcode = String(formItem.barcode).toUpperCase()" type="text" required :disabled="isEditing || isProcessing" class="w-full px-4 py-2 border rounded-xl font-mono uppercase bg-slate-100 disabled:bg-slate-100 outline-none">
-                            </div>
-                            <div><label class="block text-xs font-black uppercase mb-1">Nama Barang *</label>
-                                <input v-model="formItem.name" @input="formItem.name = String(formItem.name).toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl uppercase outline-none" placeholder="Ketik nama barang...">
-                                <datalist id="itemNameList"><option v-for="name in uniqueItemNames" :key="name" :value="name"></option></datalist>
-                            </div>
-                            <div><label class="block text-xs font-black uppercase mb-1">Lokasi Gudang *</label><select v-model="formItem.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-4 py-2 border rounded-xl uppercase outline-none font-bold"><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="block text-xs font-black uppercase mb-1">Kategori</label><select v-model="formItem.category" :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl uppercase outline-none"><option value="CHEMICAL">CHEMICAL</option><option value="CONSUMABLE">CONSUMABLE</option><option value="PACKAGING">PACKAGING</option><option value="SPAREPART">SPAREPART</option><option value="FUEL & GAS">FUEL & GAS</option></select></div>
-                                <div><label class="block text-xs font-black uppercase mb-1">Satuan</label><input v-model="formItem.unit" @input="formItem.unit = String(formItem.unit).toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl uppercase outline-none"></div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="block text-xs font-black uppercase mb-1">Stok Awal</label><input v-model.number="formItem.qty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl outline-none"></div>
-                                <div><label class="block text-xs font-black uppercase mb-1">Min. Stok</label><input v-model.number="formItem.minQty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl outline-none"></div>
-                            </div>
-                            <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
-                                <button type="button" @click="closeModal" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold" :disabled="isProcessing">Batal</button>
-                                <button type="submit" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-lg" :disabled="isProcessing">Simpan Edit</button>
-                            </div>
-                        </form>
-
-                        <!-- FORM TAMBAH MASSAL (BULK) -->
-                        <div v-else class="space-y-4">
-                            <div v-for="(item, index) in addFormItems" :key="index" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl relative mb-4">
-                                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
-                                    <span class="font-black text-brand-700 text-sm bg-brand-100 px-2 py-1 rounded-md">Barang #{{ index + 1 }}</span>
-                                    <button v-if="addFormItems.length > 1" @click="removeNewItemRow(index)" type="button" class="text-red-500 hover:text-red-700"><i class="ph-bold ph-trash text-lg"></i></button>
-                                </div>
-                                <div class="space-y-3">
-                                    <div><label class="block text-[10px] font-black uppercase mb-1">Barcode ID *</label>
-                                        <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
-                                        <input v-model="item.barcode" @input="item.barcode = String(item.barcode).toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg font-mono uppercase text-sm outline-none">
-                                    </div>
-                                    <div><label class="block text-[10px] font-black uppercase mb-1">Nama Barang *</label>
-                                        <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
-                                        <input v-model="item.name" @input="item.name = String(item.name).toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg uppercase text-sm outline-none" placeholder="Ketik nama...">
-                                    </div>
-                                    <div><label class="block text-[10px] font-black uppercase mb-1">Lokasi Gudang *</label><select v-model="item.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-3 py-2 border rounded-lg uppercase text-sm font-bold outline-none"><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div><label class="block text-[10px] font-black uppercase mb-1">Kategori</label><select v-model="item.category" :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg uppercase text-sm outline-none"><option value="CHEMICAL">CHEMICAL</option><option value="CONSUMABLE">CONSUMABLE</option><option value="PACKAGING">PACKAGING</option><option value="SPAREPART">SPAREPART</option><option value="FUEL & GAS">FUEL & GAS</option></select></div>
-                                        <div><label class="block text-[10px] font-black uppercase mb-1">Satuan</label>
-                                            <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
-                                            <input v-model="item.unit" @input="item.unit = String(item.unit).toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg uppercase text-sm outline-none">
-                                        </div>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div><label class="block text-[10px] font-black uppercase mb-1">Stok Awal</label><input v-model.number="item.qty" type="number" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg text-sm outline-none"></div>
-                                        <div><label class="block text-[10px] font-black uppercase mb-1">Min. Stok</label><input v-model.number="item.minQty" type="number" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg text-sm outline-none"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button @click="addNewItemRow" type="button" class="w-full py-3 border-2 border-dashed border-brand-300 text-brand-600 bg-brand-50 rounded-xl font-bold text-sm hover:bg-brand-100" :disabled="isProcessing">+ Tambah Baris Barang Lagi</button>
-                            <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
-                                <button type="button" @click="closeModal" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm" :disabled="isProcessing">Batal</button>
-                                <button @click="saveItem" type="button" class="px-5 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-lg text-sm" :disabled="isProcessing">Simpan Semua Data</button>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
             </div>
@@ -943,6 +872,7 @@
                 const settingsData = ref([]); 
                 const usersData = ref([]);
 
+                const dailyCheckFilter = ref('ALL');
                 const dashboardFilter = ref('ALL');
                 const dashboardDate = ref(new Date().toISOString().slice(0,10));
 
@@ -997,12 +927,9 @@
                 const excelFileInput = ref(null);
                 const historyFileInput = ref(null);
 
-                const selectedTrendItem = ref(''); 
+                const selectedTrendItemName = ref(''); 
                 const trendFilter = ref('week'); 
-                let trendChartObj = null, categoryChartObj = null, operatorChartObj = null;
-
-                const selectedOperator = ref('');
-                const operatorFilter = ref('month');
+                let trendChartObj = null;
 
                 let fpRecap = null, fpLog = null;
                 const recapDateInput = ref(null);
@@ -1040,7 +967,7 @@
 
                 const lowStockItems = computed(() => baseInventory.value.filter(item => item.qty <= item.minQty));
 
-                const dailyCheckStatus = computed(() => {
+                const dailyCheckStatusAll = computed(() => {
                     const targetDateStr = dashboardDate.value;
                     return baseInventory.value.map(item => {
                         const logsToday = baseTransactions.value.filter(t => {
@@ -1066,14 +993,22 @@
                             variance: latestLog ? latestLog.variance : null,
                             pressure: pressureVal
                         };
-                    }).sort((a, b) => {
+                    });
+                });
+
+                const checkedTodayCount = computed(() => dailyCheckStatusAll.value.filter(i => i.isChecked).length);
+                const uncheckedTodayCount = computed(() => dailyCheckStatusAll.value.filter(i => !i.isChecked).length);
+
+                const dailyCheckStatus = computed(() => {
+                    let result = dailyCheckStatusAll.value;
+                    if (dailyCheckFilter.value === 'CHECKED') result = result.filter(i => i.isChecked);
+                    if (dailyCheckFilter.value === 'UNCHECKED') result = result.filter(i => !i.isChecked);
+
+                    return result.sort((a, b) => {
                         if (a.isChecked === b.isChecked) return String(a.name).localeCompare(String(b.name));
                         return a.isChecked ? 1 : -1; 
                     });
                 });
-
-                const checkedTodayCount = computed(() => dailyCheckStatus.value.filter(i => i.isChecked).length);
-                const uncheckedTodayCount = computed(() => dailyCheckStatus.value.filter(i => !i.isChecked).length);
 
                 const isNitrogenItem = computed(() => {
                     if (!activeItem.value) return false;
@@ -1345,8 +1280,9 @@
                 const resetFilters = () => {
                     dashboardFilter.value = currentUser.value.location === 'ALL' ? 'ALL' : currentUser.value.location;
                     dashboardDate.value = new Date().toISOString().slice(0,10); 
-                    selectedTrendItem.value = baseInventory.value.length > 0 ? baseInventory.value[0].barcode : '';
-                    trendFilter.value = 'week'; selectedOperator.value = ''; operatorFilter.value = 'month';
+                    dailyCheckFilter.value = 'ALL';
+                    selectedTrendItemName.value = '';
+                    trendFilter.value = 'day';
                     searchQuery.value = ''; recapSearchQuery.value = ''; logSearchQuery.value = '';
                     logFilterDate.value = ''; if (fpLog) fpLog.clear();
                     logFilterLocation.value = 'ALL'; logFilterPic.value = 'ALL';
@@ -1361,8 +1297,7 @@
                 
                 watch(dashboardFilter, () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
                 watch(dashboardDate, () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); }); 
-                watch([selectedTrendItem, trendFilter], () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
-                watch([selectedOperator, operatorFilter], () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
+                watch([selectedTrendItemName, trendFilter], () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
 
                 const triggerLowStockAlert = () => {
                     let hasAlerted = false;
@@ -1370,8 +1305,8 @@
                     if (lowCount > 0 && !hasAlerted) {
                         setTimeout(() => {
                             Swal.fire({
-                                title: '⚠️ Alert Reorder!',
-                                html: `Terdapat <b style="color:#ef4444; font-size:1.2em;">${lowCount} barang</b> di gudang Anda yang sudah mencapai batas minimum stok.<br><br>Harap segera lakukan pengecekan dan pengajuan <b>REORDER</b>.`,
+                                title: '⚠️ Alert Request Kedatangan!',
+                                html: `Terdapat <b style="color:#ef4444; font-size:1.2em;">${lowCount} barang</b> di gudang Anda yang sudah mencapai batas minimum stok.<br><br>Harap segera lakukan pengecekan dan pengajuan <b>Request Kedatangan</b>.`,
                                 icon: 'warning', confirmButtonText: 'Lihat Daftar Barang', confirmButtonColor: '#ef4444',
                                 showCancelButton: true, cancelButtonText: 'Tutup', allowOutsideClick: false
                             }).then((result) => { if(result.isConfirmed) filterLowStockAndGo(); });
@@ -1444,7 +1379,6 @@
                                 }
 
                                 if (availableDates.value.length > 0 && !selectedRecapDate.value) setDateRange('recap', 'today');
-                                if (baseInventory.value.length > 0 && !selectedTrendItem.value) selectedTrendItem.value = baseInventory.value[0].barcode;
                                 triggerLowStockAlert();
                                 if (activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50);
                             } else if (res && res.error !== "SESSION_EXPIRED") {
@@ -1490,72 +1424,41 @@
                 };
 
                 const processTrendData = () => {
-                    if (!selectedTrendItem.value) return { labels: [], data: [], itemName: '' };
-                    const itemObj = inventory.value.find(i => i.barcode === selectedTrendItem.value);
-                    const itemName = itemObj ? itemObj.name : 'Barang';
-
-                    const now = new Date(); let cutoff = new Date();
-                    if (trendFilter.value === 'day') cutoff.setDate(now.getDate() - 7);
-                    else if (trendFilter.value === 'week') cutoff.setDate(now.getDate() - 28);
-                    else if (trendFilter.value === 'month') cutoff.setMonth(now.getMonth() - 12);
-
-                    const filteredLogs = transactions.value.filter(t => new Date(t.date) >= cutoff && t.barcode === selectedTrendItem.value);
-                    const grouped = {}; const dateMap = {}; 
-
-                    filteredLogs.forEach(log => {
-                        const d = new Date(log.date); let key = '';
-                        if (trendFilter.value === 'day') key = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-                        else if (trendFilter.value === 'week') key = `Minggu ${Math.ceil(d.getDate()/7)}, ${d.toLocaleDateString('id-ID', { month: 'short'})}`;
-                        else key = d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
-                        
-                        if (!grouped[key]) { grouped[key] = log.newQty; dateMap[key] = d.getTime(); }
-                    });
-
-                    const labels = Object.keys(grouped).sort((a, b) => dateMap[a] - dateMap[b]);
-                    const data = labels.map(l => grouped[l]);
-                    return { labels, data, itemName };
-                };
-
-                const processOperatorData = () => {
-                    const opName = selectedOperator.value || 'Pilih Petugas';
-                    const filter = operatorFilter.value;
-                    const now = new Date();
+                    if (!selectedTrendItemName.value) return { labels: [], data: [], itemName: '' };
                     
-                    const logs = selectedOperator.value ? baseTransactions.value.filter(t => String(t.pic).toUpperCase() === opName.toUpperCase()) : [];
-                    const grouped = {}; let cutoff = new Date(); let isDaily = true;
+                    const itemName = String(selectedTrendItemName.value).toUpperCase();
+                    const itemObj = inventory.value.find(i => String(i.name).toUpperCase() === itemName);
+                    if (!itemObj) return { labels: [], data: [], itemName: selectedTrendItemName.value };
 
-                    if (filter === 'week') cutoff.setDate(now.getDate() - 7);
-                    else if (filter === 'month') cutoff.setDate(now.getDate() - 30);
-                    else if (filter === 'year') { cutoff.setMonth(now.getMonth() - 12); isDaily = false; }
-                    else if (filter === 'all') { cutoff = new Date(2000, 0, 1); isDaily = false; }
+                    const barcode = itemObj.barcode;
+                    const now = new Date(); 
+                    
+                    let daysCount = 7;
+                    if (trendFilter.value === 'week') daysCount = 14;
+                    if (trendFilter.value === 'month') daysCount = 30;
 
-                    if (filter === 'week' || filter === 'month') {
-                        let daysCount = filter === 'week' ? 7 : 30;
-                        for(let i = daysCount - 1; i >= 0; i--) {
-                            let d = new Date(now); d.setDate(d.getDate() - i);
-                            grouped[d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })] = 0;
-                        }
-                    } else if (filter === 'year') {
-                        for(let i = 11; i >= 0; i--) {
-                            let d = new Date(now); d.setMonth(d.getMonth() - i);
-                            grouped[d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' })] = 0;
+                    const labels = []; 
+                    const data = []; 
+
+                    for (let i = daysCount - 1; i >= 0; i--) {
+                        const d = new Date(now); 
+                        d.setDate(d.getDate() - i);
+                        
+                        const dateStr = d.toISOString().slice(0,10);
+                        const label = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                        
+                        const dayLogs = transactions.value.filter(t => t.barcode === barcode && t.date.startsWith(dateStr));
+                        dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date));
+                        
+                        labels.push(label);
+                        if (dayLogs.length > 0) {
+                            data.push(dayLogs[0].newQty);
+                        } else {
+                            data.push(0); // Bernilai 0 jika terlewat (Sesuai SOP Perusahaan)
                         }
                     }
 
-                    logs.forEach(log => {
-                        const logDate = new Date(log.date);
-                        if (logDate >= cutoff) {
-                            let key = isDaily ? logDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : logDate.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
-                            if (filter === 'all') { if (grouped[key] === undefined) grouped[key] = 0; grouped[key]++; } 
-                            else if (grouped[key] !== undefined) { grouped[key]++; }
-                        }
-                    });
-
-                    let labels = []; let data = [];
-                    if (filter === 'all') { labels = Object.keys(grouped).reverse(); data = labels.map(l => grouped[l]); } 
-                    else { labels = Object.keys(grouped); data = labels.map(l => grouped[l]); }
-
-                    return { labels, data, opName };
+                    return { labels, data, itemName: itemObj.name };
                 };
 
                 const renderCharts = () => {
@@ -1572,33 +1475,6 @@
                             type: 'line',
                             data: { labels: tData.labels, datasets: [{ label: `Stok Aktual: ${tData.itemName}`, data: tData.data, borderColor: '#0ea5e9', backgroundColor: gradientFill, borderWidth: 3, pointBackgroundColor: '#0284c7', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, fill: true, tension: 0.4 }] },
                             options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30, right: 20 } }, plugins: { legend: { display: true, position: 'top', labels: { usePointStyle: true, font: {weight: 'bold'} } }, tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 12, titleFont: { size: 13 } }, datalabels: { align: 'end', anchor: 'end', backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: '#0ea5e9', borderWidth: 1, borderRadius: 4, color: '#0f172a', font: { weight: 'bold', size: 11 }, formatter: Math.round, padding: { top: 4, bottom: 4, left: 6, right: 6 }, offset: 4 } }, scales: { y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9' } }, x: { grid: { display: false } } } }
-                        });
-                    }
-
-                    if (document.getElementById('categoryChart')) {
-                        const cCtx = document.getElementById('categoryChart').getContext('2d');
-                        if (categoryChartObj) categoryChartObj.destroy();
-                        const categoryCounts = {};
-                        baseInventory.value.forEach(i => { const cat = i.category ? i.category.toUpperCase() : 'LAINNYA'; categoryCounts[cat] = (categoryCounts[cat] || 0) + 1; });
-                        
-                        categoryChartObj = new Chart(cCtx, {
-                            type: 'doughnut',
-                            data: { labels: Object.keys(categoryCounts), datasets: [{ data: Object.values(categoryCounts), backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b'], borderWidth: 0, hoverOffset: 4 }] },
-                            options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true, font:{weight:'bold', size:10} } }, datalabels: { display: true, color: '#ffffff', font: { weight: '900', size: 12 }, formatter: (value, ctx) => { let sum = 0; ctx.chart.data.datasets[0].data.map(data => { sum += data; }); return (value * 100 / sum).toFixed(0) + "%"; } } } }
-                        });
-                    }
-
-                    if (document.getElementById('operatorChart')) {
-                        const opCtx = document.getElementById('operatorChart').getContext('2d');
-                        if (operatorChartObj) operatorChartObj.destroy();
-                        const opData = processOperatorData();
-                        const gradientBar = opCtx.createLinearGradient(0, 0, 0, 300);
-                        gradientBar.addColorStop(0, 'rgba(13, 148, 136, 0.8)'); gradientBar.addColorStop(1, 'rgba(45, 212, 191, 0.2)');
-
-                        operatorChartObj = new Chart(opCtx, {
-                            type: 'bar',
-                            data: { labels: opData.labels, datasets: [{ label: `Total Scan Opname: ${opData.opName}`, data: opData.data, backgroundColor: gradientBar, borderColor: '#0d9488', borderWidth: 1, borderRadius: { topLeft: 4, topRight: 4 }, hoverBackgroundColor: '#0f766e' }] },
-                            options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30 } }, plugins: { legend: { display: true, position: 'top', labels: { usePointStyle: true, font: {weight: 'bold'} } }, tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 12, titleFont: { size: 13 } }, datalabels: { align: 'top', anchor: 'end', color: '#0d9488', font: { weight: 'bold', size: 11 }, formatter: (value) => value > 0 ? value : '', offset: 2 } }, scales: { y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9' }, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
                         });
                     }
                 };
@@ -1812,7 +1688,7 @@
                     } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
                 };
                 
-                // 🔴 QC FIX: Deep Cloning (Mencegah Vue Proxy Block) pada Semua Transmisi Data 🔴
+                // 🔴 QC FIX: Deep Cloning & Keamanan Type String pada Semua Payload API 🔴
                 const saveItem = async () => { 
                     isProcessing.value = true;
                     try {
@@ -2064,12 +1940,12 @@
                 return {
                     isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr, companyLogo, handleLogoUpload, removeLogo,
                     activeTab, activeSettingsTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
-                    manualRefresh, resetFilters, menuVisibility,
+                    manualRefresh, resetFilters, menuVisibility, dailyCheckFilter,
                     inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, dashboardDate, dailyCheckStatus, checkedTodayCount, uncheckedTodayCount,
-                    availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch,
-                    showModal, isEditing, formItem, addFormItems, addNewItemRow, removeNewItemRow, excelFileInput, historyFileInput, selectedTrendItem, trendFilter, renderCharts,
-                    selectedOperator, operatorFilter, searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
+                    availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch, selectedTrendItemName,
+                    showModal, isEditing, formItem, addFormItems, addNewItemRow, removeNewItemRow, excelFileInput, historyFileInput, trendFilter, renderCharts,
+                    searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
                     logSearchQuery, logSortKey, logSortAsc, logCurrentPage, logItemsPerPage, processedTransactions, paginatedTransactions, logTotalPages,
                     logFilterDate, logFilterLocation, logFilterPic, actualPressure, actualPressureInput, focusPressure, isNitrogenItem,
