@@ -97,8 +97,9 @@
                             </div>
                         </div>
                         
+                        <!-- 🔴 QC FIX: XSS Protection, hapus v-html dan ganti jadi text biasa -->
                         <div v-if="loginError" class="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium flex items-center border border-red-100 animate-scale-in">
-                            <i class="ph-fill ph-warning-circle mr-2 text-lg"></i> <span v-html="loginError" class="ml-2"></span>
+                            <i class="ph-fill ph-warning-circle mr-2 text-lg"></i> <span class="ml-2">{{ loginError }}</span>
                         </div>
 
                         <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 text-white rounded-xl font-bold shadow-lg" :disabled="isProcessing">
@@ -293,7 +294,7 @@
                                             <th class="p-3 sm:p-4 font-black">Waktu & PIC</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-slate-100 text-xs sm:text-sm">
+                                    <tbody class="divide-y divide-slate-100 text-xs sm:text-sm bg-white">
                                         <tr v-if="dailyCheckStatus.length === 0"><td colspan="7" class="p-10 text-center text-slate-500">Tidak ada barang sesuai filter.</td></tr>
                                         <tr v-for="item in dailyCheckStatus" :key="item.barcode" class="hover:bg-slate-50 transition-colors" :class="item.isChecked ? 'bg-white' : 'bg-orange-50/30'">
                                             <td class="p-3 sm:p-4">
@@ -1117,7 +1118,6 @@
                 });
                 const logTotalPages = computed(() => Math.ceil(processedTransactions.value.length / logItemsPerPage.value) || 1);
 
-                // 🔴 QC FIX: Algoritma Copy-Forward Hari Jumat untuk Weekend & Blank Check untuk Hari Kerja 🔴
                 const checkSheetData = computed(() => {
                     if (!checkSheetMonth.value) return null;
                     const [yearStr, monthStr] = checkSheetMonth.value.split('-');
@@ -1133,7 +1133,7 @@
                     });
 
                     const rows = [];
-                    let lastFridayData = null; // Menyimpan data Jumat di memori agar Sabtu/Minggu bisa langsung menduplikasinya
+                    let lastFridayData = null; // Memori untuk menyalin data Jumat ke Sabtu dan Minggu
 
                     for (let day = 1; day <= daysInMonth; day++) {
                         let rowData = [day, "08:00"]; 
@@ -1141,13 +1141,11 @@
                         let dayOfWeek = currentDate.getDay(); // 0 = Minggu, 5 = Jumat, 6 = Sabtu
 
                         if (dayOfWeek === 6 || dayOfWeek === 0) {
-                            // JIKA WEEKEND: Duplikasi persis nilai dari Hari Jumat (Menggunakan Clone Array)
                             if (lastFridayData) {
                                 rowData = [...lastFridayData]; 
-                                rowData[0] = day; // Set TGL ke hari Sabtu/Minggu
+                                rowData[0] = day; // Update TGL
                                 rows.push(rowData);
                             } else {
-                                // Fallback jika belum ada data Jumat di memory (misal tgl 1 adalah Sabtu)
                                 let diff = dayOfWeek === 0 ? 2 : 1;
                                 let prevFriday = new Date(year, month, day - diff);
                                 let dayLogs = baseTransactions.value.filter(t => {
@@ -1175,7 +1173,6 @@
                                 rows.push(rowData);
                             }
                         } else {
-                            // SENIN - JUMAT (Hari Kerja Normal)
                             let dayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === day);
                             let picForDay = "";
 
@@ -1195,7 +1192,6 @@
                                     }
                                     if(log.pic && !picForDay) picForDay = log.pic;
                                 } else {
-                                    // 🔴 FIX: Membiarkan cell benar-benar KOSONG ("") jika tidak di roving
                                     itemDef.cols.forEach(() => rowData.push(""));
                                 }
                             });
@@ -1203,7 +1199,7 @@
                             rows.push(rowData);
 
                             if (dayOfWeek === 5) {
-                                lastFridayData = [...rowData]; // 🔴 Simpan copy dari hari Jumat ke dalam Cache Memory
+                                lastFridayData = [...rowData]; // 🛡️ Simpan ke memori untuk hari Sabtu & Minggu
                             }
                         }
                     }
@@ -1238,7 +1234,7 @@
                 const handleLogoUpload = (event) => {
                     const file = event.target.files[0];
                     if (!file) return;
-                    if (file.size > 1024 * 1024) { Swal.fire('File Terlalu Besar', 'Maksimal ukuran logo adalah 1 MB.', 'warning'); return; }
+                    if (file.size > 1024 * 1024) { Swal.fire({ title: 'Gagal', text: 'Maksimal ukuran logo adalah 1 MB.', icon: 'warning' }); return; }
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         companyLogo.value = e.target.result;
@@ -1372,7 +1368,7 @@
                     clearTimeout(idleTimeout);
                     if (isLoggedIn.value) {
                         idleTimeout = setTimeout(() => {
-                            Swal.fire('Sesi Berakhir', 'Anda telah diam terlalu lama. Sistem Logout otomatis untuk keamanan.', 'info');
+                            Swal.fire({ title: 'Sesi Berakhir', text: 'Anda telah diam terlalu lama. Sistem Logout otomatis untuk keamanan.', icon: 'info' });
                             logout(true);
                         }, 30 * 60 * 1000);
                     }
@@ -1382,9 +1378,10 @@
                 window.addEventListener('keypress', resetIdleTimer);
                 window.addEventListener('touchstart', resetIdleTimer);
 
+                // 🔴 QC FIX: Interceptor Error API & Mencegah UI Crash 🔴
                 const apiCall = async (action, payload = {}) => {
                     if (isPreview) {
-                        Swal.fire("URL API Belum Diatur", "Silakan masukkan URL API ke variabel GAS_API_URL di dalam file HTML.", "error");
+                        Swal.fire({ title: 'URL API Belum Diatur', text: 'Silakan masukkan URL API ke variabel GAS_API_URL di dalam file HTML.', icon: 'error' });
                         return { success: false, error: "URL API Belum Diatur" }; 
                     }
                     try {
@@ -1398,12 +1395,12 @@
                         
                         if (text.trim().startsWith("<")) {
                             console.error("HTML Error dari Google:", text);
-                            throw new Error("Koneksi ditolak oleh Server Google. <br><br><b>SOLUSI:</b> Pastikan Anda telah melakukan proses 'New Deployment' pada Code.gs di Google Apps Script.");
+                            throw new Error("Koneksi ditolak oleh Server Google. Pastikan Anda telah melakukan proses 'New Deployment' pada Code.gs di Google Apps Script.");
                         }
                         
                         const resData = JSON.parse(text);
                         if (resData.error === "SESSION_EXPIRED") {
-                            logout(true); Swal.fire("Sesi Berakhir", resData.message, "warning"); throw new Error(resData.message);
+                            logout(true); Swal.fire({ title: 'Sesi Berakhir', text: resData.message, icon: 'warning' }); throw new Error(resData.message);
                         }
                         return resData;
                     } catch (err) { 
@@ -1434,7 +1431,7 @@
                                 triggerLowStockAlert();
                                 if (activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50);
                             } else if (res && res.error !== "SESSION_EXPIRED") {
-                                Swal.fire({title: 'Koneksi Gagal', html: res?.error || 'Periksa koneksi database Anda', icon: 'error'});
+                                Swal.fire({title: 'Koneksi Gagal', text: res?.error || 'Periksa koneksi database Anda', icon: 'error'});
                             }
                         }
                     } catch(e) {} finally { loading.value = false; }
@@ -1474,7 +1471,6 @@
                     } catch (e) {} finally { isSyncing.value = false; }
                 };
 
-                // 🔴 QC FIX: Grafik Trend juga Menggunakan Logika Blank/0 Jika Tidak Di Roving 🔴
                 const processTrendData = () => {
                     if (!selectedTrendItemName.value) return { labels: [], data: [], itemName: '' };
                     
@@ -1491,7 +1487,7 @@
 
                     const labels = []; 
                     const data = []; 
-                    let lastFridayVal = 0; // Cache untuk Copy-Forward Grafik
+                    let lastFridayVal = 0;
 
                     for (let i = daysCount - 1; i >= 0; i--) {
                         const d = new Date(now); 
@@ -1513,14 +1509,13 @@
                         labels.push(label);
                         
                         if (dayOfWeek === 6 || dayOfWeek === 0) {
-                             // Sabtu / Minggu -> copy nilai grafik jumat
                              data.push(lastFridayVal);
                         } else {
                              if (dayLogs.length > 0) {
                                  data.push(dayLogs[0].newQty);
-                                 if (dayOfWeek === 5) lastFridayVal = dayLogs[0].newQty; // Simpan Jumat
+                                 if (dayOfWeek === 5) lastFridayVal = dayLogs[0].newQty; 
                              } else {
-                                 data.push(0); // Nilai 0 jika terlewat roving di hari kerja
+                                 data.push(0); 
                                  if (dayOfWeek === 5) lastFridayVal = 0;
                              }
                         }
@@ -1571,7 +1566,7 @@
                 const logout = (isForce = false) => {
                     const doLogout = () => {
                         isLoggedIn.value = false; inventory.value = []; transactions.value = []; settingsData.value = []; usersData.value = [];
-                        loginForm.value.password = ''; hasNotifiedLowStock = false; authToken.value = null;
+                        loginForm.value.password = ''; authToken.value = null;
                         localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); clearTimeout(idleTimeout);
                     };
                     if (isForce) { doLogout(); return; }
@@ -1579,43 +1574,44 @@
                 };
 
                 const submitChangePassword = async () => {
-                    if (passwordForm.value.new !== passwordForm.value.confirm) { Swal.fire('Validasi Gagal', 'Konfirmasi password baru tidak cocok!', 'warning'); return; }
-                    if (passwordForm.value.new.length < 3) { Swal.fire('Validasi Gagal', 'Password baru terlalu pendek.', 'warning'); return; }
+                    if (passwordForm.value.new !== passwordForm.value.confirm) { Swal.fire({ title: 'Validasi Gagal', text: 'Konfirmasi password baru tidak cocok!', icon: 'warning' }); return; }
+                    if (passwordForm.value.new.length < 3) { Swal.fire({ title: 'Validasi Gagal', text: 'Password baru terlalu pendek.', icon: 'warning' }); return; }
                     isProcessing.value = true;
                     try {
                         if (isPreview) {
                             await new Promise(r => setTimeout(r, 500)); Swal.fire('Berhasil', 'Password diubah (Mock).', 'success'); passwordForm.value = { old: '', new: '', confirm: '' };
                         } else {
-                            const res = await apiCall('changePassword', { username: currentUser.value.username, oldPassword: passwordForm.value.old, newPassword: passwordForm.value.new });
+                            const payload = JSON.parse(JSON.stringify({ username: currentUser.value.username, oldPassword: passwordForm.value.old, newPassword: passwordForm.value.new }));
+                            const res = await apiCall('changePassword', payload);
                             if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); passwordForm.value = { old: '', new: '', confirm: '' }; } 
-                            else { Swal.fire('Gagal Mengubah Password', res?.error || 'Password lama salah atau error server.', 'error'); }
+                            else { Swal.fire({ title: 'Gagal Mengubah Password', text: res?.error || 'Password lama salah atau error server.', icon: 'error' }); }
                         }
                     } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
                 };
 
                 const submitSaveSettings = async () => {
                     const hasEmptyLoc = settingsData.value.some(s => !s.Location || String(s.Location).trim() === '');
-                    if (hasEmptyLoc) { Swal.fire('Validasi Gagal', 'Ada baris yang kolom Gudang/Lokasinya masih kosong.', 'warning'); return; }
+                    if (hasEmptyLoc) { Swal.fire({ title: 'Validasi Gagal', text: 'Ada baris yang kolom Gudang/Lokasinya masih kosong.', icon: 'warning' }); return; }
                     isProcessing.value = true;
                     try {
                         if (isPreview) { await new Promise(r => setTimeout(r, 500)); Swal.fire('Berhasil', 'Konfigurasi Gudang disimpan (Mock).', 'success'); } 
                         else {
-                            const res = await apiCall('saveSettings', { settingsData: settingsData.value });
-                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire('Gagal Menyimpan', res?.error, 'error');
+                            const res = await apiCall('saveSettings', { settingsData: JSON.parse(JSON.stringify(settingsData.value)) });
+                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
                         }
                     } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
                 };
 
                 const submitSaveUsers = async () => {
-                    if (usersData.value.some(u => !u.username || !u.password || !u.role || !u.location)) { Swal.fire('Validasi Gagal', 'Harap isi seluruh kolom Username, Password, Role, dan Lokasi.', 'warning'); return; }
+                    if (usersData.value.some(u => !u.username || !u.password || !u.role || !u.location)) { Swal.fire({ title: 'Validasi Gagal', text: 'Harap isi seluruh kolom Username, Password, Role, dan Lokasi.', icon: 'warning' }); return; }
                     const usernames = usersData.value.map(u => String(u.username).trim().toLowerCase());
-                    if (new Set(usernames).size !== usernames.length) { Swal.fire('Validasi Gagal', 'Ditemukan Username yang sama/ganda. Username harus unik.', 'warning'); return; }
+                    if (new Set(usernames).size !== usernames.length) { Swal.fire({ title: 'Validasi Gagal', text: 'Ditemukan Username yang sama/ganda. Username harus unik.', icon: 'warning' }); return; }
                     isProcessing.value = true;
                     try {
                         if (isPreview) { await new Promise(r => setTimeout(r, 500)); Swal.fire('Berhasil', 'Data Pengguna disimpan (Mock).', 'success'); } 
                         else {
-                            const res = await apiCall('saveUsers', { usersData: usersData.value });
-                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire('Gagal Menyimpan', res?.error, 'error');
+                            const res = await apiCall('saveUsers', { usersData: JSON.parse(JSON.stringify(usersData.value)) });
+                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
                         }
                     } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
                 };
@@ -1627,8 +1623,8 @@
                         if (isPreview) {
                             await new Promise(r => setTimeout(r, 500)); Swal.fire('Berhasil', 'Pengaturan Menu disimpan (Mock).', 'success');
                         } else {
-                            const res = await apiCall('saveAppSettings', { appSettings: payloadArray });
-                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire('Gagal Menyimpan', res?.error, 'error');
+                            const res = await apiCall('saveAppSettings', { appSettings: JSON.parse(JSON.stringify(payloadArray)) });
+                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
                         }
                     } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
                 };
@@ -1680,7 +1676,7 @@
                                 else Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data tersimpan di Server.', showConfirmButton: false, timer: 2000, timerProgressBar: true });
                                 resetScanner(); 
                                 await silentFetchData(true); 
-                            } else { Swal.fire({title: 'Gagal Menyimpan', html: res?.error || 'Sistem sibuk / bentrok', icon: 'error'}); }
+                            } else { Swal.fire({title: 'Gagal Menyimpan', text: res?.error || 'Sistem sibuk / bentrok', icon: 'error'}); }
                         }
                     } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
                 };
@@ -1690,7 +1686,7 @@
                     if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
                     const onScanSuccess = (decodedText) => { scannedCode.value = decodedText; closeCamera(); handleScan(); };
                     try { await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, undefined); } 
-                    catch (err1) { try { await html5QrCode.start({ facingMode: "user" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, undefined); } catch (err2) { Swal.fire('Akses Ditolak', 'Harap izinkan akses kamera.', 'error'); closeCamera(); } }
+                    catch (err1) { try { await html5QrCode.start({ facingMode: "user" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, undefined); } catch (err2) { Swal.fire({ title: 'Akses Ditolak', text: 'Harap izinkan akses kamera.', icon: 'error' }); closeCamera(); } }
                 };
 
                 const closeCamera = () => { if (html5QrCode) { try { html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; }).catch(() => { html5QrCode.clear(); html5QrCode = null; }); } catch(e) { html5QrCode.clear(); html5QrCode = null; } } isCameraOpen.value = false; };
@@ -1753,7 +1749,7 @@
                         const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "CheckSheet");
                         XLSX.writeFile(wb, `Check_Sheet_Chemical_${checkSheetData.value.monthName.replace(/\s/g, '_')}.xlsx`);
                         showToast("Laporan Check Sheet Resmi Excel Berhasil Diunduh."); showCheckSheetModal.value = false;
-                    } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
+                    } catch (error) { Swal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
                 
                 const saveItem = async () => { 
@@ -1774,24 +1770,24 @@
                                     closeModal(); 
                                     await silentFetchData(true); 
                                 } 
-                                else { Swal.fire({title: 'Error', html: res?.error || 'Kesalahan sistem', icon: 'error'}); }
+                                else { Swal.fire({title: 'Error', text: res?.error || 'Kesalahan sistem', icon: 'error'}); }
                             }
                         } else {
                             if (addFormItems.value.some(i => !i.barcode || !String(i.barcode).trim() || !i.name || !String(i.name).trim())) { 
-                                Swal.fire('Validasi Gagal', 'Barcode dan Nama Barang harus diisi di semua baris!', 'warning'); 
+                                Swal.fire({ title: 'Validasi Gagal', text: 'Barcode dan Nama Barang harus diisi di semua baris!', icon: 'warning' }); 
                                 isProcessing.value = false; return; 
                             }
                             
                             const barcodesInForm = addFormItems.value.map(i => String(i.barcode).toUpperCase().trim());
                             if (new Set(barcodesInForm).size !== barcodesInForm.length) { 
-                                Swal.fire('Validasi Gagal', 'Ditemukan Barcode ganda di dalam baris yang Anda input!', 'warning'); 
+                                Swal.fire({ title: 'Validasi Gagal', text: 'Ditemukan Barcode ganda di dalam baris yang Anda input!', icon: 'warning' }); 
                                 isProcessing.value = false; return; 
                             }
                             
                             const existingDbBarcodes = inventory.value.map(i => String(i.barcode).toUpperCase().trim());
                             const duplicateMatch = addFormItems.value.find(i => existingDbBarcodes.includes(String(i.barcode).toUpperCase().trim()));
                             if (duplicateMatch) { 
-                                Swal.fire('Gagal Menyimpan', `Barcode <b>${duplicateMatch.barcode}</b> sudah terdaftar sebelumnya di Master Data!`, 'error'); 
+                                Swal.fire({ title: 'Gagal Menyimpan', html: `Barcode <b>${duplicateMatch.barcode}</b> sudah terdaftar sebelumnya di Master Data!`, icon: 'error' }); 
                                 isProcessing.value = false; return; 
                             }
 
@@ -1806,10 +1802,10 @@
                                     closeModal(); 
                                     await silentFetchData(true); 
                                 } 
-                                else { Swal.fire('Gagal Menyimpan', res?.error || 'Server error', 'error'); }
+                                else { Swal.fire({ title: 'Gagal Menyimpan', text: res?.error || 'Server error', icon: 'error' }); }
                             }
                         }
-                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
+                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
                 
                 const deleteItem = (barcode) => { 
@@ -1817,7 +1813,7 @@
                         if (result.isConfirmed) {
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                             const res = await apiCall('deleteMasterItem', { barcode: String(barcode).trim().toUpperCase() });
-                            if (res && res.success) { Swal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
+                            if (res && res.success) { Swal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
@@ -1829,7 +1825,7 @@
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                             const reqPayload = JSON.parse(JSON.stringify(selectedInventoryItems.value));
                             const res = await apiCall('deleteMasterItemsBulk', { barcodes: reqPayload });
-                            if (res && res.success) { selectedInventoryItems.value = []; Swal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
+                            if (res && res.success) { selectedInventoryItems.value = []; Swal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
@@ -1840,7 +1836,7 @@
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: log.barcode, revertToQty: log.oldQty } : null;
                             const res = await apiCall('deleteHistoryItem', { id: log.id, revertData: JSON.parse(JSON.stringify(revertData)) });
-                            if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
+                            if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
@@ -1853,7 +1849,7 @@
                             const isRevert = result.isConfirmed; const revertDatas = [];
                             if (isRevert) { selectedLogItems.value.forEach(id => { const log = transactions.value.find(t => t.id === id); if (log) revertDatas.push({ barcode: log.barcode, revertToQty: log.oldQty }); }); }
                             const res = await apiCall('deleteHistoryItemsBulk', { ids: JSON.parse(JSON.stringify(selectedLogItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
-                            if (res && res.success) { selectedLogItems.value = []; Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
+                            if (res && res.success) { selectedLogItems.value = []; Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
@@ -1864,7 +1860,7 @@
                             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: summary.barcode, revertToQty: summary.firstOldQty } : null;
                             const res = await apiCall('deleteRecapOpname', { dateStr: selectedRecapDate.value, barcode: summary.barcode, revertData: JSON.parse(JSON.stringify(revertData)) });
-                            if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
+                            if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
@@ -1877,7 +1873,7 @@
                             const isRevert = result.isConfirmed; const revertDatas = [];
                             if (isRevert) { selectedRecapItems.value.forEach(barcode => { const summary = processedRecapSummary.value.find(s => s.barcode === barcode); if (summary) revertDatas.push({ barcode: summary.barcode, revertToQty: summary.firstOldQty }); }); }
                             const res = await apiCall('deleteRecapsBulk', { dateStr: selectedRecapDate.value, barcodes: JSON.parse(JSON.stringify(selectedRecapItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
-                            if (res && res.success) { selectedRecapItems.value = []; Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire('Error', res?.error, 'error'); }
+                            if (res && res.success) { selectedRecapItems.value = []; Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
@@ -1891,12 +1887,12 @@
                         const ws = XLSX.utils.json_to_sheet(dataToExport); const wb = XLSX.utils.book_new(); 
                         XLSX.utils.book_append_sheet(wb, ws, "MasterData"); XLSX.writeFile(wb, `StokGudang_MasterData_${new Date().toISOString().slice(0,10)}.xlsx`);
                         showToast("Excel diunduh.");
-                    } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
+                    } catch (error) { Swal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
 
                 const exportRecapExcel = () => {
                     try {
-                        if (processedRecapSummary.value.length === 0) { Swal.fire('Data Kosong', 'Tidak ada data rekap untuk di-export.', 'warning'); return; }
+                        if (processedRecapSummary.value.length === 0) { Swal.fire({ title: 'Data Kosong', text: 'Tidak ada data rekap untuk di-export.', icon: 'warning' }); return; }
                         const dataToExport = processedRecapSummary.value.map(summary => {
                             const masterItem = baseInventory.value.find(i => i.barcode === summary.barcode);
                             return { "Barcode": summary.barcode, "Nama Barang": summary.name, "PIC Terakhir": summary.pic || '-', "Stok Awal": summary.firstOldQty, "Stok Final": summary.lastNewQty, "Total Selisih": summary.totalVariance, "Satuan": masterItem ? masterItem.unit : '-' };
@@ -1904,7 +1900,7 @@
                         const ws = XLSX.utils.json_to_sheet(dataToExport); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "RekapOpname");
                         const dateRangeStr = selectedRecapDate.value ? selectedRecapDate.value.replace(/\s/g, '_') : 'Semua_Waktu';
                         XLSX.writeFile(wb, `Rekap_Opname_${dateRangeStr}.xlsx`); showToast("Excel Rekap Berhasil Diunduh.");
-                    } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
+                    } catch (error) { Swal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
 
                 const triggerImportExcel = () => { if(excelFileInput.value) excelFileInput.value.click(); };
@@ -1925,14 +1921,14 @@
 
                                 const result = await Swal.fire({ title: 'Konfirmasi Import', text: `Timpa master data dengan ${importedData.length} data?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Import!' });
                                 if(result.isConfirmed) {
-                                    if (currentUser.value.location !== 'ALL') { Swal.fire('Akses Ditolak', 'Hanya Admin (ALL) yang dapat Import Massal.', 'error'); return; }
+                                    if (currentUser.value.location !== 'ALL') { Swal.fire({ title: 'Akses Ditolak', text: 'Hanya Admin (ALL) yang dapat Import Massal.', icon: 'error' }); return; }
                                     Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                                    const res = await apiCall('importMasterDataBulk', { dataArray: importedData });
+                                    const res = await apiCall('importMasterDataBulk', { dataArray: JSON.parse(JSON.stringify(importedData)) });
                                     if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
-                                    else Swal.fire('Error', res?.error, 'error');
+                                    else Swal.fire({ title: 'Error', text: res?.error, icon: 'error' });
                                 }
-                            } else Swal.fire('Data Kosong', 'File Excel/CSV tidak memiliki data.', 'info');
-                        } catch (error) { Swal.fire('Format Salah', `Gagal membaca file. Detail: ${error.message}`, 'error'); }
+                            } else Swal.fire({ title: 'Data Kosong', text: 'File Excel/CSV tidak memiliki data.', icon: 'info' });
+                        } catch (error) { Swal.fire({ title: 'Format Salah', text: `Gagal membaca file. Detail: ${error.message}`, icon: 'error' }); }
                         excelFileInput.value.value = '';
                     }; reader.readAsArrayBuffer(file);
                 };
@@ -1946,7 +1942,7 @@
                         const ws = XLSX.utils.json_to_sheet(dataToExport); const wb = XLSX.utils.book_new(); 
                         XLSX.utils.book_append_sheet(wb, ws, "LogHistory"); XLSX.writeFile(wb, `StokGudang_History_${new Date().toISOString().slice(0,10)}.xlsx`);
                         showToast("History Excel diunduh.");
-                    } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
+                    } catch (error) { Swal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
 
                 const triggerImportHistoryExcel = () => { 
@@ -1975,14 +1971,14 @@
 
                                 const result = await Swal.fire({ title: 'Timpa History?', text: "Semua riwayat akan berubah.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Timpa!' });
                                 if(result.isConfirmed) {
-                                    if (currentUser.value.location !== 'ALL') { Swal.fire('Akses Ditolak', 'Hanya Admin yang dapat Import Massal.', 'error'); return; }
+                                    if (currentUser.value.location !== 'ALL') { Swal.fire({ title: 'Akses Ditolak', text: 'Hanya Admin yang dapat Import Massal.', icon: 'error' }); return; }
                                     Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
-                                    const res = await apiCall('importHistoryDataBulk', { dataArray: importedData });
+                                    const res = await apiCall('importHistoryDataBulk', { dataArray: JSON.parse(JSON.stringify(importedData)) });
                                     if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
-                                    else Swal.fire('Error', res?.error, 'error');
+                                    else Swal.fire({ title: 'Error', text: res?.error, icon: 'error' });
                                 }
-                            } else Swal.fire('Data Kosong', 'File tidak memiliki data.', 'info');
-                        } catch (error) { Swal.fire('Format Salah', `Gagal membaca file. Detail: ${error.message}`, 'error'); }
+                            } else Swal.fire({ title: 'Data Kosong', text: 'File tidak memiliki data.', icon: 'info' });
+                        } catch (error) { Swal.fire({ title: 'Format Salah', text: `Gagal membaca file. Detail: ${error.message}`, icon: 'error' }); }
                         historyFileInput.value.value = '';
                     }; reader.readAsArrayBuffer(file);
                 };
