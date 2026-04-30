@@ -197,7 +197,7 @@
                             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center flex-1 w-full gap-4">
                                 <div class="flex items-center text-slate-700 w-full sm:w-auto">
                                     <div class="bg-indigo-100 text-indigo-600 p-2 rounded-xl mr-3"><i class="ph-duotone ph-calendar-check text-xl"></i></div>
-                                    <h4 class="font-bold text-sm whitespace-nowrap">Roving</h4>
+                                    <h4 class="font-bold text-sm whitespace-nowrap">Roving Harian</h4>
                                 </div>
                                 <div class="flex-1 w-full flex flex-col sm:flex-row gap-3">
                                     <input type="date" v-model="dashboardDate" class="w-full sm:w-48 px-4 py-2 bg-slate-50 border rounded-xl text-sm font-bold outline-none cursor-pointer shadow-inner">
@@ -212,7 +212,30 @@
                             </button>
                         </div>
 
-                        <!-- 🔴 TABEL RINGKASAN FILTERABLE 🔴 -->
+                        <!-- 🔴 GRAFIK FULL WIDTH DI ATAS 🔴 -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col relative overflow-hidden mb-8">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
+                                <h3 class="font-bold text-slate-800 flex items-center text-sm">
+                                    <div class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-2"><i class="ph-duotone ph-trend-up text-lg"></i></div> Trend Stok Roving
+                                </h3>
+                                <div class="flex items-center gap-2 w-full sm:w-auto">
+                                    <input v-model="selectedTrendItemName" list="inventoryNameList" placeholder="Ketik nama barang..." class="w-full sm:w-56 px-3 py-1.5 border rounded-lg text-xs font-bold uppercase outline-none">
+                                    <datalist id="inventoryNameList"><option v-for="item in baseInventory" :key="item.barcode" :value="item.name"></option></datalist>
+                                    <select v-model="trendFilter" class="px-2 py-1.5 border rounded-lg text-xs font-bold outline-none cursor-pointer">
+                                        <option value="day">7 Hari Terakhir</option>
+                                        <option value="week">14 Hari Terakhir</option>
+                                        <option value="month">30 Hari Terakhir</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div v-if="!selectedTrendItemName || !baseInventory.find(i => String(i.name).toUpperCase() === String(selectedTrendItemName).toUpperCase())" class="flex-1 flex flex-col items-center justify-center min-h-[250px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                                <i class="ph-duotone ph-chart-line-up text-4xl text-slate-300 mb-2"></i>
+                                <p class="text-slate-400 text-xs font-medium">Pilih nama barang untuk melihat grafik.</p>
+                            </div>
+                            <div v-else class="relative w-full h-[250px] z-10"><canvas id="trendChart"></canvas></div>
+                        </div>
+
+                        <!-- TABEL RINGKASAN FILTERABLE -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8">
                             <div @click="dailyCheckFilter = 'ALL'" class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-slate-100 relative overflow-hidden cursor-pointer hover:border-blue-300 transition-all" :class="{'ring-2 ring-blue-500 bg-blue-50': dailyCheckFilter === 'ALL'}">
                                 <div class="absolute -right-4 -top-4 opacity-5"><i class="ph-fill ph-database text-9xl text-blue-500"></i></div>
@@ -251,21 +274,7 @@
                             </div>
                         </div>
 
-                        <!-- 🔴 GRAFIK PINDAH KE ATAS (FULL WIDTH) 🔴 -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col relative overflow-hidden mb-8">
-                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
-                                <h3 class="font-bold text-slate-800 flex items-center text-sm"><div class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-2"><i class="ph-duotone ph-trend-up text-lg"></i></div> Trend Stok Harian</h3>
-                                <div class="flex items-center gap-2 w-full sm:w-auto">
-                                    <input v-model="selectedTrendItemName" list="inventoryNameList" placeholder="Ketik nama barang..." class="w-full sm:w-48 px-3 py-1.5 border rounded-lg text-xs font-bold uppercase outline-none">
-                                    <datalist id="inventoryNameList"><option v-for="item in baseInventory" :key="item.barcode" :value="item.name"></option></datalist>
-                                    <select v-model="trendFilter" class="px-2 py-1.5 border rounded-lg text-xs font-bold outline-none cursor-pointer"><option value="day">7 Hari Terakhir</option><option value="week">14 Hari Terakhir</option><option value="month">30 Hari Terakhir</option></select>
-                                </div>
-                            </div>
-                            <div v-if="!selectedTrendItemName || !baseInventory.find(i => String(i.name).toUpperCase() === String(selectedTrendItemName).toUpperCase())" class="flex-1 flex flex-col items-center justify-center min-h-[250px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200"><i class="ph-duotone ph-chart-line-up text-4xl text-slate-300 mb-2"></i><p class="text-slate-400 text-xs font-medium">Pilih nama barang untuk melihat grafik.</p></div>
-                            <div v-else class="relative w-full h-[250px] z-10"><canvas id="trendChart"></canvas></div>
-                        </div>
-
-                        <!-- 🔴 RINCIAN STATUS DI BAWAH 🔴 -->
+                        <!-- RINCIAN STATUS DI BAWAH -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
                             <div class="p-4 sm:p-6 border-b border-slate-100 bg-slate-50">
                                 <h3 class="text-lg font-black text-slate-800 flex items-center"><i class="ph-duotone ph-list-checks text-xl mr-2 text-brand-600"></i> Rincian Status Roving Barang</h3>
@@ -343,7 +352,6 @@
                                     <div class="flex gap-3">
                                         <div class="relative flex-1">
                                             <i class="ph-duotone ph-barcode absolute left-4 top-3.5 text-slate-400 text-2xl"></i>
-                                            <!-- 🔴 FIX QC: Pembungkus String agar menolak Input Error dari Tipe Data Number 🔴 -->
                                             <input ref="barcodeInput" v-model="scannedCode" @input="scannedCode = String(scannedCode).toUpperCase()" type="text" class="w-full pl-12 pr-4 py-4 border-2 rounded-2xl focus:ring-brand-500 text-lg font-mono uppercase bg-slate-50 outline-none" placeholder="Ketik Barcode..." :disabled="isProcessing || isCameraOpen">
                                         </div>
                                         <div class="flex gap-2 h-[60px]">
@@ -499,7 +507,7 @@
                     <!-- TAB: MASTER INVENTORY -->
                     <div v-else-if="activeTab === 'inventory'" key="inventory" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            <!-- 🔴 QC FIX: HEADER MENGIKUTI CHECKSHEET PERUSAHAAN DENGAN LOGO 🔴 -->
+                            <!-- HEADER MENGIKUTI CHECKSHEET PERUSAHAAN DENGAN LOGO -->
                             <div class="p-4 sm:p-6 border-b border-slate-100 bg-white flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
                                 <div class="flex items-center gap-4 z-10 w-full md:w-auto">
                                     <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center shadow-inner overflow-hidden shrink-0">
@@ -521,7 +529,6 @@
                             
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div class="relative w-full sm:max-w-md">
-                                    <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
                                     <input v-model="searchQuery" @input="searchQuery = String(searchQuery).toUpperCase()" type="text" placeholder="Omni Search..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white">
                                     <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-lg"></i>
                                 </div>
@@ -560,7 +567,6 @@
                                                 <div class="flex items-center justify-center space-x-2">
                                                     <button @click="showQRCode(item)" class="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg" title="Cetak QR Label"><i class="ph-bold ph-qr-code text-base"></i></button>
                                                     <button @click="openEditModal(item)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Edit Barang"><i class="ph-bold ph-pencil-simple text-base"></i></button>
-                                                    <!-- 🔴 FIX QC: Penambahan Tombol Hapus Tunggal (Single Delete) 🔴 -->
                                                     <button @click="deleteItem(item.barcode)" class="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg" title="Hapus Barang"><i class="ph-bold ph-trash text-base"></i></button>
                                                 </div>
                                             </td>
@@ -798,7 +804,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(row, rIdx) in checkSheetData.rows" :key="'r-'+rIdx" class="hover:bg-amber-50">
-                                        <td v-for="(cell, cIdx) in row" :key="'c-'+rIdx+'-'+cIdx" class="border border-slate-800 p-1.5 whitespace-nowrap" :class="{'font-bold text-indigo-700 bg-indigo-50/30': cIdx > 1 && cIdx < row.length-1 && cell !== '-'}">{{ cell }}</td>
+                                        <td v-for="(cell, cIdx) in row" :key="'c-'+rIdx+'-'+cIdx" class="border border-slate-800 p-1.5 whitespace-nowrap" :class="{'font-bold text-indigo-700 bg-indigo-50/30': cIdx > 1 && cIdx < row.length-1 && cell !== ''}">{{ cell }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1111,6 +1117,7 @@
                 });
                 const logTotalPages = computed(() => Math.ceil(processedTransactions.value.length / logItemsPerPage.value) || 1);
 
+                // 🔴 QC FIX: Algoritma Copy-Forward Hari Jumat untuk Weekend & Blank Check untuk Hari Kerja 🔴
                 const checkSheetData = computed(() => {
                     if (!checkSheetMonth.value) return null;
                     const [yearStr, monthStr] = checkSheetMonth.value.split('-');
@@ -1126,33 +1133,79 @@
                     });
 
                     const rows = [];
+                    let lastFridayData = null; // Menyimpan data Jumat di memori agar Sabtu/Minggu bisa langsung menduplikasinya
+
                     for (let day = 1; day <= daysInMonth; day++) {
                         let rowData = [day, "08:00"]; 
-                        let dayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === day);
-                        let picForDay = "";
+                        let currentDate = new Date(year, month, day);
+                        let dayOfWeek = currentDate.getDay(); // 0 = Minggu, 5 = Jumat, 6 = Sabtu
 
-                        reportTemplateDef.forEach(itemDef => {
-                            let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => 
-                                itemDef.match.some(keyword => String(l.name).toUpperCase().includes(keyword))
-                            );
-                            
-                            if (log) {
-                                if (itemDef.title === "Solar") {
-                                    rowData.push(log.newQty);
-                                } else if (itemDef.title === "N2") {
-                                    let pressureMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
-                                    let pressure = pressureMatch ? pressureMatch[1] : "-";
-                                    rowData.push(log.newQty, pressure);
-                                } else {
-                                    rowData.push(log.newQty, log.oldQty);
-                                }
-                                if(log.pic && !picForDay) picForDay = log.pic;
+                        if (dayOfWeek === 6 || dayOfWeek === 0) {
+                            // JIKA WEEKEND: Duplikasi persis nilai dari Hari Jumat (Menggunakan Clone Array)
+                            if (lastFridayData) {
+                                rowData = [...lastFridayData]; 
+                                rowData[0] = day; // Set TGL ke hari Sabtu/Minggu
+                                rows.push(rowData);
                             } else {
-                                itemDef.cols.forEach(() => rowData.push("-"));
+                                // Fallback jika belum ada data Jumat di memory (misal tgl 1 adalah Sabtu)
+                                let diff = dayOfWeek === 0 ? 2 : 1;
+                                let prevFriday = new Date(year, month, day - diff);
+                                let dayLogs = baseTransactions.value.filter(t => {
+                                    let td = new Date(t.date);
+                                    return td.getDate() === prevFriday.getDate() && 
+                                           td.getMonth() === prevFriday.getMonth() && 
+                                           td.getFullYear() === prevFriday.getFullYear();
+                                });
+                                
+                                let picForDay = "";
+                                reportTemplateDef.forEach(itemDef => {
+                                    let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => 
+                                        itemDef.match.some(keyword => String(l.name).toUpperCase().includes(keyword))
+                                    );
+                                    if (log) {
+                                        if (itemDef.title === "Solar") { rowData.push(log.newQty); } 
+                                        else if (itemDef.title === "N2") {
+                                            let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
+                                            rowData.push(log.newQty, pMatch ? pMatch[1] : "");
+                                        } else { rowData.push(log.newQty, log.oldQty); }
+                                        if(log.pic && !picForDay) picForDay = log.pic;
+                                    } else { itemDef.cols.forEach(() => rowData.push("")); }
+                                });
+                                rowData.push(picForDay || "");
+                                rows.push(rowData);
                             }
-                        });
-                        rowData.push(picForDay || "-");
-                        rows.push(rowData);
+                        } else {
+                            // SENIN - JUMAT (Hari Kerja Normal)
+                            let dayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === day);
+                            let picForDay = "";
+
+                            reportTemplateDef.forEach(itemDef => {
+                                let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => 
+                                    itemDef.match.some(keyword => String(l.name).toUpperCase().includes(keyword))
+                                );
+                                
+                                if (log) {
+                                    if (itemDef.title === "Solar") {
+                                        rowData.push(log.newQty);
+                                    } else if (itemDef.title === "N2") {
+                                        let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
+                                        rowData.push(log.newQty, pMatch ? pMatch[1] : "");
+                                    } else {
+                                        rowData.push(log.newQty, log.oldQty);
+                                    }
+                                    if(log.pic && !picForDay) picForDay = log.pic;
+                                } else {
+                                    // 🔴 FIX: Membiarkan cell benar-benar KOSONG ("") jika tidak di roving
+                                    itemDef.cols.forEach(() => rowData.push(""));
+                                }
+                            });
+                            rowData.push(picForDay || "");
+                            rows.push(rowData);
+
+                            if (dayOfWeek === 5) {
+                                lastFridayData = [...rowData]; // 🔴 Simpan copy dari hari Jumat ke dalam Cache Memory
+                            }
+                        }
                     }
 
                     return { template: reportTemplateDef, rows, monthName };
@@ -1329,7 +1382,6 @@
                 window.addEventListener('keypress', resetIdleTimer);
                 window.addEventListener('touchstart', resetIdleTimer);
 
-                // 🔴 QC FIX: Interceptor Error API & Mencegah UI Crash 🔴
                 const apiCall = async (action, payload = {}) => {
                     if (isPreview) {
                         Swal.fire("URL API Belum Diatur", "Silakan masukkan URL API ke variabel GAS_API_URL di dalam file HTML.", "error");
@@ -1393,7 +1445,6 @@
                     await fetchData(); showToast('Data Gudang Terbaru Ditarik', 'success');
                 };
 
-                // 🔴 QC FIX: Pemaksaan pembaruan data secara real-time 🔴
                 const silentFetchData = async (force = false) => {
                     if (!force && (isPreview || !isLoggedIn.value || isProcessing.value || loading.value)) return; 
                     if (!force && (selectedInventoryItems.value.length > 0 || selectedLogItems.value.length > 0 || selectedRecapItems.value.length > 0)) return;
@@ -1423,6 +1474,7 @@
                     } catch (e) {} finally { isSyncing.value = false; }
                 };
 
+                // 🔴 QC FIX: Grafik Trend juga Menggunakan Logika Blank/0 Jika Tidak Di Roving 🔴
                 const processTrendData = () => {
                     if (!selectedTrendItemName.value) return { labels: [], data: [], itemName: '' };
                     
@@ -1439,22 +1491,38 @@
 
                     const labels = []; 
                     const data = []; 
+                    let lastFridayVal = 0; // Cache untuk Copy-Forward Grafik
 
                     for (let i = daysCount - 1; i >= 0; i--) {
                         const d = new Date(now); 
                         d.setDate(d.getDate() - i);
+                        let dayOfWeek = d.getDay();
                         
-                        const dateStr = d.toISOString().slice(0,10);
+                        const dYear = d.getFullYear();
+                        const dMonth = d.getMonth();
+                        const dDay = d.getDate();
+
                         const label = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
                         
-                        const dayLogs = transactions.value.filter(t => t.barcode === barcode && t.date.startsWith(dateStr));
+                        const dayLogs = transactions.value.filter(t => {
+                            const td = new Date(t.date);
+                            return t.barcode === barcode && td.getDate() === dDay && td.getMonth() === dMonth && td.getFullYear() === dYear;
+                        });
                         dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date));
                         
                         labels.push(label);
-                        if (dayLogs.length > 0) {
-                            data.push(dayLogs[0].newQty);
+                        
+                        if (dayOfWeek === 6 || dayOfWeek === 0) {
+                             // Sabtu / Minggu -> copy nilai grafik jumat
+                             data.push(lastFridayVal);
                         } else {
-                            data.push(0); // Bernilai 0 jika terlewat (Sesuai SOP Perusahaan)
+                             if (dayLogs.length > 0) {
+                                 data.push(dayLogs[0].newQty);
+                                 if (dayOfWeek === 5) lastFridayVal = dayLogs[0].newQty; // Simpan Jumat
+                             } else {
+                                 data.push(0); // Nilai 0 jika terlewat roving di hari kerja
+                                 if (dayOfWeek === 5) lastFridayVal = 0;
+                             }
                         }
                     }
 
@@ -1688,7 +1756,6 @@
                     } catch (error) { Swal.fire('Gagal Export', error.message, 'error'); }
                 };
                 
-                // 🔴 QC FIX: Deep Cloning & Keamanan Type String pada Semua Payload API 🔴
                 const saveItem = async () => { 
                     isProcessing.value = true;
                     try {
