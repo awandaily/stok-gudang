@@ -1177,7 +1177,10 @@
                                         else if (itemDef.title === "N2") {
                                             let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
                                             rowData.push(log.newQty, pMatch ? pMatch[1] : "");
-                                        } else { rowData.push(log.newQty, log.oldQty); }
+                                        } else { 
+                                            // 🔴 FIX: Nilai Oracle Dikosongkan (Hanya Actual yang diisi)
+                                            rowData.push(log.newQty, ""); 
+                                        }
                                         if(log.pic && !picForDay) picForDay = log.pic;
                                     } else { itemDef.cols.forEach(() => rowData.push("")); }
                                 });
@@ -1200,7 +1203,8 @@
                                         let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
                                         rowData.push(log.newQty, pMatch ? pMatch[1] : "");
                                     } else {
-                                        rowData.push(log.newQty, log.oldQty);
+                                        // 🔴 FIX: Nilai Oracle Dikosongkan (Hanya Actual yang diisi)
+                                        rowData.push(log.newQty, "");
                                     }
                                     if(log.pic && !picForDay) picForDay = log.pic;
                                 } else {
