@@ -46,7 +46,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
     
-    <!-- FALLBACK ERROR -->
     <div id="fallback-error" style="display: none; min-height: 100vh; width: 100%; background: #f8fafc; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 9999; position: fixed; inset: 0;">
         <div style="background: #fee2e2; color: #991b1b; padding: 30px; border-radius: 16px; border: 1px solid #f87171; max-width: 550px;">
             <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 12px;">⚠️ Sistem UI Berhenti Bergerak</h2>
@@ -353,6 +352,7 @@
                                     <div class="flex gap-3">
                                         <div class="relative flex-1">
                                             <i class="ph-duotone ph-barcode absolute left-4 top-3.5 text-slate-400 text-2xl"></i>
+                                            <!-- 🔴 FIX QC: Pembungkus String agar menolak Input Error dari Tipe Data Number 🔴 -->
                                             <input ref="barcodeInput" v-model="scannedCode" @input="scannedCode = String(scannedCode).toUpperCase()" type="text" class="w-full pl-12 pr-4 py-4 border-2 rounded-2xl focus:ring-brand-500 text-lg font-mono uppercase bg-slate-50 outline-none" placeholder="Ketik Barcode..." :disabled="isProcessing || isCameraOpen">
                                         </div>
                                         <div class="flex gap-2 h-[60px]">
@@ -835,16 +835,17 @@
         // ==========================================
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
 
+        // 🔴 QC FIX: Menyesuaikan Keywords agar sangat ketat dan tidak tumpang tindih
         const reportTemplateDef = [
             { title: "Solar", match: ["SOLAR"], cols: ["Actual"], units: ["M3"] },
-            { title: "N2", match: ["N2", "NITROGEN"], cols: ["Actual", "Bar"], units: ["M3", "Mpa"] },
-            { title: "Boiler Mate IS 102 I        @ 20 Kg", match: ["IS 102", "IS-102", "BOILER MATE IS"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
-            { title: "Boiler Mate FG 250             @ 20 Kg", match: ["FG 250", "FG-250", "BOILER MATE FG"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
-            { title: "Chlorine @ 25Kg", match: ["CHLORINE", "KLORIN"], cols: ["Actual", "Oracle"], units: ["Kg", ""] },
-            { title: "Chemical 3DT-437 25kg/pail", match: ["3DT-437", "3DT 437", "437"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
-            { title: "Chemical 3DT-125 25kg/pail", match: ["3DT-125", "3DT 125", "125"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
-            { title: "Chemical N-7330 25kg/pail", match: ["N-7330", "N 7330", "7330"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
-            { title: "Chemical N-2590 PELL 45kg/pail", match: ["N-2590", "N 2590", "2590"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
+            { title: "N2", match: ["NITROGEN", "N2"], cols: ["Actual", "Bar"], units: ["M3", "Mpa"] },
+            { title: "Boiler Mate IS 102 I        @ 20 Kg", match: ["IS 102", "IS-102"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
+            { title: "Boiler Mate FG 250             @ 20 Kg", match: ["FG 250", "FG-250"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
+            { title: "Chlorine @ 25Kg", match: ["CHLORINE", "KLORIN", "3935"], cols: ["Actual", "Oracle"], units: ["Kg", ""] },
+            { title: "Chemical 3DT-437 25kg/pail", match: ["3DT-437", "437"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
+            { title: "Chemical 3DT-125 25kg/pail", match: ["3DT-125", "125"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
+            { title: "Chemical N-7330 25kg/pail", match: ["N-7330", "7330"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
+            { title: "Chemical N-2590 PELL 45kg/pail", match: ["N-2590", "2590"], cols: ["Actual", "Oracle"], units: ["Pail", ""] },
             { title: "Garam", match: ["GARAM"], cols: ["Actual", "Oracle"], units: ["BAG", ""] },
             { title: "PAC      @ 25 Kg", match: ["PAC"], cols: ["Actual", "Oracle"], units: ["BAG", ""] },
             { title: "NaOH @ 25 Kg", match: ["NAOH", "SODA", "CAUSTIC"], cols: ["Actual", "Oracle"], units: ["BAG", ""] },
@@ -853,6 +854,16 @@
             { title: "Oksigen (O2) cap 6M3", match: ["OKSIGEN", "O2"], cols: ["Actual", "Oracle"], units: ["Tube", ""] },
             { title: "Amoniak (NH3)", match: ["AMONIAK", "NH3"], cols: ["Actual", "Oracle"], units: ["Tube", ""] }
         ];
+
+        // 🔴 QC FIX: Helper Fungsi Pencocokan Teks Ketat menggunakan Regex Boundary \b
+        const checkItemMatch = (itemName, keywords) => {
+            const upperName = String(itemName).toUpperCase();
+            return keywords.some(kw => {
+                const safeKw = kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                const regex = new RegExp(`(^|\\s|[^A-Z0-9])${safeKw}($|\\s|[^A-Z0-9])`);
+                return regex.test(upperName);
+            });
+        };
 
         createApp({
             setup() {
@@ -1118,6 +1129,7 @@
                 });
                 const logTotalPages = computed(() => Math.ceil(processedTransactions.value.length / logItemsPerPage.value) || 1);
 
+                // 🔴 QC FIX: Algoritma Copy-Forward Hari Jumat untuk Weekend & Blank Check untuk Hari Kerja 🔴
                 const checkSheetData = computed(() => {
                     if (!checkSheetMonth.value) return null;
                     const [yearStr, monthStr] = checkSheetMonth.value.split('-');
@@ -1133,17 +1145,17 @@
                     });
 
                     const rows = [];
-                    let lastFridayData = null; // Memori untuk menyalin data Jumat ke Sabtu dan Minggu
+                    let lastFridayData = null; 
 
                     for (let day = 1; day <= daysInMonth; day++) {
                         let rowData = [day, "08:00"]; 
                         let currentDate = new Date(year, month, day);
-                        let dayOfWeek = currentDate.getDay(); // 0 = Minggu, 5 = Jumat, 6 = Sabtu
+                        let dayOfWeek = currentDate.getDay(); 
 
                         if (dayOfWeek === 6 || dayOfWeek === 0) {
                             if (lastFridayData) {
                                 rowData = [...lastFridayData]; 
-                                rowData[0] = day; // Update TGL
+                                rowData[0] = day; 
                                 rows.push(rowData);
                             } else {
                                 let diff = dayOfWeek === 0 ? 2 : 1;
@@ -1158,7 +1170,7 @@
                                 let picForDay = "";
                                 reportTemplateDef.forEach(itemDef => {
                                     let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => 
-                                        itemDef.match.some(keyword => String(l.name).toUpperCase().includes(keyword))
+                                        checkItemMatch(l.name, itemDef.match)
                                     );
                                     if (log) {
                                         if (itemDef.title === "Solar") { rowData.push(log.newQty); } 
@@ -1178,7 +1190,7 @@
 
                             reportTemplateDef.forEach(itemDef => {
                                 let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => 
-                                    itemDef.match.some(keyword => String(l.name).toUpperCase().includes(keyword))
+                                    checkItemMatch(l.name, itemDef.match)
                                 );
                                 
                                 if (log) {
@@ -1192,6 +1204,7 @@
                                     }
                                     if(log.pic && !picForDay) picForDay = log.pic;
                                 } else {
+                                    // 🔴 FIX: Membiarkan cell benar-benar KOSONG ("") jika tidak di roving
                                     itemDef.cols.forEach(() => rowData.push(""));
                                 }
                             });
@@ -1199,7 +1212,7 @@
                             rows.push(rowData);
 
                             if (dayOfWeek === 5) {
-                                lastFridayData = [...rowData]; // 🛡️ Simpan ke memori untuk hari Sabtu & Minggu
+                                lastFridayData = [...rowData]; 
                             }
                         }
                     }
@@ -1378,7 +1391,6 @@
                 window.addEventListener('keypress', resetIdleTimer);
                 window.addEventListener('touchstart', resetIdleTimer);
 
-                // 🔴 QC FIX: Interceptor Error API & Mencegah UI Crash 🔴
                 const apiCall = async (action, payload = {}) => {
                     if (isPreview) {
                         Swal.fire({ title: 'URL API Belum Diatur', text: 'Silakan masukkan URL API ke variabel GAS_API_URL di dalam file HTML.', icon: 'error' });
@@ -1509,6 +1521,20 @@
                         labels.push(label);
                         
                         if (dayOfWeek === 6 || dayOfWeek === 0) {
+                             if (i === daysCount - 1) { // Jika titik pertama di chart jatuh pas weekend
+                                let diff = dayOfWeek === 0 ? 2 : 1;
+                                let prevFriday = new Date(d);
+                                prevFriday.setDate(d.getDate() - diff);
+                                let fYear = prevFriday.getFullYear();
+                                let fMonth = prevFriday.getMonth();
+                                let fDay = prevFriday.getDate();
+                                let friLogs = transactions.value.filter(t => {
+                                    let td = new Date(t.date);
+                                    return t.barcode === barcode && td.getDate() === fDay && td.getMonth() === fMonth && td.getFullYear() === fYear;
+                                });
+                                friLogs.sort((a,b) => new Date(b.date) - new Date(a.date));
+                                lastFridayVal = friLogs.length > 0 ? friLogs[0].newQty : 0;
+                             }
                              data.push(lastFridayVal);
                         } else {
                              if (dayLogs.length > 0) {
@@ -1586,7 +1612,7 @@
                             if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); passwordForm.value = { old: '', new: '', confirm: '' }; } 
                             else { Swal.fire({ title: 'Gagal Mengubah Password', text: res?.error || 'Password lama salah atau error server.', icon: 'error' }); }
                         }
-                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
+                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
 
                 const submitSaveSettings = async () => {
@@ -1599,7 +1625,7 @@
                             const res = await apiCall('saveSettings', { settingsData: JSON.parse(JSON.stringify(settingsData.value)) });
                             if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
                         }
-                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
+                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
 
                 const submitSaveUsers = async () => {
@@ -1613,7 +1639,7 @@
                             const res = await apiCall('saveUsers', { usersData: JSON.parse(JSON.stringify(usersData.value)) });
                             if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
                         }
-                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
+                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
 
                 const submitSaveAppSettings = async () => {
@@ -1626,7 +1652,7 @@
                             const res = await apiCall('saveAppSettings', { appSettings: JSON.parse(JSON.stringify(payloadArray)) });
                             if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
                         }
-                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
+                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
 
                 const handleScan = () => {
@@ -1678,7 +1704,7 @@
                                 await silentFetchData(true); 
                             } else { Swal.fire({title: 'Gagal Menyimpan', text: res?.error || 'Sistem sibuk / bentrok', icon: 'error'}); }
                         }
-                    } catch (e) { Swal.fire('Error Sistem', e.message, 'error'); } finally { isProcessing.value = false; }
+                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
                 
                 const openCamera = async () => {
@@ -1946,7 +1972,7 @@
                 };
 
                 const triggerImportHistoryExcel = () => { 
-                    if (baseInventory.value.length === 0) { Swal.fire({ icon: 'warning', title: 'Data Kosong', text: 'Harap isi Master Data terlebih dahulu.' }); return; }
+                    if (baseInventory.value.length === 0) { Swal.fire({ title: 'Data Kosong', text: 'Harap isi Master Data terlebih dahulu.', icon: 'warning' }); return; }
                     if(historyFileInput.value) historyFileInput.value.click(); 
                 };
                 
