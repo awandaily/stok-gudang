@@ -1808,8 +1808,22 @@
                     isCameraOpen.value = true; activeItem.value = null; await nextTick();
                     if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
                     const onScanSuccess = (decodedText) => { scannedCode.value = decodedText; closeCamera(); handleScan(); };
-                    try { await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, undefined); } 
-                    catch (err1) { try { await html5QrCode.start({ facingMode: "user" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, undefined); } catch (err2) { Swal.fire({ title: 'Akses Ditolak', text: 'Harap izinkan akses kamera.', icon: 'error' }); closeCamera(); } }
+                    
+                    // 🔴 QC FIX: Optimasi Responsif Resolusi Kamera Mobile
+                    const isMobile = window.innerWidth < 640;
+                    const qrboxSize = isMobile ? 200 : 250;
+                    const config = { fps: 10, qrbox: { width: qrboxSize, height: qrboxSize } };
+                    
+                    try { 
+                        await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, undefined); 
+                    } catch (err1) { 
+                        try { 
+                            await html5QrCode.start({ facingMode: "user" }, config, onScanSuccess, undefined); 
+                        } catch (err2) { 
+                            Swal.fire({ title: 'Akses Kamera Ditolak', text: 'Kamera tidak terdeteksi atau Anda belum memberikan izin akses kamera di browser HP.', icon: 'error' }); 
+                            closeCamera(); 
+                        } 
+                    }
                 };
 
                 const closeCamera = () => { if (html5QrCode) { try { html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; }).catch(() => { html5QrCode.clear(); html5QrCode = null; }); } catch(e) { html5QrCode.clear(); html5QrCode = null; } } isCameraOpen.value = false; };
