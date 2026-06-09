@@ -62,7 +62,6 @@
             </div>
         </transition>
 
-        <!-- LOGIN SCREEN -->
         <transition name="fade-slide">
             <div v-if="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-brand-900 via-brand-800 to-slate-900 p-4">
                 <div class="glass p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 animate-scale-in border border-white/20">
@@ -96,7 +95,6 @@
                             </div>
                         </div>
                         
-                        <!-- 🔴 QC FIX: XSS Protection, hapus v-html dan ganti jadi text biasa -->
                         <div v-if="loginError" class="p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium flex items-center border border-red-100 animate-scale-in">
                             <i class="ph-fill ph-warning-circle mr-2 text-lg"></i> <span class="ml-2">{{ loginError }}</span>
                         </div>
@@ -110,7 +108,6 @@
             </div>
         </transition>
 
-        <!-- MAIN APP -->
         <div v-if="isLoggedIn" class="flex-1 flex flex-col h-full w-full">
             <nav class="bg-gradient-to-r from-brand-900 to-brand-800 text-white shadow-lg sticky top-0 z-40">
                 <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -148,6 +145,7 @@
                                                 <div class="bg-red-100 text-red-500 p-2 rounded-lg group-hover:bg-red-500 group-hover:text-white"><i class="ph-fill ph-package text-lg"></i></div>
                                                 <div class="flex-1 overflow-hidden">
                                                     <div class="text-xs font-black text-slate-800 uppercase truncate">{{ item.name }}</div>
+                                                    <!-- 🔴 FIX 1: Indikator hanya jika < minQty -->
                                                     <div class="text-[10px] text-slate-500 font-medium">Stok Sebelumnya: <b class="text-red-600 text-xs">{{ item.qty }}</b> / Min: {{ item.minQty }}</div>
                                                 </div>
                                             </div>
@@ -212,27 +210,31 @@
                             </button>
                         </div>
 
-                        <!-- 🔴 GRAFIK FULL WIDTH DI ATAS 🔴 -->
+                        <!-- 🔴 GRAFIK FULL WIDTH DI ATAS DENGAN RUANG LEGA 🔴 -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col relative overflow-hidden mb-8">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
                                 <h3 class="font-bold text-slate-800 flex items-center text-sm">
                                     <div class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-2"><i class="ph-duotone ph-trend-up text-lg"></i></div> Trend Stok Roving
                                 </h3>
                                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                                    <input v-model="selectedTrendItemName" list="inventoryNameList" placeholder="Ketik nama barang..." class="w-full sm:w-56 px-3 py-1.5 border rounded-lg text-xs font-bold uppercase outline-none">
-                                    <datalist id="inventoryNameList"><option v-for="item in baseInventory" :key="item.barcode" :value="item.name"></option></datalist>
-                                    <select v-model="trendFilter" class="px-2 py-1.5 border rounded-lg text-xs font-bold outline-none cursor-pointer">
+                                    <!-- 🔴 FIX 3: Ganti input dengan Select Dropdown dan bersihkan teks kurung -->
+                                    <select v-model="selectedTrendItemName" class="w-full sm:w-64 px-3 py-2 border rounded-xl text-xs font-bold uppercase outline-none shadow-sm cursor-pointer bg-white">
+                                        <option value="" disabled selected>PILIH BARANG...</option>
+                                        <option v-for="item in baseInventory" :key="item.barcode" :value="item.name">{{ cleanItemNameText(item.name) }}</option>
+                                    </select>
+                                    <select v-model="trendFilter" class="px-3 py-2 border rounded-xl text-xs font-bold outline-none cursor-pointer shadow-sm bg-white">
                                         <option value="day">7 Hari Terakhir</option>
                                         <option value="week">14 Hari Terakhir</option>
                                         <option value="month">30 Hari Terakhir</option>
                                     </select>
                                 </div>
                             </div>
-                            <div v-if="!selectedTrendItemName || !baseInventory.find(i => String(i.name).toUpperCase() === String(selectedTrendItemName).toUpperCase())" class="flex-1 flex flex-col items-center justify-center min-h-[250px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                            <div v-if="!selectedTrendItemName || !baseInventory.find(i => String(i.name).toUpperCase() === String(selectedTrendItemName).toUpperCase())" class="flex-1 flex flex-col items-center justify-center min-h-[320px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
                                 <i class="ph-duotone ph-chart-line-up text-4xl text-slate-300 mb-2"></i>
                                 <p class="text-slate-400 text-xs font-medium">Pilih nama barang untuk melihat grafik.</p>
                             </div>
-                            <div v-else class="relative w-full h-[250px] z-10"><canvas id="trendChart"></canvas></div>
+                            <!-- 🔴 FIX 5: Perbesar tinggi kanvas grafik agar lega -->
+                            <div v-else class="relative w-full h-[320px] z-10"><canvas id="trendChart"></canvas></div>
                         </div>
 
                         <!-- TABEL RINGKASAN FILTERABLE -->
@@ -352,7 +354,6 @@
                                     <div class="flex gap-3">
                                         <div class="relative flex-1">
                                             <i class="ph-duotone ph-barcode absolute left-4 top-3.5 text-slate-400 text-2xl"></i>
-                                            <!-- 🔴 FIX QC: Pembungkus String agar menolak Input Error dari Tipe Data Number 🔴 -->
                                             <input ref="barcodeInput" v-model="scannedCode" @input="scannedCode = String(scannedCode).toUpperCase()" type="text" class="w-full pl-12 pr-4 py-4 border-2 rounded-2xl focus:ring-brand-500 text-lg font-mono uppercase bg-slate-50 outline-none" placeholder="Ketik Barcode..." :disabled="isProcessing || isCameraOpen">
                                         </div>
                                         <div class="flex gap-2 h-[60px]">
@@ -530,6 +531,7 @@
                             
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div class="relative w-full sm:max-w-md">
+                                    <!-- 🔴 FIX QC: String Type Coercion 🔴 -->
                                     <input v-model="searchQuery" @input="searchQuery = String(searchQuery).toUpperCase()" type="text" placeholder="Omni Search..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white">
                                     <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-lg"></i>
                                 </div>
@@ -559,9 +561,11 @@
                                             <td class="p-3 cursor-pointer" @click="toggleInventorySelection(item.barcode)"><div class="font-bold text-slate-800 uppercase">{{ item.name }}</div><div class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-mono inline-block border border-slate-200 mt-0.5">{{ item.barcode }}</div></td>
                                             <td class="p-3 font-bold text-brand-700 text-[10px] uppercase">{{ item.location }}</td>
                                             <td class="p-3"><span class="inline-flex px-2 py-1 rounded-md text-[10px] font-bold border bg-white uppercase shadow-sm">{{ item.category }}</span></td>
-                                            <td class="p-3 text-right"><span class="font-black text-lg" :class="item.qty <= item.minQty ? 'text-red-600' : 'text-slate-800'">{{ item.qty }}</span> <span class="text-slate-500 text-[10px] font-bold uppercase">{{ item.unit }}</span></td>
+                                            <!-- 🔴 FIX 1: Merah hanya jika < minQty -->
+                                            <td class="p-3 text-right"><span class="font-black text-lg" :class="item.qty < item.minQty ? 'text-red-600' : 'text-slate-800'">{{ item.qty }}</span> <span class="text-slate-500 text-[10px] font-bold uppercase">{{ item.unit }}</span></td>
                                             <td class="p-3 text-center">
-                                                <div v-if="item.qty <= item.minQty" class="px-2 py-1 bg-red-50 text-red-700 text-[10px] rounded-lg font-bold border border-red-200">Low (Min: {{item.minQty}})</div>
+                                                <!-- 🔴 FIX 1: Label Low hanya jika < minQty -->
+                                                <div v-if="item.qty < item.minQty" class="px-2 py-1 bg-red-50 text-red-700 text-[10px] rounded-lg font-bold border border-red-200">Low (Min: {{item.minQty}})</div>
                                                 <div v-else class="px-2 py-1 bg-slate-50 text-slate-500 text-[10px] rounded-lg font-bold border border-slate-200">Aman</div>
                                             </td>
                                             <td class="p-3 text-center">
@@ -815,6 +819,79 @@
             </div>
         </transition>
 
+        <!-- CRUD MODAL (TAMBAH MASSAL / EDIT) -->
+        <transition name="fade-slide">
+            <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm pb-20 sm:pb-0">
+                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-scale-in">
+                    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h3 class="font-black text-lg text-slate-800 flex items-center"><div class="bg-brand-100 text-brand-600 p-1.5 rounded-lg mr-3"><i class="ph-bold text-xl" :class="isEditing ? 'ph-pencil-simple' : 'ph-plus-circle'"></i></div>{{ isEditing ? 'Edit Barang' : 'Tambah Barang Massal' }}</h3>
+                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 bg-white hover:bg-red-50 p-2 rounded-xl transition-all" :disabled="isProcessing"><i class="ph-bold ph-x text-lg"></i></button>
+                    </div>
+                    <div class="p-5 overflow-y-auto bg-white max-h-[75vh]">
+                        
+                        <!-- FORM EDIT (SINGLE) -->
+                        <form v-if="isEditing" @submit.prevent="saveItem" class="space-y-4">
+                            <div><label class="block text-xs font-black uppercase mb-1">Barcode ID *</label>
+                                <input v-model="formItem.barcode" @input="formItem.barcode = String(formItem.barcode).toUpperCase()" type="text" required :disabled="isEditing || isProcessing" class="w-full px-4 py-2 border rounded-xl font-mono uppercase bg-slate-100 disabled:bg-slate-100 outline-none shadow-inner">
+                            </div>
+                            <div><label class="block text-xs font-black uppercase mb-1">Nama Barang *</label>
+                                <input v-model="formItem.name" @input="formItem.name = String(formItem.name).toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl uppercase outline-none shadow-inner" placeholder="Ketik nama barang...">
+                                <datalist id="itemNameList"><option v-for="name in uniqueItemNames" :key="name" :value="name"></option></datalist>
+                            </div>
+                            <div><label class="block text-xs font-black uppercase mb-1">Lokasi Gudang *</label><select v-model="formItem.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-4 py-2 border rounded-xl uppercase outline-none font-bold shadow-inner"><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-black uppercase mb-1">Kategori</label><select v-model="formItem.category" :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl uppercase outline-none shadow-inner"><option value="CHEMICAL">CHEMICAL</option><option value="CONSUMABLE">CONSUMABLE</option><option value="PACKAGING">PACKAGING</option><option value="SPAREPART">SPAREPART</option><option value="FUEL & GAS">FUEL & GAS</option></select></div>
+                                <div><label class="block text-xs font-black uppercase mb-1">Satuan</label><input v-model="formItem.unit" @input="formItem.unit = String(formItem.unit).toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl uppercase outline-none shadow-inner"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-black uppercase mb-1">Stok Awal</label><input v-model.number="formItem.qty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl outline-none shadow-inner"></div>
+                                <div><label class="block text-xs font-black uppercase mb-1">Min. Stok</label><input v-model.number="formItem.minQty" type="number" required :disabled="isProcessing" class="w-full px-4 py-2 border rounded-xl outline-none shadow-inner"></div>
+                            </div>
+                            <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
+                                <button type="button" @click="closeModal" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold border border-slate-200" :disabled="isProcessing">Batal</button>
+                                <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 transition-colors text-white rounded-xl font-black shadow-lg flex items-center" :disabled="isProcessing"><i v-if="isProcessing" class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i> Simpan Edit</button>
+                            </div>
+                        </form>
+
+                        <!-- FORM TAMBAH MASSAL (BULK) -->
+                        <div v-else class="space-y-4">
+                            <div v-for="(item, index) in addFormItems" :key="index" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl relative mb-4">
+                                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200">
+                                    <span class="font-black text-brand-700 text-sm bg-brand-100 px-2 py-1 rounded-md">Barang #{{ index + 1 }}</span>
+                                    <button v-if="addFormItems.length > 1" @click="removeNewItemRow(index)" type="button" class="text-red-500 hover:text-red-700 border border-red-200 bg-red-50 px-2 py-1 rounded-lg"><i class="ph-bold ph-trash text-lg"></i></button>
+                                </div>
+                                <div class="space-y-3">
+                                    <div><label class="block text-[10px] font-black uppercase mb-1">Barcode ID *</label>
+                                        <input v-model="item.barcode" @input="item.barcode = String(item.barcode).toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg font-mono uppercase text-sm outline-none focus:ring-2 focus:ring-brand-500 shadow-inner">
+                                    </div>
+                                    <div><label class="block text-[10px] font-black uppercase mb-1">Nama Barang *</label>
+                                        <input v-model="item.name" @input="item.name = String(item.name).toUpperCase()" list="itemNameList" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg uppercase text-sm outline-none focus:ring-2 focus:ring-brand-500 shadow-inner" placeholder="Ketik nama...">
+                                    </div>
+                                    <div><label class="block text-[10px] font-black uppercase mb-1">Lokasi Gudang *</label><select v-model="item.location" required :disabled="isProcessing || currentUser.location !== 'ALL'" class="w-full px-3 py-2 border rounded-lg uppercase text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500 shadow-inner"><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><label class="block text-[10px] font-black uppercase mb-1">Kategori</label><select v-model="item.category" :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg uppercase text-sm outline-none focus:ring-2 focus:ring-brand-500 shadow-inner"><option value="CHEMICAL">CHEMICAL</option><option value="CONSUMABLE">CONSUMABLE</option><option value="PACKAGING">PACKAGING</option><option value="SPAREPART">SPAREPART</option><option value="FUEL & GAS">FUEL & GAS</option></select></div>
+                                        <div><label class="block text-[10px] font-black uppercase mb-1">Satuan</label>
+                                            <input v-model="item.unit" @input="item.unit = String(item.unit).toUpperCase()" type="text" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg uppercase text-sm outline-none focus:ring-2 focus:ring-brand-500 shadow-inner">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><label class="block text-[10px] font-black uppercase mb-1">Stok Awal</label><input v-model.number="item.qty" type="number" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500 shadow-inner"></div>
+                                        <div><label class="block text-[10px] font-black uppercase mb-1">Min. Stok</label><input v-model.number="item.minQty" type="number" required :disabled="isProcessing" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500 shadow-inner"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button @click="addNewItemRow" type="button" class="w-full py-3 border-2 border-dashed border-brand-300 text-brand-600 bg-brand-50 rounded-xl font-bold text-sm hover:bg-brand-100 transition-colors" :disabled="isProcessing">+ Tambah Baris Barang Lagi</button>
+                            <div class="mt-6 pt-5 border-t border-slate-100 flex justify-end space-x-3">
+                                <button type="button" @click="closeModal" class="px-5 py-2.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-xl font-bold text-sm" :disabled="isProcessing">Batal</button>
+                                <button @click="saveItem" type="button" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 transition-colors text-white rounded-xl font-black shadow-lg text-sm flex items-center" :disabled="isProcessing"><i v-if="isProcessing" class="ph-bold ph-spinner animate-spin mr-2 text-lg"></i> Simpan Semua Data</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </transition>
+
     </div>
 
     <script>
@@ -835,7 +912,6 @@
         // ==========================================
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
 
-        // 🔴 QC FIX: Menyesuaikan Keywords agar sangat ketat dan tidak tumpang tindih
         const reportTemplateDef = [
             { title: "Solar", match: ["SOLAR"], cols: ["Actual"], units: ["M3"] },
             { title: "N2", match: ["NITROGEN", "N2"], cols: ["Actual", "Bar"], units: ["M3", "Mpa"] },
@@ -855,7 +931,6 @@
             { title: "Amoniak (NH3)", match: ["AMONIAK", "NH3"], cols: ["Actual", "Oracle"], units: ["Tube", ""] }
         ];
 
-        // 🔴 QC FIX: Helper Fungsi Pencocokan Teks Ketat menggunakan Regex Boundary \b
         const checkItemMatch = (itemName, keywords) => {
             const upperName = String(itemName).toUpperCase();
             return keywords.some(kw => {
@@ -964,6 +1039,12 @@
                 const uniquePics = computed(() => [...new Set((transactions.value || []).map(t => t.pic ? String(t.pic).toUpperCase() : ''))].filter(Boolean));
                 const uniqueItemNames = computed(() => [...new Set((inventory.value || []).map(i => i.name ? String(i.name).toUpperCase() : ''))].filter(Boolean));
 
+                // 🔴 FIX 3: Helper pembersih string (membuang tanda kurung) untuk dropdown
+                const cleanItemNameText = (name) => {
+                    if(!name) return '';
+                    return String(name).replace(/\s*\(.*?\)/g, '').trim();
+                };
+
                 const isMatchLoc = (loc1, loc2) => {
                     if (!loc1 || !loc2) return false;
                     return String(loc1).replace(/\s+/g, '').toUpperCase() === String(loc2).replace(/\s+/g, '').toUpperCase();
@@ -983,7 +1064,8 @@
                     return transactions.value.filter(t => isMatchLoc(t.location, loc));
                 });
 
-                const lowStockItems = computed(() => baseInventory.value.filter(item => item.qty <= item.minQty));
+                // 🔴 FIX 1: Kurang dari (<), bukan Kurang dari sama dengan (<=)
+                const lowStockItems = computed(() => baseInventory.value.filter(item => item.qty < item.minQty));
 
                 const dailyCheckStatusAll = computed(() => {
                     const targetDateStr = dashboardDate.value;
@@ -1071,7 +1153,8 @@
                     let res = baseInventory.value;
                     const q = searchQuery.value.toLowerCase();
                     if (q) {
-                        if (q === '@low') res = res.filter(i => i.qty <= i.minQty);
+                        // 🔴 FIX 1: Filter low stock menggunakan <
+                        if (q === '@low') res = res.filter(i => i.qty < i.minQty);
                         else res = res.filter(i => omniSearch(i, q));
                     }
                     return sortArray(res, invSortKey.value, invSortAsc.value);
@@ -1129,7 +1212,7 @@
                 });
                 const logTotalPages = computed(() => Math.ceil(processedTransactions.value.length / logItemsPerPage.value) || 1);
 
-                // 🔴 QC FIX: Algoritma Copy-Forward Hari Jumat untuk Weekend & Blank Check untuk Hari Kerja 🔴
+                // 🔴 QC FIX: Algoritma Blank Check untuk Hari Kerja 🔴
                 const checkSheetData = computed(() => {
                     if (!checkSheetMonth.value) return null;
                     const [yearStr, monthStr] = checkSheetMonth.value.split('-');
@@ -1145,80 +1228,33 @@
                     });
 
                     const rows = [];
-                    let lastFridayData = null; 
 
                     for (let day = 1; day <= daysInMonth; day++) {
                         let rowData = [day, "08:00"]; 
-                        let currentDate = new Date(year, month, day);
-                        let dayOfWeek = currentDate.getDay(); 
+                        let dayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === day);
+                        let picForDay = "";
 
-                        if (dayOfWeek === 6 || dayOfWeek === 0) {
-                            if (lastFridayData) {
-                                rowData = [...lastFridayData]; 
-                                rowData[0] = day; 
-                                rows.push(rowData);
-                            } else {
-                                let diff = dayOfWeek === 0 ? 2 : 1;
-                                let prevFriday = new Date(year, month, day - diff);
-                                let dayLogs = baseTransactions.value.filter(t => {
-                                    let td = new Date(t.date);
-                                    return td.getDate() === prevFriday.getDate() && 
-                                           td.getMonth() === prevFriday.getMonth() && 
-                                           td.getFullYear() === prevFriday.getFullYear();
-                                });
-                                
-                                let picForDay = "";
-                                reportTemplateDef.forEach(itemDef => {
-                                    let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => 
-                                        checkItemMatch(l.name, itemDef.match)
-                                    );
-                                    if (log) {
-                                        if (itemDef.title === "Solar") { rowData.push(log.newQty); } 
-                                        else if (itemDef.title === "N2") {
-                                            let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
-                                            rowData.push(log.newQty, pMatch ? pMatch[1] : "");
-                                        } else { 
-                                            // 🔴 FIX: Nilai Oracle Dikosongkan (Hanya Actual yang diisi)
-                                            rowData.push(log.newQty, ""); 
-                                        }
-                                        if(log.pic && !picForDay) picForDay = log.pic;
-                                    } else { itemDef.cols.forEach(() => rowData.push("")); }
-                                });
-                                rowData.push(picForDay || "");
-                                rows.push(rowData);
-                            }
-                        } else {
-                            let dayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === day);
-                            let picForDay = "";
-
-                            reportTemplateDef.forEach(itemDef => {
-                                let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => 
-                                    checkItemMatch(l.name, itemDef.match)
-                                );
-                                
-                                if (log) {
-                                    if (itemDef.title === "Solar") {
-                                        rowData.push(log.newQty);
-                                    } else if (itemDef.title === "N2") {
-                                        let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
-                                        rowData.push(log.newQty, pMatch ? pMatch[1] : "");
-                                    } else {
-                                        // 🔴 FIX: Nilai Oracle Dikosongkan (Hanya Actual yang diisi)
-                                        rowData.push(log.newQty, "");
-                                    }
-                                    if(log.pic && !picForDay) picForDay = log.pic;
+                        reportTemplateDef.forEach(itemDef => {
+                            let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => 
+                                checkItemMatch(l.name, itemDef.match)
+                            );
+                            
+                            if (log) {
+                                if (itemDef.title === "Solar") {
+                                    rowData.push(log.newQty);
+                                } else if (itemDef.title === "N2") {
+                                    let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
+                                    rowData.push(log.newQty, pMatch ? pMatch[1] : "");
                                 } else {
-                                    // 🔴 FIX: Membiarkan cell benar-benar KOSONG ("") jika tidak di roving
-                                    itemDef.cols.forEach(() => rowData.push(""));
+                                    rowData.push(log.newQty, ""); // Oracle blank
                                 }
-                            });
-                            rowData.push(picForDay || "");
-                            rows.push(rowData);
-
-                            if (dayOfWeek === 5) {
-                                lastFridayData = [...rowData]; 
+                                if(log.pic && !picForDay) picForDay = log.pic;
+                            } else {
+                                itemDef.cols.forEach(() => rowData.push("")); // Jika terlewat -> kosong
                             }
-                        }
+                        });
+                        rowData.push(picForDay || "");
+                        rows.push(rowData);
                     }
 
                     return { template: reportTemplateDef, rows, monthName };
@@ -1487,12 +1523,14 @@
                     } catch (e) {} finally { isSyncing.value = false; }
                 };
 
+                // 🔴 FIX 2: Angka grafik sabtu dan minggu = 0
                 const processTrendData = () => {
                     if (!selectedTrendItemName.value) return { labels: [], data: [], itemName: '' };
                     
                     const itemName = String(selectedTrendItemName.value).toUpperCase();
                     const itemObj = inventory.value.find(i => String(i.name).toUpperCase() === itemName);
-                    if (!itemObj) return { labels: [], data: [], itemName: selectedTrendItemName.value };
+                    // Gunakan fungsi cleanItemNameText untuk membersihkan legend
+                    if (!itemObj) return { labels: [], data: [], itemName: cleanItemNameText(selectedTrendItemName.value) };
 
                     const barcode = itemObj.barcode;
                     const now = new Date(); 
@@ -1503,7 +1541,6 @@
 
                     const labels = []; 
                     const data = []; 
-                    let lastFridayVal = 0;
 
                     for (let i = daysCount - 1; i >= 0; i--) {
                         const d = new Date(now); 
@@ -1525,33 +1562,19 @@
                         labels.push(label);
                         
                         if (dayOfWeek === 6 || dayOfWeek === 0) {
-                             if (i === daysCount - 1) { // Jika titik pertama di chart jatuh pas weekend
-                                let diff = dayOfWeek === 0 ? 2 : 1;
-                                let prevFriday = new Date(d);
-                                prevFriday.setDate(d.getDate() - diff);
-                                let fYear = prevFriday.getFullYear();
-                                let fMonth = prevFriday.getMonth();
-                                let fDay = prevFriday.getDate();
-                                let friLogs = transactions.value.filter(t => {
-                                    let td = new Date(t.date);
-                                    return t.barcode === barcode && td.getDate() === fDay && td.getMonth() === fMonth && td.getFullYear() === fYear;
-                                });
-                                friLogs.sort((a,b) => new Date(b.date) - new Date(a.date));
-                                lastFridayVal = friLogs.length > 0 ? friLogs[0].newQty : 0;
-                             }
-                             data.push(lastFridayVal);
+                             // JIKA WEEKEND: Tetapkan angka 0 mutlak
+                             data.push(0);
                         } else {
+                             // JIKA HARI KERJA
                              if (dayLogs.length > 0) {
                                  data.push(dayLogs[0].newQty);
-                                 if (dayOfWeek === 5) lastFridayVal = dayLogs[0].newQty; 
                              } else {
                                  data.push(0); 
-                                 if (dayOfWeek === 5) lastFridayVal = 0;
                              }
                         }
                     }
 
-                    return { labels, data, itemName: itemObj.name };
+                    return { labels, data, itemName: cleanItemNameText(itemObj.name) };
                 };
 
                 const renderCharts = () => {
@@ -1566,8 +1589,76 @@
 
                         trendChartObj = new Chart(tCtx, {
                             type: 'line',
-                            data: { labels: tData.labels, datasets: [{ label: `Stok Aktual: ${tData.itemName}`, data: tData.data, borderColor: '#0ea5e9', backgroundColor: gradientFill, borderWidth: 3, pointBackgroundColor: '#0284c7', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5, pointHoverRadius: 7, fill: true, tension: 0.4 }] },
-                            options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 30, right: 20 } }, plugins: { legend: { display: true, position: 'top', labels: { usePointStyle: true, font: {weight: 'bold'} } }, tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', padding: 12, titleFont: { size: 13 } }, datalabels: { align: 'end', anchor: 'end', backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: '#0ea5e9', borderWidth: 1, borderRadius: 4, color: '#0f172a', font: { weight: 'bold', size: 11 }, formatter: Math.round, padding: { top: 4, bottom: 4, left: 6, right: 6 }, offset: 4 } }, scales: { y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+                            data: { 
+                                labels: tData.labels, 
+                                datasets: [{ 
+                                    label: `Stok Aktual: ${tData.itemName}`, 
+                                    data: tData.data, 
+                                    borderColor: '#0ea5e9', 
+                                    backgroundColor: gradientFill, 
+                                    borderWidth: 3, 
+                                    pointBackgroundColor: '#0284c7', 
+                                    pointBorderColor: '#fff', 
+                                    pointBorderWidth: 2, 
+                                    pointRadius: 6, 
+                                    pointHoverRadius: 8, 
+                                    fill: true, 
+                                    tension: 0.4 
+                                }] 
+                            },
+                            options: { 
+                                responsive: true, 
+                                maintainAspectRatio: false, 
+                                // 🔴 FIX 4: Animasi dinamis
+                                animation: {
+                                    duration: 1500,
+                                    easing: 'easeOutQuart'
+                                },
+                                layout: { 
+                                    // 🔴 FIX 5: Padding ekstra lega untuk Label paling atas
+                                    padding: { top: 70, right: 30, left: 15, bottom: 10 } 
+                                }, 
+                                plugins: { 
+                                    legend: { 
+                                        display: true, 
+                                        position: 'top', 
+                                        labels: { 
+                                            usePointStyle: true, 
+                                            font: { weight: 'bold', size: 13 },
+                                            padding: 20
+                                        } 
+                                    }, 
+                                    tooltip: { 
+                                        backgroundColor: 'rgba(15, 23, 42, 0.9)', 
+                                        padding: 12, 
+                                        titleFont: { size: 13 } 
+                                    }, 
+                                    datalabels: { 
+                                        align: 'top', 
+                                        anchor: 'end', 
+                                        backgroundColor: '#ffffff', 
+                                        borderColor: '#0ea5e9', 
+                                        borderWidth: 2, 
+                                        borderRadius: 8, 
+                                        color: '#0ea5e9', 
+                                        font: { weight: '900', size: 12 }, 
+                                        formatter: Math.round, 
+                                        padding: { top: 4, bottom: 4, left: 8, right: 8 }, 
+                                        offset: 12 
+                                    } 
+                                }, 
+                                scales: { 
+                                    y: { 
+                                        beginAtZero: true, 
+                                        // 🔴 FIX 5: Ruang napas (grace) dinaikkan drastis ke 80%
+                                        grace: '80%', 
+                                        grid: { borderDash: [4, 4], color: '#e2e8f0' } 
+                                    }, 
+                                    x: { 
+                                        grid: { display: false } 
+                                    } 
+                                } 
+                            }
                         });
                     }
                 };
@@ -1692,7 +1783,9 @@
                             variance: actualStock.value - activeItem.value.qty, user: String(currentUser.value.username).toUpperCase() || 'SISTEM',
                             location: String(activeItem.value.location).toUpperCase(), pic: String(currentUser.value.username).toUpperCase()
                         };
-                        const isBecomingLowStock = actualStock.value <= activeItem.value.minQty;
+                        
+                        // 🔴 FIX 1: Kondisi ini juga diganti menjadi kurang dari (<)
+                        const isBecomingLowStock = actualStock.value < activeItem.value.minQty;
 
                         if (isPreview) {
                             await new Promise(r => setTimeout(r, 300));
@@ -2036,7 +2129,7 @@
                     manualRefresh, resetFilters, menuVisibility, dailyCheckFilter,
                     inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, dashboardDate, dailyCheckStatus, checkedTodayCount, uncheckedTodayCount,
-                    availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch, selectedTrendItemName,
+                    availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch, selectedTrendItemName, cleanItemNameText,
                     showModal, isEditing, formItem, addFormItems, addNewItemRow, removeNewItemRow, excelFileInput, historyFileInput, trendFilter, renderCharts,
                     searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
