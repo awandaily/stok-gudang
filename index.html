@@ -1516,7 +1516,8 @@
                                 maintainAspectRatio: false, 
                                 animation: { duration: 1500, easing: 'easeOutQuart' },
                                 layout: { 
-                                    padding: { top: 70, right: 30, left: 15, bottom: 10 } 
+                                    // 🔴 FIX 1: Menghapus ruang kosong raksasa di atap kanvas agar judul Legend naik ke atas
+                                    padding: { top: 10, right: 30, left: 15, bottom: 10 } 
                                 }, 
                                 plugins: { 
                                     legend: { 
@@ -1525,7 +1526,8 @@
                                         labels: { 
                                             usePointStyle: true, 
                                             font: { weight: 'bold', size: 13 },
-                                            padding: 25 
+                                            // 🔴 FIX 2: Mengurangi margin bawah legend agar garis tidak terlalu tertekan
+                                            padding: 15 
                                         } 
                                     }, 
                                     tooltip: { 
@@ -1544,13 +1546,14 @@
                                         font: { weight: '900', size: 12 }, 
                                         formatter: Math.round, 
                                         padding: { top: 4, bottom: 4, left: 8, right: 8 }, 
-                                        offset: 15 
+                                        offset: 12 
                                     } 
                                 }, 
                                 scales: { 
                                     y: { 
                                         beginAtZero: true, 
-                                        grace: '80%', 
+                                        // 🔴 FIX 3: Mengurangi batas atas skala dari 80% menjadi 35% agar grafik menjulang elegan
+                                        grace: '35%', 
                                         grid: { borderDash: [4, 4], color: '#e2e8f0' } 
                                     }, 
                                     x: { 
