@@ -792,6 +792,191 @@
             </button>
         </div>
 
+        <!-- 🔴 MODAL PREVIEW CHECK SHEET RESMI 🔴 -->
+        <transition name="fade-slide">
+            <div v-if="showCheckSheetModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-[95vw] sm:max-w-[90vw] max-h-[95vh] overflow-hidden flex flex-col border border-slate-200 animate-scale-in">
+                    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h3 class="font-black text-lg text-slate-800 flex items-center"><div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg mr-3"><i class="ph-bold ph-table text-xl"></i></div>Preview Check Sheet Resmi</h3>
+                        <button @click="showCheckSheetModal = false" class="text-slate-400 hover:text-red-500 p-2 rounded-xl transition-all"><i class="ph-bold ph-x text-lg"></i></button>
+                    </div>
+                    <div class="p-4 bg-white border-b border-slate-100 flex flex-col sm:flex-row justify-between gap-4 items-center z-10">
+                        <div class="flex items-center gap-3">
+                            <label class="font-bold text-sm text-slate-600">Bulan Laporan:</label>
+                            <input type="month" v-model="checkSheetMonth" class="px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-800 shadow-inner cursor-pointer">
+                        </div>
+                        <button @click="downloadCheckSheetExcel" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black shadow-md flex items-center transition-all">
+                            <i class="ph-bold ph-file-xls mr-2 text-lg"></i> Download Full Excel (.xlsx)
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-auto p-4 sm:p-6 bg-slate-200/50 custom-scrollbar relative">
+                        <div v-if="checkSheetData" class="bg-white p-6 shadow-md border border-slate-300 min-w-max mx-auto relative">
+                            <div class="text-center font-black text-xl mb-6 uppercase text-slate-800 tracking-wide">
+                                CHECK SHEET PENGECEKAN STOCK CHEMICAL<br>
+                                <span class="text-base font-bold text-slate-600 mt-1 block">Bulan: {{ checkSheetData.monthName }}</span>
+                            </div>
+                            <table class="border-collapse border-2 border-slate-800 text-[10px] sm:text-xs text-center w-full">
+                                <thead>
+                                    <tr class="bg-slate-100">
+                                        <th rowspan="3" class="border border-slate-800 p-2 bg-slate-200">TGL</th>
+                                        <th rowspan="3" class="border border-slate-800 p-2 bg-slate-200">Jam</th>
+                                        <th v-for="(col, idx) in checkSheetData.template" :key="'h1-'+idx" :colspan="col.cols.length" class="border border-slate-800 p-2 font-bold whitespace-nowrap bg-slate-200">{{ col.title }}</th>
+                                        <th rowspan="3" class="border border-slate-800 p-2 bg-slate-200">PIC</th>
+                                    </tr>
+                                    <tr class="bg-slate-50">
+                                        <template v-for="(col, idx) in checkSheetData.template" :key="'h2-'+idx">
+                                            <th v-for="(cName, cIdx) in col.cols" :key="'h2c-'+idx+'-'+cIdx" class="border border-slate-800 p-1.5 font-bold whitespace-nowrap text-slate-700">{{ cName }}</th>
+                                        </template>
+                                    </tr>
+                                    <tr>
+                                        <template v-for="(col, idx) in checkSheetData.template" :key="'h3-'+idx">
+                                            <th v-for="(uName, uIdx) in col.units" :key="'h3u-'+idx+'-'+uIdx" class="border border-slate-800 p-1 italic text-slate-500 font-medium">{{ uName }}</th>
+                                        </template>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(row, rIdx) in checkSheetData.rows" :key="'r-'+rIdx" class="hover:bg-amber-50">
+                                        <td v-for="(cell, cIdx) in row" :key="'c-'+rIdx+'-'+cIdx" class="border border-slate-800 p-1.5 whitespace-nowrap" :class="{'font-bold text-indigo-700 bg-indigo-50/30': cIdx > 1 && cIdx < row.length-1 && cell !== ''}">{{ cell }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- 🔴 MODAL TAMBAH / EDIT BARANG 🔴 -->
+        <transition name="fade-slide">
+            <div v-if="showModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-scale-in">
+                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+                        <h3 class="font-black text-lg flex items-center">
+                            <i class="ph-duotone mr-2 text-xl text-brand-600" :class="isEditing ? 'ph-pencil-simple' : 'ph-plus-circle'"></i>
+                            {{ isEditing ? 'Edit Data Master' : 'Input Multiple Data Master' }}
+                        </h3>
+                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+                    </div>
+                    
+                    <div class="p-6 overflow-auto custom-scrollbar bg-slate-50/50 flex-1">
+                        <div v-if="isEditing">
+                            <form @submit.prevent="saveItem" class="space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-700 mb-1">Barcode / ID Unik <span class="text-red-500">*</span></label>
+                                        <input v-model="formItem.barcode" type="text" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase font-mono bg-slate-100" readonly>
+                                        <p class="text-[10px] text-slate-500 mt-1">Barcode tidak dapat diubah setelah disimpan.</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-700 mb-1">Nama Barang Lengkap <span class="text-red-500">*</span></label>
+                                        <input v-model="formItem.name" type="text" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-700 mb-1">Kategori <span class="text-red-500">*</span></label>
+                                        <input v-model="formItem.category" list="catList" type="text" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase">
+                                        <datalist id="catList">
+                                            <option value="CHEMICAL"></option>
+                                            <option value="FUEL & GAS"></option>
+                                            <option value="CONSUMABLE"></option>
+                                            <option value="SPAREPART"></option>
+                                        </datalist>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-700 mb-1">Lokasi Gudang <span class="text-red-500">*</span></label>
+                                        <select v-if="currentUser.role === 'Super Admin'" v-model="formItem.location" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase">
+                                            <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option>
+                                        </select>
+                                        <input v-else v-model="formItem.location" type="text" required class="w-full px-4 py-2 border border-slate-300 rounded-xl bg-slate-100 uppercase" readonly>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-black text-slate-700 mb-1">Stok Awal <span class="text-red-500">*</span></label>
+                                            <input v-model.number="formItem.qty" type="number" step="0.01" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-right font-bold">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-black text-slate-700 mb-1">Satuan <span class="text-red-500">*</span></label>
+                                            <input v-model="formItem.unit" type="text" placeholder="PCS" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-700 mb-1">Batas Minimum (Alert) <span class="text-red-500">*</span></label>
+                                        <input v-model.number="formItem.minQty" type="number" step="0.01" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-right font-bold bg-orange-50 text-orange-700">
+                                    </div>
+                                </div>
+                                <div class="pt-4 border-t border-slate-200 mt-6 flex justify-end gap-3">
+                                    <button type="button" @click="closeModal" class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors">Batal</button>
+                                    <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-black shadow-md flex items-center transition-colors" :disabled="isProcessing">
+                                        <i v-if="isProcessing" class="ph ph-spinner animate-spin mr-2"></i>
+                                        <i v-else class="ph-bold ph-floppy-disk mr-2"></i>
+                                        Simpan Perubahan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div v-else>
+                            <form @submit.prevent="saveItem" class="space-y-4">
+                                <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm bg-white">
+                                    <table class="w-full text-left whitespace-nowrap min-w-[900px]">
+                                        <thead class="bg-slate-100 text-xs font-black text-slate-600 uppercase">
+                                            <tr>
+                                                <th class="p-3">Barcode <span class="text-red-500">*</span></th>
+                                                <th class="p-3">Nama Barang <span class="text-red-500">*</span></th>
+                                                <th class="p-3 w-32">Kategori</th>
+                                                <th class="p-3 w-40">Lokasi Gudang</th>
+                                                <th class="p-3 w-24">Qty Awal</th>
+                                                <th class="p-3 w-24">Min Alert</th>
+                                                <th class="p-3 w-24">Satuan</th>
+                                                <th class="p-3 w-10 text-center"><i class="ph-bold ph-trash text-slate-400"></i></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            <tr v-for="(item, index) in addFormItems" :key="index" class="hover:bg-slate-50 group">
+                                                <td class="p-2"><input v-model="item.barcode" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase font-mono text-xs" placeholder="SCAN / KETIK"></td>
+                                                <td class="p-2"><input v-model="item.name" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase text-xs" placeholder="NAMA ITEM"></td>
+                                                <td class="p-2">
+                                                    <input v-model="item.category" list="catListBulk" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase text-xs">
+                                                    <datalist id="catListBulk">
+                                                        <option value="CHEMICAL"></option>
+                                                        <option value="FUEL & GAS"></option>
+                                                        <option value="CONSUMABLE"></option>
+                                                        <option value="SPAREPART"></option>
+                                                    </datalist>
+                                                </td>
+                                                <td class="p-2">
+                                                    <select v-if="currentUser.role === 'Super Admin'" v-model="item.location" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase text-xs">
+                                                        <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option>
+                                                    </select>
+                                                    <input v-else v-model="item.location" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-100 uppercase text-xs" readonly>
+                                                </td>
+                                                <td class="p-2"><input v-model.number="item.qty" type="number" step="0.01" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 text-right text-xs"></td>
+                                                <td class="p-2"><input v-model.number="item.minQty" type="number" step="0.01" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 text-right text-xs bg-orange-50 text-orange-700"></td>
+                                                <td class="p-2"><input v-model="item.unit" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase text-xs text-center" placeholder="PCS"></td>
+                                                <td class="p-2 text-center">
+                                                    <button type="button" @click="removeNewItemRow(index)" class="text-slate-300 hover:text-red-500 transition-colors p-1" :disabled="addFormItems.length === 1"><i class="ph-bold ph-x-circle text-lg"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="flex justify-between items-center mt-4">
+                                    <button type="button" @click="addNewItemRow" class="px-4 py-2 bg-brand-50 text-brand-700 border border-brand-200 rounded-xl font-bold text-sm hover:bg-brand-100 transition-colors flex items-center"><i class="ph-bold ph-plus mr-1.5"></i> Tambah Baris</button>
+                                    <div class="flex gap-3">
+                                        <button type="button" @click="closeModal" class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors">Batal</button>
+                                        <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-black shadow-md flex items-center transition-colors" :disabled="isProcessing">
+                                            <i v-if="isProcessing" class="ph ph-spinner animate-spin mr-2"></i>
+                                            <i v-else class="ph-bold ph-floppy-disk mr-2"></i>
+                                            Simpan Semua
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
     </div>
 
     <!-- VUE JS APP LOGIC -->
@@ -1516,8 +1701,7 @@
                                 maintainAspectRatio: false, 
                                 animation: { duration: 1500, easing: 'easeOutQuart' },
                                 layout: { 
-                                    // 🔴 FIX 1: Menghapus ruang kosong raksasa di atap kanvas agar judul Legend naik ke atas
-                                    padding: { top: 10, right: 30, left: 15, bottom: 10 } 
+                                    padding: { top: 60, right: 30, left: 15, bottom: 10 } 
                                 }, 
                                 plugins: { 
                                     legend: { 
@@ -1526,8 +1710,7 @@
                                         labels: { 
                                             usePointStyle: true, 
                                             font: { weight: 'bold', size: 13 },
-                                            // 🔴 FIX 2: Mengurangi margin bawah legend agar garis tidak terlalu tertekan
-                                            padding: 15 
+                                            padding: 25 
                                         } 
                                     }, 
                                     tooltip: { 
@@ -1552,8 +1735,7 @@
                                 scales: { 
                                     y: { 
                                         beginAtZero: true, 
-                                        // 🔴 FIX 3: Mengurangi batas atas skala dari 80% menjadi 35% agar grafik menjulang elegan
-                                        grace: '35%', 
+                                        grace: '80%', 
                                         grid: { borderDash: [4, 4], color: '#e2e8f0' } 
                                     }, 
                                     x: { 
@@ -1716,6 +1898,11 @@
                     await new Promise(r => setTimeout(r, 350)); 
                     
                     try {
+                        const devices = await Html5Qrcode.getCameras();
+                        if (!devices || devices.length === 0) {
+                            throw new Error("Tidak ada kamera fisik yang ditemukan di perangkat Anda.");
+                        }
+
                         if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
                         const onScanSuccess = (decodedText) => { scannedCode.value = decodedText; closeCamera(); handleScan(); };
                         
@@ -1726,20 +1913,15 @@
                         try { 
                             await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, undefined); 
                         } catch (err1) { 
-                            console.warn("Kamera belakang gagal:", err1);
+                            console.warn("Kamera belakang gagal, mencoba kamera lain...", err1);
                             try { 
                                 await html5QrCode.start({ facingMode: "user" }, config, onScanSuccess, undefined); 
                             } catch (err2) { 
-                                console.warn("Kamera depan gagal:", err2);
+                                console.warn("Kamera depan gagal, mencoba kamera default pertama...", err2);
                                 try {
-                                    const devices = await Html5Qrcode.getCameras();
-                                    if (devices && devices.length > 0) {
-                                        await html5QrCode.start(devices[0].id, config, onScanSuccess, undefined);
-                                    } else {
-                                        throw new Error("Tidak ada perangkat kamera yang terdeteksi.");
-                                    }
+                                    await html5QrCode.start(devices[0].id, config, onScanSuccess, undefined);
                                 } catch (err3) {
-                                    throw new Error("Kamera gagal diakses. Browser mungkin memblokir akses atau kamera digunakan aplikasi lain.");
+                                    throw new Error("Kamera gagal diakses. Pastikan izin kamera telah diberikan di browser.");
                                 }
                             } 
                         }
