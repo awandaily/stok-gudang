@@ -223,7 +223,7 @@
                                 <div class="flex items-center gap-2 w-full sm:w-auto">
                                     <select v-model="selectedTrendItemName" class="w-full sm:w-56 px-3 py-1.5 border rounded-lg text-xs font-bold uppercase outline-none cursor-pointer bg-white">
                                         <option value="" disabled selected>PILIH BARANG...</option>
-                                        <option v-for="item in baseInventory" :key="item.barcode" :value="item.name">{{ cleanItemNameText(item.name) }}</option>
+                                        <option v-for="name in uniqueItemNames" :key="name" :value="name">{{ cleanItemNameText(name) }}</option>
                                     </select>
                                     <select v-model="trendFilter" class="px-2 py-1.5 border rounded-lg text-xs font-bold outline-none cursor-pointer bg-white">
                                         <option value="day">7 Hari Terakhir</option>
@@ -232,7 +232,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div v-if="!selectedTrendItemName || !baseInventory.find(i => String(i.name).toUpperCase() === String(selectedTrendItemName).toUpperCase())" class="flex-1 flex flex-col items-center justify-center min-h-[280px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                            <div v-if="!selectedTrendItemName" class="flex-1 flex flex-col items-center justify-center min-h-[280px] bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
                                 <i class="ph-duotone ph-chart-line-up text-4xl text-slate-300 mb-2"></i>
                                 <p class="text-slate-400 text-xs font-medium">Pilih nama barang untuk melihat grafik.</p>
                             </div>
@@ -295,10 +295,11 @@
                                             <th class="p-3 sm:p-4 font-black text-center bg-blue-50 text-blue-800">Stok Sebelumnya</th>
                                             <th class="p-3 sm:p-4 font-black text-center bg-green-50 text-green-800">Actual</th>
                                             <th class="p-3 sm:p-4 font-black">Waktu & PIC</th>
+                                            <th class="p-3 sm:p-4 font-black text-center">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 text-xs sm:text-sm bg-white">
-                                        <tr v-if="dailyCheckStatus.length === 0"><td colspan="7" class="p-10 text-center text-slate-500">Tidak ada barang sesuai filter.</td></tr>
+                                        <tr v-if="dailyCheckStatus.length === 0"><td colspan="8" class="p-10 text-center text-slate-500">Tidak ada barang sesuai filter.</td></tr>
                                         <tr v-for="item in dailyCheckStatus" :key="item.barcode" class="hover:bg-slate-50 transition-colors" :class="item.isChecked ? 'bg-white' : 'bg-orange-50/30'">
                                             <td class="p-3 sm:p-4">
                                                 <div v-if="item.isChecked" class="inline-flex px-2.5 py-1.5 bg-green-100 text-green-700 text-xs rounded-lg font-black border border-green-200 shadow-sm"><i class="ph-bold ph-check-circle mr-1.5 text-base"></i> SUDAH DICEK</div>
@@ -326,6 +327,11 @@
                                                     <span class="text-[10px] text-slate-500 font-mono mt-0.5 flex items-center"><i class="ph-fill ph-clock mr-1"></i> Pukul {{ item.checkedTime }}</span>
                                                 </div>
                                                 <span v-else class="text-slate-300 text-xs italic">-</span>
+                                            </td>
+                                            <td class="p-3 sm:p-4 text-center">
+                                                <button v-if="item.isChecked" @click="openEditLogByItem(item)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Revisi Input Roving">
+                                                    <i class="ph-bold ph-pencil-simple text-base"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -630,6 +636,7 @@
                                             <th @click="toggleSort('log', 'oldQty')" class="p-3 font-black cursor-pointer text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Stok Sebelumnya</th>
                                             <th @click="toggleSort('log', 'newQty')" class="p-3 font-black cursor-pointer text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Actual</th>
                                             <th @click="toggleSort('log', 'variance')" class="p-3 font-black cursor-pointer text-right sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Selisih</th>
+                                            <th class="p-3 font-black text-center sticky top-0 z-20 bg-slate-50 shadow-[0_1px_0_0_#e2e8f0]">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 text-xs sm:text-sm bg-white">
@@ -642,6 +649,11 @@
                                             <td class="p-3 text-center text-slate-400 font-bold line-through">{{ log.oldQty }}</td>
                                             <td class="p-3 text-center font-black text-brand-700">{{ log.newQty }}</td>
                                             <td class="p-3 text-right font-black"><span v-if="log.variance === 0" class="text-slate-400">0</span><span v-else :class="log.variance > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="px-2 py-1 rounded-lg border">{{ log.variance > 0 ? '+' : '' }}{{ log.variance }}</span></td>
+                                            <td class="p-3 text-center">
+                                                <button @click="openEditLog(log)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Revisi Roving">
+                                                    <i class="ph-bold ph-pencil-simple text-base"></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -764,214 +776,47 @@
             </main>
         </div>
 
-        <!-- MOBILE BOTTOM NAVIGATION -->
-        <div class="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 px-2 pb-safe pt-2 flex justify-between items-center shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-            <button v-if="menuVisibility.dashboard" @click="changeTab('dashboard')" class="flex flex-col items-center p-2 flex-1 transition-colors" :class="activeTab === 'dashboard' ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'">
-                <i class="text-2xl mb-1" :class="activeTab === 'dashboard' ? 'ph-fill ph-chart-line-up' : 'ph-duotone ph-chart-line-up'"></i>
-                <span class="text-[9px] font-bold">Beranda</span>
-            </button>
-            <button v-if="menuVisibility.recap" @click="changeTab('recap')" class="flex flex-col items-center p-2 flex-1 transition-colors" :class="activeTab === 'recap' ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'">
-                <i class="text-2xl mb-1" :class="activeTab === 'recap' ? 'ph-fill ph-list-numbers' : 'ph-duotone ph-list-numbers'"></i>
-                <span class="text-[9px] font-bold">Rekap</span>
-            </button>
-            
-            <!-- FLOATING SCAN BUTTON -->
-            <div v-if="menuVisibility.scan" class="flex-shrink-0 relative -top-6">
-                <button @click="changeTab('scan')" class="w-14 h-14 bg-gradient-to-br from-brand-400 to-brand-600 rounded-full flex items-center justify-center text-white shadow-lg border-4 border-slate-50 transform transition-transform" :class="activeTab === 'scan' ? 'scale-110 shadow-brand-500/50' : 'hover:scale-105'">
-                    <i class="text-3xl" :class="activeTab === 'scan' ? 'ph-bold ph-barcode' : 'ph-duotone ph-barcode'"></i>
-                </button>
-            </div>
-
-            <button v-if="menuVisibility.inventory" @click="changeTab('inventory')" class="flex flex-col items-center p-2 flex-1 transition-colors" :class="activeTab === 'inventory' ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'">
-                <i class="text-2xl mb-1" :class="activeTab === 'inventory' ? 'ph-fill ph-database' : 'ph-duotone ph-database'"></i>
-                <span class="text-[9px] font-bold">Master</span>
-            </button>
-            <button @click="changeTab('settings')" class="flex flex-col items-center p-2 flex-1 transition-colors" :class="activeTab === 'settings' ? 'text-slate-800' : 'text-slate-400 hover:text-slate-600'">
-                <i class="text-2xl mb-1" :class="activeTab === 'settings' ? 'ph-fill ph-gear' : 'ph-duotone ph-gear'"></i>
-                <span class="text-[9px] font-bold">Setting</span>
-            </button>
-        </div>
-
-        <!-- 🔴 MODAL PREVIEW CHECK SHEET RESMI 🔴 -->
+        <!-- 🔴 MODAL REVISI ROVING (EDIT LOG) 🔴 -->
         <transition name="fade-slide">
-            <div v-if="showCheckSheetModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-[95vw] sm:max-w-[90vw] max-h-[95vh] overflow-hidden flex flex-col border border-slate-200 animate-scale-in">
-                    <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                        <h3 class="font-black text-lg text-slate-800 flex items-center"><div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg mr-3"><i class="ph-bold ph-table text-xl"></i></div>Preview Check Sheet Resmi</h3>
-                        <button @click="showCheckSheetModal = false" class="text-slate-400 hover:text-red-500 p-2 rounded-xl transition-all"><i class="ph-bold ph-x text-lg"></i></button>
-                    </div>
-                    <div class="p-4 bg-white border-b border-slate-100 flex flex-col sm:flex-row justify-between gap-4 items-center z-10">
-                        <div class="flex items-center gap-3">
-                            <label class="font-bold text-sm text-slate-600">Bulan Laporan:</label>
-                            <input type="month" v-model="checkSheetMonth" class="px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-800 shadow-inner cursor-pointer">
-                        </div>
-                        <button @click="downloadCheckSheetExcel" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black shadow-md flex items-center transition-all">
-                            <i class="ph-bold ph-file-xls mr-2 text-lg"></i> Download Full Excel (.xlsx)
-                        </button>
-                    </div>
-                    <div class="flex-1 overflow-auto p-4 sm:p-6 bg-slate-200/50 custom-scrollbar relative">
-                        <div v-if="checkSheetData" class="bg-white p-6 shadow-md border border-slate-300 min-w-max mx-auto relative">
-                            <div class="text-center font-black text-xl mb-6 uppercase text-slate-800 tracking-wide">
-                                CHECK SHEET PENGECEKAN STOCK CHEMICAL<br>
-                                <span class="text-base font-bold text-slate-600 mt-1 block">Bulan: {{ checkSheetData.monthName }}</span>
-                            </div>
-                            <table class="border-collapse border-2 border-slate-800 text-[10px] sm:text-xs text-center w-full">
-                                <thead>
-                                    <tr class="bg-slate-100">
-                                        <th rowspan="3" class="border border-slate-800 p-2 bg-slate-200">TGL</th>
-                                        <th rowspan="3" class="border border-slate-800 p-2 bg-slate-200">Jam</th>
-                                        <th v-for="(col, idx) in checkSheetData.template" :key="'h1-'+idx" :colspan="col.cols.length" class="border border-slate-800 p-2 font-bold whitespace-nowrap bg-slate-200">{{ col.title }}</th>
-                                        <th rowspan="3" class="border border-slate-800 p-2 bg-slate-200">PIC</th>
-                                    </tr>
-                                    <tr class="bg-slate-50">
-                                        <template v-for="(col, idx) in checkSheetData.template" :key="'h2-'+idx">
-                                            <th v-for="(cName, cIdx) in col.cols" :key="'h2c-'+idx+'-'+cIdx" class="border border-slate-800 p-1.5 font-bold whitespace-nowrap text-slate-700">{{ cName }}</th>
-                                        </template>
-                                    </tr>
-                                    <tr>
-                                        <template v-for="(col, idx) in checkSheetData.template" :key="'h3-'+idx">
-                                            <th v-for="(uName, uIdx) in col.units" :key="'h3u-'+idx+'-'+uIdx" class="border border-slate-800 p-1 italic text-slate-500 font-medium">{{ uName }}</th>
-                                        </template>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(row, rIdx) in checkSheetData.rows" :key="'r-'+rIdx" class="hover:bg-amber-50">
-                                        <td v-for="(cell, cIdx) in row" :key="'c-'+rIdx+'-'+cIdx" class="border border-slate-800 p-1.5 whitespace-nowrap" :class="{'font-bold text-indigo-700 bg-indigo-50/30': cIdx > 1 && cIdx < row.length-1 && cell !== ''}">{{ cell }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </transition>
-
-        <!-- 🔴 MODAL TAMBAH / EDIT BARANG 🔴 -->
-        <transition name="fade-slide">
-            <div v-if="showModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-                <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-scale-in">
+            <div v-if="showEditLogModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                <div class="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col animate-scale-in">
                     <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
-                        <h3 class="font-black text-lg flex items-center">
-                            <i class="ph-duotone mr-2 text-xl text-brand-600" :class="isEditing ? 'ph-pencil-simple' : 'ph-plus-circle'"></i>
-                            {{ isEditing ? 'Edit Data Master' : 'Input Multiple Data Master' }}
+                        <h3 class="font-black text-lg flex items-center text-blue-700">
+                            <i class="ph-duotone ph-pencil-simple mr-2 text-xl"></i>
+                            Revisi Hasil Roving
                         </h3>
-                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+                        <button @click="showEditLogModal = false" class="text-slate-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
                     </div>
                     
-                    <div class="p-6 overflow-auto custom-scrollbar bg-slate-50/50 flex-1">
-                        <div v-if="isEditing">
-                            <form @submit.prevent="saveItem" class="space-y-4">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-black text-slate-700 mb-1">Barcode / ID Unik <span class="text-red-500">*</span></label>
-                                        <input v-model="formItem.barcode" type="text" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase font-mono bg-slate-100" readonly>
-                                        <p class="text-[10px] text-slate-500 mt-1">Barcode tidak dapat diubah setelah disimpan.</p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black text-slate-700 mb-1">Nama Barang Lengkap <span class="text-red-500">*</span></label>
-                                        <input v-model="formItem.name" type="text" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black text-slate-700 mb-1">Kategori <span class="text-red-500">*</span></label>
-                                        <input v-model="formItem.category" list="catList" type="text" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase">
-                                        <datalist id="catList">
-                                            <option value="CHEMICAL"></option>
-                                            <option value="FUEL & GAS"></option>
-                                            <option value="CONSUMABLE"></option>
-                                            <option value="SPAREPART"></option>
-                                        </datalist>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black text-slate-700 mb-1">Lokasi Gudang <span class="text-red-500">*</span></label>
-                                        <select v-if="currentUser.role === 'Super Admin'" v-model="formItem.location" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase">
-                                            <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option>
-                                        </select>
-                                        <input v-else v-model="formItem.location" type="text" required class="w-full px-4 py-2 border border-slate-300 rounded-xl bg-slate-100 uppercase" readonly>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-xs font-black text-slate-700 mb-1">Stok Awal <span class="text-red-500">*</span></label>
-                                            <input v-model.number="formItem.qty" type="number" step="0.01" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-right font-bold">
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs font-black text-slate-700 mb-1">Satuan <span class="text-red-500">*</span></label>
-                                            <input v-model="formItem.unit" type="text" placeholder="PCS" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none uppercase">
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-black text-slate-700 mb-1">Batas Minimum (Alert) <span class="text-red-500">*</span></label>
-                                        <input v-model.number="formItem.minQty" type="number" step="0.01" required class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-right font-bold bg-orange-50 text-orange-700">
-                                    </div>
+                    <div class="p-6 bg-slate-50/50">
+                        <form @submit.prevent="submitEditLog" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-black text-slate-700 mb-1">Nama Barang</label>
+                                <input :value="editLogForm.name" type="text" class="w-full px-4 py-2 border border-slate-200 rounded-xl bg-slate-100 font-bold uppercase text-slate-500" readonly>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-black text-slate-700 mb-1">Stok Sebelumnya</label>
+                                    <input :value="editLogForm.oldQty" type="number" class="w-full px-4 py-2 border border-slate-200 rounded-xl bg-slate-100 text-right font-bold text-slate-500" readonly>
                                 </div>
-                                <div class="pt-4 border-t border-slate-200 mt-6 flex justify-end gap-3">
-                                    <button type="button" @click="closeModal" class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors">Batal</button>
-                                    <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-black shadow-md flex items-center transition-colors" :disabled="isProcessing">
-                                        <i v-if="isProcessing" class="ph ph-spinner animate-spin mr-2"></i>
-                                        <i v-else class="ph-bold ph-floppy-disk mr-2"></i>
-                                        Simpan Perubahan
-                                    </button>
+                                <div>
+                                    <label class="block text-xs font-black text-blue-700 mb-1">Sisa Aktual Baru <span class="text-red-500">*</span></label>
+                                    <input v-model.number="editLogForm.newQty" type="number" step="0.01" required class="w-full px-4 py-2 border border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-right font-black text-blue-700 bg-blue-50/30">
                                 </div>
-                            </form>
-                        </div>
-                        
-                        <div v-else>
-                            <form @submit.prevent="saveItem" class="space-y-4">
-                                <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm bg-white">
-                                    <table class="w-full text-left whitespace-nowrap min-w-[900px]">
-                                        <thead class="bg-slate-100 text-xs font-black text-slate-600 uppercase">
-                                            <tr>
-                                                <th class="p-3">Barcode <span class="text-red-500">*</span></th>
-                                                <th class="p-3">Nama Barang <span class="text-red-500">*</span></th>
-                                                <th class="p-3 w-32">Kategori</th>
-                                                <th class="p-3 w-40">Lokasi Gudang</th>
-                                                <th class="p-3 w-24">Qty Awal</th>
-                                                <th class="p-3 w-24">Min Alert</th>
-                                                <th class="p-3 w-24">Satuan</th>
-                                                <th class="p-3 w-10 text-center"><i class="ph-bold ph-trash text-slate-400"></i></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-100">
-                                            <tr v-for="(item, index) in addFormItems" :key="index" class="hover:bg-slate-50 group">
-                                                <td class="p-2"><input v-model="item.barcode" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase font-mono text-xs" placeholder="SCAN / KETIK"></td>
-                                                <td class="p-2"><input v-model="item.name" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase text-xs" placeholder="NAMA ITEM"></td>
-                                                <td class="p-2">
-                                                    <input v-model="item.category" list="catListBulk" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase text-xs">
-                                                    <datalist id="catListBulk">
-                                                        <option value="CHEMICAL"></option>
-                                                        <option value="FUEL & GAS"></option>
-                                                        <option value="CONSUMABLE"></option>
-                                                        <option value="SPAREPART"></option>
-                                                    </datalist>
-                                                </td>
-                                                <td class="p-2">
-                                                    <select v-if="currentUser.role === 'Super Admin'" v-model="item.location" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase text-xs">
-                                                        <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option>
-                                                    </select>
-                                                    <input v-else v-model="item.location" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-100 uppercase text-xs" readonly>
-                                                </td>
-                                                <td class="p-2"><input v-model.number="item.qty" type="number" step="0.01" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 text-right text-xs"></td>
-                                                <td class="p-2"><input v-model.number="item.minQty" type="number" step="0.01" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 text-right text-xs bg-orange-50 text-orange-700"></td>
-                                                <td class="p-2"><input v-model="item.unit" type="text" required class="w-full px-3 py-1.5 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 uppercase text-xs text-center" placeholder="PCS"></td>
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="removeNewItemRow(index)" class="text-slate-300 hover:text-red-500 transition-colors p-1" :disabled="addFormItems.length === 1"><i class="ph-bold ph-x-circle text-lg"></i></button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="flex justify-between items-center mt-4">
-                                    <button type="button" @click="addNewItemRow" class="px-4 py-2 bg-brand-50 text-brand-700 border border-brand-200 rounded-xl font-bold text-sm hover:bg-brand-100 transition-colors flex items-center"><i class="ph-bold ph-plus mr-1.5"></i> Tambah Baris</button>
-                                    <div class="flex gap-3">
-                                        <button type="button" @click="closeModal" class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors">Batal</button>
-                                        <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-black shadow-md flex items-center transition-colors" :disabled="isProcessing">
-                                            <i v-if="isProcessing" class="ph ph-spinner animate-spin mr-2"></i>
-                                            <i v-else class="ph-bold ph-floppy-disk mr-2"></i>
-                                            Simpan Semua
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
+                            </div>
+                            <div v-if="editLogForm.isNitrogen">
+                                <label class="block text-xs font-black text-purple-700 mb-1">Pressure Aktual (Bar) <span class="text-red-500">*</span></label>
+                                <input v-model.number="editLogForm.newPressure" type="number" step="0.01" required class="w-full px-4 py-2 border border-purple-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-right font-black text-purple-700 bg-purple-50/30">
+                            </div>
+                            <div class="pt-4 border-t border-slate-200 mt-6 flex justify-end gap-3">
+                                <button type="button" @click="showEditLogModal = false" class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors">Batal</button>
+                                <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black shadow-md flex items-center transition-colors" :disabled="isProcessing">
+                                    <i v-if="isProcessing" class="ph ph-spinner animate-spin mr-2"></i>
+                                    <i v-else class="ph-bold ph-floppy-disk mr-2"></i>
+                                    Simpan Revisi
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -981,6 +826,12 @@
 
     <!-- VUE JS APP LOGIC -->
     <script>
+        const AppSwal = {
+            fire: function(...args) { return window.Swal ? window.Swal.fire(...args) : Promise.resolve({isConfirmed: false}); },
+            mixin: function(...args) { return window.Swal ? window.Swal.mixin(...args) : AppSwal; },
+            showLoading: function(...args) { if(window.Swal) window.Swal.showLoading(...args); }
+        };
+
         setTimeout(() => {
             const appDiv = document.getElementById('app');
             if (appDiv && !appDiv.hasAttribute('data-v-app')) {
@@ -991,11 +842,13 @@
 
         const { createApp, ref, computed, onMounted, onUnmounted, nextTick, watch } = Vue;
         
-        try { Chart.register(ChartDataLabels); } catch(e) { console.warn("ChartJS plugin skipped."); }
+        try { if (typeof window !== 'undefined' && window.Chart) window.Chart.register(window.ChartDataLabels); } catch(e) { console.warn("ChartJS plugin skipped."); }
         
         // ==========================================
         // KONFIGURASI API KEY (URL DEPLOY CODE.GS)
         // ==========================================
+        // KOSONGKAN string di bawah ini ("") untuk menggunakan OFFLINE MODE (Data tersimpan di memori sementara).
+        // Jika Google Apps Script sudah di-deploy dengan benar (Who has access: Anyone), masukkan URL-nya ke dalam tanda kutip.
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
 
         const reportTemplateDef = [
@@ -1094,6 +947,9 @@
                 const showModal = ref(false);
                 const isEditing = ref(false);
                 
+                const showEditLogModal = ref(false);
+                const editLogForm = ref({ id: null, barcode: '', name: '', oldQty: 0, newQty: 0, newPressure: null, isNitrogen: false });
+                
                 const showCheckSheetModal = ref(false);
                 const checkSheetMonth = ref(new Date().toISOString().slice(0,7));
                 
@@ -1115,7 +971,8 @@
                 const logDateInput = ref(null);
 
                 const isSyncing = ref(false);
-                const isPreview = !GAS_API_URL || !GAS_API_URL.startsWith("http");
+                const isPreview = ref(!GAS_API_URL || !GAS_API_URL.startsWith("http"));
+                let mockInitialized = false;
 
                 const currentDateStr = computed(() => currentTime.value.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }));
                 const currentTimeStr = computed(() => currentTime.value.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
@@ -1170,6 +1027,7 @@
 
                         return {
                             ...item,
+                            id: latestLog ? latestLog.id : null,
                             isChecked: !!latestLog,
                             checkedQty: latestLog ? latestLog.newQty : null,
                             checkedTime: latestLog ? new Date(latestLog.date).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) : null,
@@ -1375,13 +1233,14 @@
                     return new Date(dateStr.trim()).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
                 };
                 
-                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
-                const showToast = (msg, type='success') => { Toast.fire({ icon: type, title: msg }); };
+                const showToast = (msg, type='success') => { 
+                    AppSwal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true }).fire({ icon: type, title: msg }); 
+                };
 
                 const handleLogoUpload = (event) => {
                     const file = event.target.files[0];
                     if (!file) return;
-                    if (file.size > 1024 * 1024) { Swal.fire({ title: 'Gagal', text: 'Maksimal ukuran logo adalah 1 MB.', icon: 'warning' }); return; }
+                    if (file.size > 1024 * 1024) { AppSwal.fire({ title: 'Gagal', text: 'Maksimal ukuran logo adalah 1 MB.', icon: 'warning' }); return; }
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         companyLogo.value = e.target.result;
@@ -1398,12 +1257,13 @@
                 };
 
                 const initFlatpickrSafe = () => {
+                    if (typeof window === 'undefined' || !window.flatpickr) return;
                     if (activeTab.value === 'recap') {
                         const el = document.getElementById('recapDateInputId');
                         if (el) {
                             if (fpRecap) fpRecap.destroy();
                             let defDate = selectedRecapDate.value ? (selectedRecapDate.value.includes(' to ') ? selectedRecapDate.value.split(' to ') : selectedRecapDate.value.split(' - ')) : null;
-                            fpRecap = flatpickr(el, { mode: "range", dateFormat: "Y-m-d", locale: "id", disableMobile: true, defaultDate: defDate, onChange: function(sd, ds) { selectedRecapDate.value = ds; } });
+                            fpRecap = window.flatpickr(el, { mode: "range", dateFormat: "Y-m-d", locale: "id", disableMobile: true, defaultDate: defDate, onChange: function(sd, ds) { selectedRecapDate.value = ds; } });
                         }
                     }
                     if (activeTab.value === 'history') {
@@ -1411,7 +1271,7 @@
                         if (el) {
                             if (fpLog) fpLog.destroy();
                             let defDate = logFilterDate.value ? (logFilterDate.value.includes(' to ') ? logFilterDate.value.split(' to ') : logFilterDate.value.split(' - ')) : null;
-                            fpLog = flatpickr(el, { mode: "range", dateFormat: "Y-m-d", locale: "id", disableMobile: true, defaultDate: defDate, onChange: function(sd, ds) { logFilterDate.value = ds; } });
+                            fpLog = window.flatpickr(el, { mode: "range", dateFormat: "Y-m-d", locale: "id", disableMobile: true, defaultDate: defDate, onChange: function(sd, ds) { logFilterDate.value = ds; } });
                         }
                     }
                 };
@@ -1500,7 +1360,7 @@
                     const lowCount = lowStockItems.value.length;
                     if (lowCount > 0 && !hasAlerted) {
                         setTimeout(() => {
-                            Swal.fire({
+                            AppSwal.fire({
                                 title: '⚠️ Alert Request Kedatangan!',
                                 html: `Terdapat <b style="color:#ef4444; font-size:1.2em;">${lowCount} barang</b> di gudang Anda yang sudah mencapai batas minimum stok.<br><br>Harap segera lakukan pengecekan dan pengajuan <b>Request Kedatangan</b>.`,
                                 icon: 'warning', confirmButtonText: 'Lihat Daftar Barang', confirmButtonColor: '#ef4444',
@@ -1515,7 +1375,7 @@
                     clearTimeout(idleTimeout);
                     if (isLoggedIn.value) {
                         idleTimeout = setTimeout(() => {
-                            Swal.fire({ title: 'Sesi Berakhir', text: 'Anda telah diam terlalu lama. Sistem Logout otomatis untuk keamanan.', icon: 'info' });
+                            AppSwal.fire({ title: 'Sesi Berakhir', text: 'Anda telah diam terlalu lama. Sistem Logout otomatis untuk keamanan.', icon: 'info' });
                             logout(true);
                         }, 30 * 60 * 1000);
                     }
@@ -1525,32 +1385,166 @@
                 window.addEventListener('keypress', resetIdleTimer);
                 window.addEventListener('touchstart', resetIdleTimer);
 
-                const apiCall = async (action, payload = {}) => {
-                    if (isPreview) {
-                        Swal.fire({ title: 'URL API Belum Diatur', text: 'Silakan masukkan URL API ke variabel GAS_API_URL di dalam file HTML.', icon: 'error' });
-                        return { success: false, error: "URL API Belum Diatur" }; 
+                const apiCall = async (action, payload = {}, isSilent = false) => {
+                    if (isPreview.value) {
+                        await new Promise(r => setTimeout(r, 400));
+                        if (!mockInitialized) {
+                            mockInitialized = true;
+                            inventory.value = [
+                                { barcode: "SLR-001", name: "SOLAR", category: "FUEL", qty: 50, minQty: 10, unit: "M3", location: "ALL" },
+                                { barcode: "N2-001", name: "NITROGEN (N2)", category: "CHEMICAL", qty: 2, minQty: 5, unit: "M3", location: "ALL" },
+                                { barcode: "PAC-001", name: "PAC @ 25 KG", category: "CHEMICAL", qty: 25, minQty: 10, unit: "BAG", location: "ALL" }
+                            ];
+                            settingsData.value = [{ Location: "ALL", EmailPIC: "admin@test.com" }];
+                        }
+
+                        switch(action) {
+                            case 'authenticateUser':
+                                if (payload.username.toLowerCase() === 'admin') {
+                                    setTimeout(() => {
+                                        AppSwal.fire({ title: 'Memasuki Mode Offline', text: 'URL Google API kosong atau tidak valid. Aplikasi berjalan menggunakan memori lokal untuk keperluan UAT.', icon: 'info', toast: true, position: 'bottom-end', showConfirmButton: false, timer: 5000 });
+                                    }, 500);
+                                    return { success: true, data: { username: 'Administrator', role: 'Super Admin', location: 'ALL' }, token: 'mock-token' };
+                                }
+                                return { success: false, error: 'Username salah (Gunakan: admin)' };
+                            case 'getInitialData':
+                                return { success: true, data: { inventory: inventory.value, transactions: transactions.value, settings: settingsData.value, users: usersData.value, appSettings: [] } };
+                            case 'submitOpnameUpdate':
+                                const opnameIdx = inventory.value.findIndex(i => i.barcode === payload.barcode);
+                                if (opnameIdx > -1) inventory.value[opnameIdx].qty = payload.newQty;
+                                transactions.value.push(payload);
+                                return { success: true, data: "Opname Tersimpan." };
+                            case 'editLogTransaction':
+                                const logIdx = transactions.value.findIndex(t => t.id === payload.id);
+                                if (logIdx > -1) {
+                                    const oldLog = transactions.value[logIdx];
+                                    let finalName = oldLog.name;
+                                    if (payload.newPressure !== null && payload.newPressure !== undefined) {
+                                        finalName = finalName.replace(/\[Pressure: .*? Bar\]/ig, '').trim() + ` [Pressure: ${payload.newPressure} Bar]`;
+                                    }
+                                    transactions.value[logIdx].name = finalName;
+                                    transactions.value[logIdx].newQty = payload.newQty;
+                                    transactions.value[logIdx].variance = payload.newQty - oldLog.oldQty;
+                                    const invIdx = inventory.value.findIndex(i => i.barcode === oldLog.barcode);
+                                    if (invIdx > -1) inventory.value[invIdx].qty = payload.newQty;
+                                }
+                                return { success: true, data: "Log direvisi." };
+                            case 'saveMasterItem':
+                                if (payload.isEditing) {
+                                    const iIdx = inventory.value.findIndex(i => i.barcode === payload.itemData.barcode);
+                                    if (iIdx > -1) inventory.value[iIdx] = payload.itemData;
+                                } else {
+                                    inventory.value.push(payload.itemData);
+                                }
+                                return { success: true, data: "Master data disimpan." };
+                            case 'addMasterItemsBulk':
+                                payload.itemsData.forEach(item => inventory.value.push(item));
+                                return { success: true, data: "Bulk data ditambahkan." };
+                            case 'deleteMasterItem':
+                                inventory.value = inventory.value.filter(i => i.barcode !== payload.barcode);
+                                return { success: true, data: "Item dihapus." };
+                            case 'deleteMasterItemsBulk':
+                                inventory.value = inventory.value.filter(i => !payload.barcodes.includes(i.barcode));
+                                return { success: true, data: "Items dihapus." };
+                            case 'deleteHistoryItem':
+                                transactions.value = transactions.value.filter(t => t.id !== payload.id);
+                                if (payload.revertData) {
+                                    const rIdx = inventory.value.findIndex(i => i.barcode === payload.revertData.barcode);
+                                    if (rIdx > -1) inventory.value[rIdx].qty = payload.revertData.revertToQty;
+                                }
+                                return { success: true, data: "Log dihapus." };
+                            case 'deleteHistoryItemsBulk':
+                                transactions.value = transactions.value.filter(t => !payload.ids.includes(t.id));
+                                if (payload.revertDatas) {
+                                    payload.revertDatas.forEach(rd => {
+                                        const rIdx = inventory.value.findIndex(i => i.barcode === rd.barcode);
+                                        if (rIdx > -1) inventory.value[rIdx].qty = rd.revertToQty;
+                                    });
+                                }
+                                return { success: true, data: "Logs dihapus." };
+                            case 'deleteRecapOpname':
+                                transactions.value = transactions.value.filter(t => !(t.barcode === payload.barcode && t.date.includes(payload.dateStr)));
+                                if (payload.revertData) {
+                                     const rIdx = inventory.value.findIndex(i => i.barcode === payload.revertData.barcode);
+                                     if (rIdx > -1) inventory.value[rIdx].qty = payload.revertData.revertToQty;
+                                }
+                                return { success: true, data: "Rekap dihapus." };
+                            case 'deleteRecapsBulk':
+                                transactions.value = transactions.value.filter(t => !(payload.barcodes.includes(t.barcode) && t.date.includes(payload.dateStr)));
+                                if (payload.revertDatas) {
+                                    payload.revertDatas.forEach(rd => {
+                                        const rIdx = inventory.value.findIndex(i => i.barcode === rd.barcode);
+                                        if (rIdx > -1) inventory.value[rIdx].qty = rd.revertToQty;
+                                    });
+                                }
+                                return { success: true, data: "Rekap massal dihapus." };
+                            case 'saveSettings':
+                                settingsData.value = payload.settingsData;
+                                return { success: true, data: "Gudang disimpan." };
+                            case 'saveUsers':
+                                usersData.value = payload.usersData;
+                                return { success: true, data: "User disimpan." };
+                            case 'saveAppSettings':
+                                return { success: true, data: "Menu disimpan." };
+                            case 'importMasterDataBulk':
+                                inventory.value = payload.dataArray;
+                                return { success: true, data: "Import Master Data berhasil (Mock)." };
+                            case 'importHistoryDataBulk':
+                                transactions.value = payload.dataArray;
+                                return { success: true, data: "Import History berhasil (Mock)." };
+                            default:
+                                return { success: true, data: "Sukses (Mock)." };
+                        }
                     }
+
                     try {
                         const response = await fetch(GAS_API_URL, {
-                            redirect: "follow", method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+                            redirect: "follow", 
+                            method: "POST", 
+                            headers: { "Content-Type": "text/plain" },
                             body: JSON.stringify({ action: action, payload: payload, token: authToken.value })
                         });
                         
-                        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                        if (!response.ok) {
+                            if (response.status === 404) {
+                                throw new Error("API URL tidak ditemukan (HTTP 404). Pastikan Web App Google Apps Script masih aktif dan URL benar.");
+                            }
+                            throw new Error(`HTTP Error: ${response.status}`);
+                        }
                         const text = await response.text();
                         
                         if (text.trim().startsWith("<")) {
-                            console.error("HTML Error dari Google:", text);
-                            throw new Error("Koneksi ditolak oleh Server Google. Pastikan Anda telah melakukan proses 'New Deployment' pada Code.gs di Google Apps Script.");
+                            if (!isSilent) console.error("HTML Error dari Google:", text);
+                            throw new Error("Koneksi ditolak oleh Server Google. Pastikan Deployment di Google Apps Script diset ke akses 'Anyone'.");
                         }
                         
                         const resData = JSON.parse(text);
                         if (resData.error === "SESSION_EXPIRED") {
-                            logout(true); Swal.fire({ title: 'Sesi Berakhir', text: resData.message, icon: 'warning' }); throw new Error(resData.message);
+                            logout(true); 
+                            if (!isSilent) AppSwal.fire({ title: 'Sesi Berakhir', text: resData.message, icon: 'warning' }); 
+                            throw new Error(resData.message);
                         }
                         return resData;
                     } catch (err) { 
-                        console.error("API Call Error:", err); 
+                        if (!isSilent) {
+                            console.error("API Call Error:", err); 
+                            if (err.message.includes("Failed to fetch") || err.name === "TypeError") {
+                                AppSwal.fire({
+                                    title: 'Koneksi API Gagal (CORS)',
+                                    html: `<div class="text-left text-sm text-slate-600 space-y-2">
+                                        <p><b>Gagal menghubungi Server Google. Penyebab umum:</b></p>
+                                        <ul class="list-disc pl-5">
+                                            <li>Deployment Google Apps Script belum diset ke <b>"Anyone" (Siapa Saja)</b>.</li>
+                                            <li>URL Web App tidak valid atau sudah kadaluarsa.</li>
+                                        </ul>
+                                        <p class="mt-2 text-brand-600 font-bold">Harap kosongkan parameter <code class="bg-brand-50 px-1 rounded">GAS_API_URL</code> di HTML untuk mengaktifkan kembali Mode Offline (Mock Data).</p>
+                                    </div>`,
+                                    icon: 'error'
+                                });
+                            } else {
+                                AppSwal.fire({ title: 'Error Koneksi', text: err.message, icon: 'error' });
+                            }
+                        }
                         return { success: false, error: err.message }; 
                     }
                 };
@@ -1558,27 +1552,25 @@
                 const fetchData = async () => {
                     loading.value = true;
                     try {
-                        if (isPreview) { await new Promise(r => setTimeout(r, 500)); } else {
-                            const res = await apiCall('getInitialData');
-                            if (res && res.success) {
-                                inventory.value = res.data.inventory; transactions.value = res.data.transactions;
-                                if (res.data.settings) settingsData.value = res.data.settings; 
-                                if (res.data.users) usersData.value = res.data.users; 
-                                
-                                if (res.data.appSettings) {
-                                    res.data.appSettings.forEach(setting => {
-                                        if (menuVisibility.value[setting.Menu] !== undefined) {
-                                            menuVisibility.value[setting.Menu] = setting.IsVisible === 'true' || setting.IsVisible === true;
-                                        }
-                                    });
-                                }
-
-                                if (availableDates.value.length > 0 && !selectedRecapDate.value) setDateRange('recap', 'today');
-                                triggerLowStockAlert();
-                                if (activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50);
-                            } else if (res && res.error !== "SESSION_EXPIRED") {
-                                Swal.fire({title: 'Koneksi Gagal', text: res?.error || 'Periksa koneksi database Anda', icon: 'error'});
+                        const res = await apiCall('getInitialData');
+                        if (res && res.success) {
+                            inventory.value = res.data.inventory; transactions.value = res.data.transactions;
+                            if (res.data.settings) settingsData.value = res.data.settings; 
+                            if (res.data.users) usersData.value = res.data.users; 
+                            
+                            if (res.data.appSettings) {
+                                res.data.appSettings.forEach(setting => {
+                                    if (menuVisibility.value[setting.Menu] !== undefined) {
+                                        menuVisibility.value[setting.Menu] = setting.IsVisible === 'true' || setting.IsVisible === true;
+                                    }
+                                });
                             }
+
+                            if (availableDates.value.length > 0 && !selectedRecapDate.value) setDateRange('recap', 'today');
+                            triggerLowStockAlert();
+                            if (activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50);
+                        } else if (res && res.error !== "SESSION_EXPIRED") {
+                            if (!isPreview.value) AppSwal.fire({title: 'Koneksi Gagal', text: res?.error || 'Periksa koneksi database Anda', icon: 'error'});
                         }
                     } catch(e) {} finally { loading.value = false; }
                 };
@@ -1589,13 +1581,13 @@
                 };
 
                 const silentFetchData = async (force = false) => {
-                    if (!force && (isPreview || !isLoggedIn.value || isProcessing.value || loading.value)) return; 
+                    if (!force && (isPreview.value || !isLoggedIn.value || isProcessing.value || loading.value)) return; 
                     if (!force && (selectedInventoryItems.value.length > 0 || selectedLogItems.value.length > 0 || selectedRecapItems.value.length > 0)) return;
                     if (!force && activeTab.value === 'settings') return;
 
                     isSyncing.value = true;
                     try {
-                        const res = await apiCall('getInitialData');
+                        const res = await apiCall('getInitialData', {}, true);
                         if (res && res.success) {
                             const newInvStr = JSON.stringify(res.data.inventory); const curInvStr = JSON.stringify(inventory.value);
                             const newTxStr = JSON.stringify(res.data.transactions); const curTxStr = JSON.stringify(transactions.value);
@@ -1613,6 +1605,9 @@
                             }
 
                             if (dataChanged && activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50);
+                        } else if (res && res.error && res.error.includes('404')) {
+                            clearInterval(syncInterval);
+                            console.warn("Auto-sync dihentikan karena URL API tidak valid.");
                         }
                     } catch (e) {} finally { isSyncing.value = false; }
                 };
@@ -1668,16 +1663,22 @@
                 };
 
                 const renderCharts = () => {
-                    Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif"; Chart.defaults.color = '#64748b';
+                    if (typeof window === 'undefined' || !window.Chart) {
+                        console.warn("Chart.js is not loaded.");
+                        return;
+                    }
+                    window.Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif"; 
+                    window.Chart.defaults.color = '#64748b';
 
                     if (document.getElementById('trendChart')) {
                         const tCtx = document.getElementById('trendChart').getContext('2d');
                         if (trendChartObj) trendChartObj.destroy();
                         const tData = processTrendData();
                         const gradientFill = tCtx.createLinearGradient(0, 0, 0, 300);
-                        gradientFill.addColorStop(0, 'rgba(14, 165, 233, 0.4)'); gradientFill.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+                        gradientFill.addColorStop(0, 'rgba(14, 165, 233, 0.4)'); 
+                        gradientFill.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
 
-                        trendChartObj = new Chart(tCtx, {
+                        trendChartObj = new window.Chart(tCtx, {
                             type: 'line',
                             data: { 
                                 labels: tData.labels, 
@@ -1701,7 +1702,7 @@
                                 maintainAspectRatio: false, 
                                 animation: { duration: 1500, easing: 'easeOutQuart' },
                                 layout: { 
-                                    padding: { top: 60, right: 30, left: 15, bottom: 10 } 
+                                    padding: { top: 10, right: 30, left: 15, bottom: 10 } 
                                 }, 
                                 plugins: { 
                                     legend: { 
@@ -1709,8 +1710,8 @@
                                         position: 'top', 
                                         labels: { 
                                             usePointStyle: true, 
-                                            font: { weight: 'bold', size: 13 },
-                                            padding: 25 
+                                            font: { weight: 'bold', size: 14 },
+                                            padding: 25
                                         } 
                                     }, 
                                     tooltip: { 
@@ -1735,7 +1736,7 @@
                                 scales: { 
                                     y: { 
                                         beginAtZero: true, 
-                                        grace: '80%', 
+                                        grace: '30%', 
                                         grid: { borderDash: [4, 4], color: '#e2e8f0' } 
                                     }, 
                                     x: { 
@@ -1750,20 +1751,14 @@
                 const handleLogin = async () => {
                     isProcessing.value = true; loginError.value = '';
                     try {
-                        if (isPreview) {
-                            await new Promise(r => setTimeout(r, 500));
-                            if (loginForm.value.username.toLowerCase() === 'admin') {
-                                currentUser.value = { username: 'Administrator', role: 'Super Admin', location: 'ALL' };
-                                isLoggedIn.value = true; await fetchData(); 
-                            } else { loginError.value = 'Hanya contoh preview (Gunakan: admin)'; }
-                        } else {
-                            const res = await apiCall('authenticateUser', { username: loginForm.value.username, password: loginForm.value.password });
-                            if (res && res.success) {
-                                currentUser.value = res.data; authToken.value = res.token;
-                                localStorage.setItem('currentUser', JSON.stringify(res.data)); localStorage.setItem('authToken', res.token);
-                                dashboardFilter.value = currentUser.value.location === 'ALL' ? 'ALL' : currentUser.value.location;
-                                isLoggedIn.value = true; resetIdleTimer(); await fetchData();
-                            } else { loginError.value = res?.error || 'Gagal login'; }
+                        const res = await apiCall('authenticateUser', { username: loginForm.value.username, password: loginForm.value.password });
+                        if (res && res.success) {
+                            currentUser.value = res.data; authToken.value = res.token;
+                            localStorage.setItem('currentUser', JSON.stringify(res.data)); localStorage.setItem('authToken', res.token);
+                            dashboardFilter.value = currentUser.value.location === 'ALL' ? 'ALL' : currentUser.value.location;
+                            isLoggedIn.value = true; resetIdleTimer(); await fetchData();
+                        } else { 
+                            loginError.value = res?.error || 'Gagal login'; 
                         }
                     } catch(e) { loginError.value = e.message; } finally { isProcessing.value = false; }
                 };
@@ -1775,63 +1770,49 @@
                         localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); clearTimeout(idleTimeout);
                     };
                     if (isForce) { doLogout(); return; }
-                    Swal.fire({ title: 'Keluar dari Sistem?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Logout' }).then((r) => { if (r.isConfirmed) doLogout(); });
+                    AppSwal.fire({ title: 'Keluar dari Sistem?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Logout' }).then((r) => { if (r.isConfirmed) doLogout(); });
                 };
 
                 const submitChangePassword = async () => {
-                    if (passwordForm.value.new !== passwordForm.value.confirm) { Swal.fire({ title: 'Validasi Gagal', text: 'Konfirmasi password baru tidak cocok!', icon: 'warning' }); return; }
-                    if (passwordForm.value.new.length < 3) { Swal.fire({ title: 'Validasi Gagal', text: 'Password baru terlalu pendek.', icon: 'warning' }); return; }
+                    if (passwordForm.value.new !== passwordForm.value.confirm) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Konfirmasi password baru tidak cocok!', icon: 'warning' }); return; }
+                    if (passwordForm.value.new.length < 3) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Password baru terlalu pendek.', icon: 'warning' }); return; }
                     isProcessing.value = true;
                     try {
-                        if (isPreview) {
-                            await new Promise(r => setTimeout(r, 500)); Swal.fire('Berhasil', 'Password diubah (Mock).', 'success'); passwordForm.value = { old: '', new: '', confirm: '' };
-                        } else {
-                            const payload = JSON.parse(JSON.stringify({ username: currentUser.value.username, oldPassword: passwordForm.value.old, newPassword: passwordForm.value.new }));
-                            const res = await apiCall('changePassword', payload);
-                            if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); passwordForm.value = { old: '', new: '', confirm: '' }; } 
-                            else { Swal.fire({ title: 'Gagal Mengubah Password', text: res?.error || 'Password lama salah atau error server.', icon: 'error' }); }
-                        }
-                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
+                        const payload = JSON.parse(JSON.stringify({ username: currentUser.value.username, oldPassword: passwordForm.value.old, newPassword: passwordForm.value.new }));
+                        const res = await apiCall('changePassword', payload);
+                        if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); passwordForm.value = { old: '', new: '', confirm: '' }; } 
+                        else { AppSwal.fire({ title: 'Gagal Mengubah Password', text: res?.error || 'Password lama salah atau error server.', icon: 'error' }); }
+                    } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
 
                 const submitSaveSettings = async () => {
                     const hasEmptyLoc = settingsData.value.some(s => !s.Location || String(s.Location).trim() === '');
-                    if (hasEmptyLoc) { Swal.fire({ title: 'Validasi Gagal', text: 'Ada baris yang kolom Gudang/Lokasinya masih kosong.', icon: 'warning' }); return; }
+                    if (hasEmptyLoc) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Ada baris yang kolom Gudang/Lokasinya masih kosong.', icon: 'warning' }); return; }
                     isProcessing.value = true;
                     try {
-                        if (isPreview) { await new Promise(r => setTimeout(r, 500)); Swal.fire('Berhasil', 'Konfigurasi Gudang disimpan (Mock).', 'success'); } 
-                        else {
-                            const res = await apiCall('saveSettings', { settingsData: JSON.parse(JSON.stringify(settingsData.value)) });
-                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
-                        }
-                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
+                        const res = await apiCall('saveSettings', { settingsData: JSON.parse(JSON.stringify(settingsData.value)) });
+                        if (res && res.success) AppSwal.fire('Tersimpan', res.data, 'success'); else AppSwal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
+                    } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
 
                 const submitSaveUsers = async () => {
-                    if (usersData.value.some(u => !u.username || !u.password || !u.role || !u.location)) { Swal.fire({ title: 'Validasi Gagal', text: 'Harap isi seluruh kolom Username, Password, Role, dan Lokasi.', icon: 'warning' }); return; }
+                    if (usersData.value.some(u => !u.username || !u.password || !u.role || !u.location)) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Harap isi seluruh kolom Username, Password, Role, dan Lokasi.', icon: 'warning' }); return; }
                     const usernames = usersData.value.map(u => String(u.username).trim().toLowerCase());
-                    if (new Set(usernames).size !== usernames.length) { Swal.fire({ title: 'Validasi Gagal', text: 'Ditemukan Username yang sama/ganda. Username harus unik.', icon: 'warning' }); return; }
+                    if (new Set(usernames).size !== usernames.length) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Ditemukan Username yang sama/ganda. Username harus unik.', icon: 'warning' }); return; }
                     isProcessing.value = true;
                     try {
-                        if (isPreview) { await new Promise(r => setTimeout(r, 500)); Swal.fire('Berhasil', 'Data Pengguna disimpan (Mock).', 'success'); } 
-                        else {
-                            const res = await apiCall('saveUsers', { usersData: JSON.parse(JSON.stringify(usersData.value)) });
-                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
-                        }
-                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
+                        const res = await apiCall('saveUsers', { usersData: JSON.parse(JSON.stringify(usersData.value)) });
+                        if (res && res.success) AppSwal.fire('Tersimpan', res.data, 'success'); else AppSwal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
+                    } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
 
                 const submitSaveAppSettings = async () => {
                     isProcessing.value = true;
                     try {
                         const payloadArray = Object.keys(menuVisibility.value).map(key => ({ Menu: key, IsVisible: menuVisibility.value[key] }));
-                        if (isPreview) {
-                            await new Promise(r => setTimeout(r, 500)); Swal.fire('Berhasil', 'Pengaturan Menu disimpan (Mock).', 'success');
-                        } else {
-                            const res = await apiCall('saveAppSettings', { appSettings: JSON.parse(JSON.stringify(payloadArray)) });
-                            if (res && res.success) Swal.fire('Tersimpan', res.data, 'success'); else Swal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
-                        }
-                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
+                        const res = await apiCall('saveAppSettings', { appSettings: JSON.parse(JSON.stringify(payloadArray)) });
+                        if (res && res.success) AppSwal.fire('Tersimpan', res.data, 'success'); else AppSwal.fire({ title: 'Gagal Menyimpan', text: res?.error, icon: 'error' });
+                    } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
 
                 const handleScan = () => {
@@ -1843,8 +1824,8 @@
                     if (item) { activeItem.value = item; actualStock.value = item.qty; nextTick(() => { if (actualStockInput.value) { actualStockInput.value.focus(); actualStockInput.value.select(); } }); } 
                     else { 
                         const globalItem = inventory.value.find(i => String(i.barcode).trim().toUpperCase() === scanStr);
-                        if (globalItem) Swal.fire({ icon: 'warning', title: 'Akses Ditolak', text: `Barang (${globalItem.name}) berada di gudang ${globalItem.location}.` });
-                        else Swal.fire({ icon: 'error', title: 'Tidak Ditemukan', text: `Barcode "${scanStr}" tidak terdaftar di Master Data!` });
+                        if (globalItem) AppSwal.fire({ icon: 'warning', title: 'Akses Ditolak', text: `Barang (${globalItem.name}) berada di gudang ${globalItem.location}.` });
+                        else AppSwal.fire({ icon: 'error', title: 'Tidak Ditemukan', text: `Barcode "${scanStr}" tidak terdaftar di Master Data!` });
                         activeItem.value = null; 
                     }
                     scannedCode.value = ''; 
@@ -1854,7 +1835,7 @@
 
                 const submitUpdate = async () => {
                     if (!activeItem.value || actualStock.value === '' || actualStock.value < 0 || typeof actualStock.value !== 'number') return;
-                    if (isNitrogenItem.value && (actualPressure.value === '' || actualPressure.value < 0 || typeof actualPressure.value !== 'number')) { Swal.fire({ icon: 'warning', title: 'Pressure Kosong', text: 'Khusus item Nitrogen, wajib mengisi data Pressure Aktual (Bar).' }); return; }
+                    if (isNitrogenItem.value && (actualPressure.value === '' || actualPressure.value < 0 || typeof actualPressure.value !== 'number')) { AppSwal.fire({ icon: 'warning', title: 'Pressure Kosong', text: 'Khusus item Nitrogen, wajib mengisi data Pressure Aktual (Bar).' }); return; }
 
                     isProcessing.value = true;
                     try {
@@ -1869,21 +1850,66 @@
                         };
                         const isBecomingLowStock = actualStock.value < activeItem.value.minQty; 
 
-                        if (isPreview) {
-                            await new Promise(r => setTimeout(r, 300));
-                            if(isBecomingLowStock) Swal.fire({ icon: 'success', title: 'Opname Tersimpan!', html: `<div class="text-sm text-slate-600 mb-4">Data stok berhasil diperbarui di sistem.</div><div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-pulse text-left"><div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div><p class="text-xs text-red-600 font-medium">Stok menyentuh batas minimum.<br>Sistem telah <b>otomatis mengirim email notifikasi reorder</b> ke PIC Gudang.</p></div>`, confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!' });
-                            else Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data stok tersimpan!', showConfirmButton: false, timer: 2000, timerProgressBar: true });
-                            resetScanner();
+                        const res = await apiCall('submitOpnameUpdate', JSON.parse(JSON.stringify(payload)));
+                        if (res && res.success) {
+                            if (isBecomingLowStock) AppSwal.fire({ icon: 'success', title: 'Opname Tersimpan!', html: `<div class="text-sm text-slate-600 mb-4">Data stok berhasil diperbarui.</div><div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-pulse text-left"><div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div><p class="text-xs text-red-600 font-medium">Stok menyentuh batas minimum.<br>Sistem telah <b>otomatis mengirim email notifikasi reorder</b> ke PIC Gudang.</p></div>`, confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!' });
+                            else AppSwal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data stok tersimpan!', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+                            resetScanner(); 
+                            await silentFetchData(true); 
+                        } else { AppSwal.fire({title: 'Gagal Menyimpan', text: res?.error || 'Sistem sibuk / bentrok', icon: 'error'}); }
+                    } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
+                };
+
+                const openEditLogByItem = (itemStatus) => {
+                    if (!itemStatus.id) return;
+                    const log = transactions.value.find(t => t.id === itemStatus.id);
+                    if (log) openEditLog(log);
+                };
+
+                const openEditLog = (log) => {
+                    editLogForm.value.id = log.id;
+                    editLogForm.value.barcode = log.barcode;
+                    editLogForm.value.name = log.name;
+                    editLogForm.value.oldQty = log.oldQty;
+                    editLogForm.value.newQty = log.newQty;
+                    
+                    const n = String(log.name).toUpperCase();
+                    editLogForm.value.isNitrogen = n.includes('NITROGEN') || n === 'N2' || n.includes('N2 ');
+                    
+                    let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
+                    editLogForm.value.newPressure = pMatch ? Number(pMatch[1]) : null;
+                    
+                    showEditLogModal.value = true;
+                };
+
+                const submitEditLog = async () => {
+                    if (editLogForm.value.newQty === '' || editLogForm.value.newQty < 0 || typeof editLogForm.value.newQty !== 'number') return;
+                    if (editLogForm.value.isNitrogen && (editLogForm.value.newPressure === '' || editLogForm.value.newPressure < 0 || typeof editLogForm.value.newPressure !== 'number')) {
+                        AppSwal.fire({ icon: 'warning', title: 'Pressure Kosong', text: 'Khusus item Nitrogen, wajib mengisi data Pressure Aktual (Bar).' });
+                        return;
+                    }
+
+                    isProcessing.value = true;
+                    try {
+                        const payload = {
+                            id: editLogForm.value.id,
+                            newQty: editLogForm.value.newQty,
+                            newPressure: editLogForm.value.isNitrogen ? editLogForm.value.newPressure : null
+                        };
+
+                        const res = await apiCall('editLogTransaction', payload);
+                        if (res && res.success) {
+                            AppSwal.fire('Berhasil', res.data, 'success');
+                            showEditLogModal.value = false;
+                            await silentFetchData(true);
                         } else {
-                            const res = await apiCall('submitOpnameUpdate', JSON.parse(JSON.stringify(payload)));
-                            if (res && res.success) {
-                                if (isBecomingLowStock) Swal.fire({ icon: 'success', title: 'Opname Tersimpan!', html: `<div class="text-sm text-slate-600 mb-4">Data stok berhasil diperbarui di Server.</div><div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-pulse text-left"><div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div><p class="text-xs text-red-600 font-medium">Stok menyentuh batas minimum.<br>Sistem telah <b>otomatis mengirim email notifikasi reorder</b> ke PIC Gudang.</p></div>`, confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!' });
-                                else Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data tersimpan di Server.', showConfirmButton: false, timer: 2000, timerProgressBar: true });
-                                resetScanner(); 
-                                await silentFetchData(true); 
-                            } else { Swal.fire({title: 'Gagal Menyimpan', text: res?.error || 'Sistem sibuk / bentrok', icon: 'error'}); }
+                            AppSwal.fire({ title: 'Gagal Menyimpan', text: res?.error || 'Sistem error', icon: 'error' });
                         }
-                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
+                    } catch (e) {
+                        AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' });
+                    } finally {
+                        isProcessing.value = false;
+                    }
                 };
                 
                 let isCameraStarting = false;
@@ -1898,12 +1924,15 @@
                     await new Promise(r => setTimeout(r, 350)); 
                     
                     try {
-                        const devices = await Html5Qrcode.getCameras();
+                        if (typeof window === 'undefined' || !window.Html5Qrcode) {
+                            throw new Error("Library Scanner (Html5Qrcode) belum dimuat oleh browser. Silakan refresh halaman.");
+                        }
+                        const devices = await window.Html5Qrcode.getCameras();
                         if (!devices || devices.length === 0) {
                             throw new Error("Tidak ada kamera fisik yang ditemukan di perangkat Anda.");
                         }
 
-                        if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+                        if (!html5QrCode) html5QrCode = new window.Html5Qrcode("reader");
                         const onScanSuccess = (decodedText) => { scannedCode.value = decodedText; closeCamera(); handleScan(); };
                         
                         const isMobile = window.innerWidth < 640;
@@ -1931,7 +1960,7 @@
                         if(err.name === 'NotFoundError' || String(err).includes('NotFoundError') || String(err).includes('NotAllowedError')) {
                             msg = "Kamera tidak terdeteksi atau diblokir oleh browser. Silakan izinkan kamera melalui pengaturan browser (ikon gembok) atau gunakan input manual.";
                         }
-                        Swal.fire({ title: 'Kamera Tidak Tersedia', text: msg, icon: 'warning' });
+                        AppSwal.fire({ title: 'Kamera Tidak Tersedia', text: msg, icon: 'warning' });
                         closeCamera();
                     } finally {
                         isCameraStarting = false;
@@ -1959,13 +1988,17 @@
                 const closeModal = () => { showModal.value = false; isProcessing.value = false; };
 
                 const showQRCode = (item) => {
-                    Swal.fire({
+                    AppSwal.fire({
                         title: `<span class="text-lg font-black uppercase text-slate-800">Label Barang</span>`,
                         html: `<div class="flex flex-col items-center justify-center p-2"><p class="font-bold text-slate-600 mb-4 px-2 line-clamp-2 leading-snug">${item.name}</p><div class="bg-white p-4 rounded-2xl shadow-inner border border-slate-200 mb-4 flex justify-center w-full"><canvas id="local-qr-canvas" class="mx-auto"></canvas></div><p class="font-mono font-black text-2xl text-brand-700 tracking-widest bg-brand-50 px-5 py-2 rounded-xl border border-brand-100">${item.barcode}</p><button id="download-qr-btn" class="mt-6 w-full py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-black rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 flex items-center justify-center"><i class="ph-bold ph-printer mr-2 text-xl"></i> DOWNLOAD LABEL PRINT</button></div>`,
                         showConfirmButton: false, showCloseButton: true, customClass: { popup: 'rounded-3xl shadow-2xl border border-slate-100' },
                         didOpen: () => {
                             const canvas = document.getElementById('local-qr-canvas');
-                            new QRious({ element: canvas, value: String(item.barcode), size: 220, level: 'H', foreground: '#000000', background: '#ffffff' });
+                            if (typeof window !== 'undefined' && window.QRious) {
+                                new window.QRious({ element: canvas, value: String(item.barcode), size: 220, level: 'H', foreground: '#000000', background: '#ffffff' });
+                            } else {
+                                canvas.outerHTML = "<p class='text-red-500 text-xs'>QR Library not loaded.</p>";
+                            }
                             document.getElementById('download-qr-btn').addEventListener('click', () => {
                                 const printCanvas = document.createElement('canvas'); const ctx = printCanvas.getContext('2d');
                                 const qrSize = 300; const padding = 20; const topTextHeight = 60; const bottomTextHeight = 60;
@@ -1975,7 +2008,7 @@
                                 ctx.fillStyle = "#000000"; ctx.font = "bold 20px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                                 let cleanName = String(item.name).replace(/\s*\(.*?\)/g, '').trim(); let printName = cleanName.length > 32 ? cleanName.substring(0, 29) + '...' : cleanName;
                                 ctx.fillText(printName.toUpperCase(), printCanvas.width / 2, padding + (topTextHeight / 2));
-                                ctx.drawImage(canvas, padding, padding + topTextHeight, qrSize, qrSize);
+                                if (typeof window !== 'undefined' && window.QRious) ctx.drawImage(canvas, padding, padding + topTextHeight, qrSize, qrSize);
                                 ctx.fillStyle = "#000000"; ctx.font = "bold 32px monospace"; ctx.fillText(item.barcode, printCanvas.width / 2, printCanvas.height - padding - (bottomTextHeight / 2) + 10);
                                 const dataUrl = printCanvas.toDataURL("image/png"); const link = document.createElement('a'); link.download = `Label_Gudang_${item.barcode}.png`; link.href = dataUrl; document.body.appendChild(link); link.click(); document.body.removeChild(link);
                             });
@@ -1985,6 +2018,7 @@
 
                 const downloadCheckSheetExcel = () => {
                     try {
+                        if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
                         if (!checkSheetData.value) return;
                         const wsData = [
                             ["", "", "", "", "", "FORM", "", "", "", "", "", "", "", "", "", "", "", "", "", "No Dok", ": FR/BDA-INV/PSC/006"],
@@ -2006,11 +2040,11 @@
                         wsData.push(rowTitle1); wsData.push(rowTitle2); wsData.push(rowTitle3);
                         checkSheetData.value.rows.forEach(r => wsData.push(r));
 
-                        const ws = XLSX.utils.aoa_to_sheet(wsData); ws['!merges'] = mergeCells;
-                        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "CheckSheet");
-                        XLSX.writeFile(wb, `Check_Sheet_Chemical_${checkSheetData.value.monthName.replace(/\s/g, '_')}.xlsx`);
+                        const ws = window.XLSX.utils.aoa_to_sheet(wsData); ws['!merges'] = mergeCells;
+                        const wb = window.XLSX.utils.book_new(); window.XLSX.utils.book_append_sheet(wb, ws, "CheckSheet");
+                        window.XLSX.writeFile(wb, `Check_Sheet_Chemical_${checkSheetData.value.monthName.replace(/\s/g, '_')}.xlsx`);
                         showToast("Laporan Check Sheet Resmi Excel Berhasil Diunduh."); showCheckSheetModal.value = false;
-                    } catch (error) { Swal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
+                    } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
                 
                 const saveItem = async () => { 
@@ -2022,156 +2056,155 @@
                             formItem.value.name = String(formItem.value.name || '').toUpperCase().trim(); 
                             formItem.value.unit = String(formItem.value.unit || '').toUpperCase().trim();
                             
-                            if (isPreview) { closeModal(); Swal.fire('Berhasil', "Barang disimpan.", 'success'); } 
-                            else {
-                                const editPayload = JSON.parse(JSON.stringify(formItem.value));
-                                const res = await apiCall('saveMasterItem', { itemData: editPayload, isEditing: true });
-                                if (res && res.success) { 
-                                    Swal.fire('Berhasil', res.data, 'success'); 
-                                    closeModal(); 
-                                    await silentFetchData(true); 
-                                } 
-                                else { Swal.fire({title: 'Error', text: res?.error || 'Kesalahan sistem', icon: 'error'}); }
-                            }
+                            const editPayload = JSON.parse(JSON.stringify(formItem.value));
+                            const res = await apiCall('saveMasterItem', { itemData: editPayload, isEditing: true });
+                            if (res && res.success) { 
+                                AppSwal.fire('Berhasil', res.data, 'success'); 
+                                closeModal(); 
+                                await silentFetchData(true); 
+                            } 
+                            else { AppSwal.fire({title: 'Error', text: res?.error || 'Kesalahan sistem', icon: 'error'}); }
                         } else {
                             if (addFormItems.value.some(i => !i.barcode || !String(i.barcode).trim() || !i.name || !String(i.name).trim())) { 
-                                Swal.fire({ title: 'Validasi Gagal', text: 'Barcode dan Nama Barang harus diisi di semua baris!', icon: 'warning' }); 
+                                AppSwal.fire({ title: 'Validasi Gagal', text: 'Barcode dan Nama Barang harus diisi di semua baris!', icon: 'warning' }); 
                                 isProcessing.value = false; return; 
                             }
                             
                             const barcodesInForm = addFormItems.value.map(i => String(i.barcode).toUpperCase().trim());
                             if (new Set(barcodesInForm).size !== barcodesInForm.length) { 
-                                Swal.fire({ title: 'Validasi Gagal', text: 'Ditemukan Barcode ganda di dalam baris yang Anda input!', icon: 'warning' }); 
+                                AppSwal.fire({ title: 'Validasi Gagal', text: 'Ditemukan Barcode ganda di dalam baris yang Anda input!', icon: 'warning' }); 
                                 isProcessing.value = false; return; 
                             }
                             
                             const existingDbBarcodes = inventory.value.map(i => String(i.barcode).toUpperCase().trim());
                             const duplicateMatch = addFormItems.value.find(i => existingDbBarcodes.includes(String(i.barcode).toUpperCase().trim()));
                             if (duplicateMatch) { 
-                                Swal.fire({ title: 'Gagal Menyimpan', html: `Barcode <b>${duplicateMatch.barcode}</b> sudah terdaftar sebelumnya di Master Data!`, icon: 'error' }); 
+                                AppSwal.fire({ title: 'Gagal Menyimpan', html: `Barcode <b>${duplicateMatch.barcode}</b> sudah terdaftar sebelumnya di Master Data!`, icon: 'error' }); 
                                 isProcessing.value = false; return; 
                             }
 
-                            if (isPreview) { 
-                                closeModal(); Swal.fire('Berhasil', `${addFormItems.value.length} Barang disimpan (Mock).`, 'success'); 
-                            } else {
-                                const payloadData = JSON.parse(JSON.stringify(addFormItems.value));
-                                const res = await apiCall('addMasterItemsBulk', { itemsData: payloadData });
-                                
-                                if (res && res.success) { 
-                                    Swal.fire('Berhasil', res.data, 'success'); 
-                                    closeModal(); 
-                                    await silentFetchData(true); 
-                                } 
-                                else { Swal.fire({ title: 'Gagal Menyimpan', text: res?.error || 'Server error', icon: 'error' }); }
-                            }
+                            const payloadData = JSON.parse(JSON.stringify(addFormItems.value));
+                            const res = await apiCall('addMasterItemsBulk', { itemsData: payloadData });
+                            
+                            if (res && res.success) { 
+                                AppSwal.fire('Berhasil', res.data, 'success'); 
+                                closeModal(); 
+                                await silentFetchData(true); 
+                            } 
+                            else { AppSwal.fire({ title: 'Gagal Menyimpan', text: res?.error || 'Server error', icon: 'error' }); }
                         }
-                    } catch (e) { Swal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
+                    } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
                 
                 const deleteItem = (barcode) => { 
-                    Swal.fire({ title: 'Hapus Item ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' }).then(async (result) => {
+                    AppSwal.fire({ title: 'Hapus Item ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' }).then(async (result) => {
                         if (result.isConfirmed) {
-                            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
                             const res = await apiCall('deleteMasterItem', { barcode: String(barcode).trim().toUpperCase() });
-                            if (res && res.success) { Swal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                            if (res && res.success) { AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
 
                 const deleteSelectedInventory = () => {
                     if (selectedInventoryItems.value.length === 0) return;
-                    Swal.fire({ title: `Hapus ${selectedInventoryItems.value.length} Barang?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
+                    AppSwal.fire({ title: `Hapus ${selectedInventoryItems.value.length} Barang?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
                         if (result.isConfirmed) {
-                            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
                             const reqPayload = JSON.parse(JSON.stringify(selectedInventoryItems.value));
                             const res = await apiCall('deleteMasterItemsBulk', { barcodes: reqPayload });
-                            if (res && res.success) { selectedInventoryItems.value = []; Swal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                            if (res && res.success) { selectedInventoryItems.value = []; AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
 
                 const deleteLogHistory = (log) => {
-                    Swal.fire({ title: 'Hapus Log Transaksi?', html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
+                    AppSwal.fire({ title: 'Hapus Log Transaksi?', html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
                         if (result.isConfirmed || result.isDenied) {
-                            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: log.barcode, revertToQty: log.oldQty } : null;
                             const res = await apiCall('deleteHistoryItem', { id: log.id, revertData: JSON.parse(JSON.stringify(revertData)) });
-                            if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
 
                 const deleteSelectedLogs = () => {
                     if (selectedLogItems.value.length === 0) return;
-                    Swal.fire({ title: `Hapus ${selectedLogItems.value.length} Log?`, html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
+                    AppSwal.fire({ title: `Hapus ${selectedLogItems.value.length} Log?`, html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
                         if (result.isConfirmed || result.isDenied) {
-                            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertDatas = [];
                             if (isRevert) { selectedLogItems.value.forEach(id => { const log = transactions.value.find(t => t.id === id); if (log) revertDatas.push({ barcode: log.barcode, revertToQty: log.oldQty }); }); }
                             const res = await apiCall('deleteHistoryItemsBulk', { ids: JSON.parse(JSON.stringify(selectedLogItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
-                            if (res && res.success) { selectedLogItems.value = []; Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                            if (res && res.success) { selectedLogItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
 
                 const deleteRecapOpname = (summary) => {
-                    Swal.fire({ title: 'Hapus Rekap Harian?', html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
+                    AppSwal.fire({ title: 'Hapus Rekap Harian?', html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
                         if (result.isConfirmed || result.isDenied) {
-                            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: summary.barcode, revertToQty: summary.firstOldQty } : null;
                             const res = await apiCall('deleteRecapOpname', { dateStr: selectedRecapDate.value, barcode: summary.barcode, revertData: JSON.parse(JSON.stringify(revertData)) });
-                            if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
 
                 const deleteSelectedRecaps = () => {
                     if (selectedRecapItems.value.length === 0) return;
-                    Swal.fire({ title: `Hapus ${selectedRecapItems.value.length} Rekap?`, html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
+                    AppSwal.fire({ title: `Hapus ${selectedRecapItems.value.length} Rekap?`, html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
                         if (result.isConfirmed || result.isDenied) {
-                            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
                             const isRevert = result.isConfirmed; const revertDatas = [];
                             if (isRevert) { selectedRecapItems.value.forEach(barcode => { const summary = processedRecapSummary.value.find(s => s.barcode === barcode); if (summary) revertDatas.push({ barcode: summary.barcode, revertToQty: summary.firstOldQty }); }); }
                             const res = await apiCall('deleteRecapsBulk', { dateStr: selectedRecapDate.value, barcodes: JSON.parse(JSON.stringify(selectedRecapItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
-                            if (res && res.success) { selectedRecapItems.value = []; Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { Swal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                            if (res && res.success) { selectedRecapItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
                         }
                     });
                 };
                 
                 const exportExcel = () => { 
                     try {
+                        if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
                         const dataToExport = baseInventory.value.map(item => ({
                             "Barcode": item.barcode, "Nama Barang": item.name, "Kategori": item.category,
                             "Stok": item.qty, "Min. Stok": item.minQty, "Satuan": item.unit, "Lokasi": item.location
                         }));
-                        const ws = XLSX.utils.json_to_sheet(dataToExport); const wb = XLSX.utils.book_new(); 
-                        XLSX.utils.book_append_sheet(wb, ws, "MasterData"); XLSX.writeFile(wb, `StokGudang_MasterData_${new Date().toISOString().slice(0,10)}.xlsx`);
+                        const ws = window.XLSX.utils.json_to_sheet(dataToExport); const wb = window.XLSX.utils.book_new(); 
+                        window.XLSX.utils.book_append_sheet(wb, ws, "MasterData"); window.XLSX.writeFile(wb, `StokGudang_MasterData_${new Date().toISOString().slice(0,10)}.xlsx`);
                         showToast("Excel diunduh.");
-                    } catch (error) { Swal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
+                    } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
 
                 const exportRecapExcel = () => {
                     try {
-                        if (processedRecapSummary.value.length === 0) { Swal.fire({ title: 'Data Kosong', text: 'Tidak ada data rekap untuk di-export.', icon: 'warning' }); return; }
+                        if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
+                        if (processedRecapSummary.value.length === 0) { AppSwal.fire({ title: 'Data Kosong', text: 'Tidak ada data rekap untuk di-export.', icon: 'warning' }); return; }
                         const dataToExport = processedRecapSummary.value.map(summary => {
                             const masterItem = baseInventory.value.find(i => i.barcode === summary.barcode);
                             return { "Barcode": summary.barcode, "Nama Barang": summary.name, "PIC Terakhir": summary.pic || '-', "Stok Awal": summary.firstOldQty, "Stok Final": summary.lastNewQty, "Total Selisih": summary.totalVariance, "Satuan": masterItem ? masterItem.unit : '-' };
                         });
-                        const ws = XLSX.utils.json_to_sheet(dataToExport); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "RekapOpname");
+                        const ws = window.XLSX.utils.json_to_sheet(dataToExport); const wb = window.XLSX.utils.book_new(); window.XLSX.utils.book_append_sheet(wb, ws, "RekapOpname");
                         const dateRangeStr = selectedRecapDate.value ? selectedRecapDate.value.replace(/\s/g, '_') : 'Semua_Waktu';
-                        XLSX.writeFile(wb, `Rekap_Opname_${dateRangeStr}.xlsx`); showToast("Excel Rekap Berhasil Diunduh.");
-                    } catch (error) { Swal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
+                        window.XLSX.writeFile(wb, `Rekap_Opname_${dateRangeStr}.xlsx`); showToast("Excel Rekap Berhasil Diunduh.");
+                    } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
 
                 const triggerImportExcel = () => { if(excelFileInput.value) excelFileInput.value.click(); };
                 const handleImportExcel = (event) => { 
                     const file = event.target.files[0]; if (!file) return;
+                    if (typeof window === 'undefined' || !window.XLSX) {
+                        AppSwal.fire({ title: 'Gagal Import', text: 'Library Excel belum dimuat.', icon: 'error' });
+                        return;
+                    }
                     const reader = new FileReader();
                     reader.onload = async (e) => {
                         try {
-                            const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
+                            const workbook = window.XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                            const json = window.XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                             if (json.length > 0) {
                                 const importedData = json.map(row => ({
                                     barcode: String(row["Barcode"] || row.barcode || '').toUpperCase().trim(), name: String(row["Nama Barang"] || row.name || row.Name || 'Unknown').toUpperCase().trim(),
@@ -2180,44 +2213,49 @@
                                     location: (currentUser.value.location !== 'ALL') ? currentUser.value.location.toUpperCase() : String(row["Lokasi"] || row.location || row.Location || 'CIP Store').toUpperCase().trim()
                                 })).filter(item => item.barcode !== ''); 
 
-                                const result = await Swal.fire({ title: 'Konfirmasi Import', text: `Timpa master data dengan ${importedData.length} data?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Import!' });
+                                const result = await AppSwal.fire({ title: 'Konfirmasi Import', text: `Timpa master data dengan ${importedData.length} data?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Import!' });
                                 if(result.isConfirmed) {
-                                    if (currentUser.value.location !== 'ALL') { Swal.fire({ title: 'Akses Ditolak', text: 'Hanya Admin (ALL) yang dapat Import Massal.', icon: 'error' }); return; }
-                                    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                                    if (currentUser.value.location !== 'ALL') { AppSwal.fire({ title: 'Akses Ditolak', text: 'Hanya Admin (ALL) yang dapat Import Massal.', icon: 'error' }); return; }
+                                    AppSwal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
                                     const res = await apiCall('importMasterDataBulk', { dataArray: JSON.parse(JSON.stringify(importedData)) });
-                                    if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
-                                    else Swal.fire({ title: 'Error', text: res?.error, icon: 'error' });
+                                    if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
+                                    else AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' });
                                 }
-                            } else Swal.fire({ title: 'Data Kosong', text: 'File Excel/CSV tidak memiliki data.', icon: 'info' });
-                        } catch (error) { Swal.fire({ title: 'Format Salah', text: `Gagal membaca file. Detail: ${error.message}`, icon: 'error' }); }
+                            } else AppSwal.fire({ title: 'Data Kosong', text: 'File Excel/CSV tidak memiliki data.', icon: 'info' });
+                        } catch (error) { AppSwal.fire({ title: 'Format Salah', text: `Gagal membaca file. Detail: ${error.message}`, icon: 'error' }); }
                         excelFileInput.value.value = '';
                     }; reader.readAsArrayBuffer(file);
                 };
 
                 const exportHistoryExcel = () => { 
                     try {
+                        if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
                         const dataToExport = baseTransactions.value.map(log => ({
                             "ID Transaksi": log.id, "Tanggal Waktu": formatDate(log.date), "Operator": log.user, "PIC Opname": log.pic || '-', "Barcode": log.barcode,
                             "Nama Barang": log.name, "Stok Awal": log.oldQty, "Stok Baru": log.newQty, "Selisih": log.variance, "Lokasi": log.location
                         }));
-                        const ws = XLSX.utils.json_to_sheet(dataToExport); const wb = XLSX.utils.book_new(); 
-                        XLSX.utils.book_append_sheet(wb, ws, "LogHistory"); XLSX.writeFile(wb, `StokGudang_History_${new Date().toISOString().slice(0,10)}.xlsx`);
+                        const ws = window.XLSX.utils.json_to_sheet(dataToExport); const wb = window.XLSX.utils.book_new(); 
+                        window.XLSX.utils.book_append_sheet(wb, ws, "LogHistory"); window.XLSX.writeFile(wb, `StokGudang_History_${new Date().toISOString().slice(0,10)}.xlsx`);
                         showToast("History Excel diunduh.");
-                    } catch (error) { Swal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
+                    } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
 
                 const triggerImportHistoryExcel = () => { 
-                    if (baseInventory.value.length === 0) { Swal.fire({ title: 'Data Kosong', text: 'Harap isi Master Data terlebih dahulu.', icon: 'warning' }); return; }
+                    if (baseInventory.value.length === 0) { AppSwal.fire({ title: 'Data Kosong', text: 'Harap isi Master Data terlebih dahulu.', icon: 'warning' }); return; }
                     if(historyFileInput.value) historyFileInput.value.click(); 
                 };
                 
                 const handleImportHistoryExcel = (event) => { 
                     const file = event.target.files[0]; if (!file) return;
+                    if (typeof window === 'undefined' || !window.XLSX) {
+                        AppSwal.fire({ title: 'Gagal Import', text: 'Library Excel belum dimuat.', icon: 'error' });
+                        return;
+                    }
                     const reader = new FileReader();
                     reader.onload = async (e) => {
                         try {
-                            const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                            const workbook = window.XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                            const json = window.XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                             if (json.length > 0) {
                                 const parseDateString = (dateStr) => { return new Date(dateStr).toISOString() || new Date().toISOString() };
                                 const importedData = json.map(row => {
@@ -2230,16 +2268,16 @@
                                     };
                                 }).filter(item => item.barcode !== '');
 
-                                const result = await Swal.fire({ title: 'Timpa History?', text: "Semua riwayat akan berubah.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Timpa!' });
+                                const result = await AppSwal.fire({ title: 'Timpa History?', text: "Semua riwayat akan berubah.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Timpa!' });
                                 if(result.isConfirmed) {
-                                    if (currentUser.value.location !== 'ALL') { Swal.fire({ title: 'Akses Ditolak', text: 'Hanya Admin yang dapat Import Massal.', icon: 'error' }); return; }
-                                    Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                                    if (currentUser.value.location !== 'ALL') { AppSwal.fire({ title: 'Akses Ditolak', text: 'Hanya Admin yang dapat Import Massal.', icon: 'error' }); return; }
+                                    AppSwal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
                                     const res = await apiCall('importHistoryDataBulk', { dataArray: JSON.parse(JSON.stringify(importedData)) });
-                                    if (res && res.success) { Swal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
-                                    else Swal.fire({ title: 'Error', text: res?.error, icon: 'error' });
+                                    if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
+                                    else AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' });
                                 }
-                            } else Swal.fire({ title: 'Data Kosong', text: 'File tidak memiliki data.', icon: 'info' });
-                        } catch (error) { Swal.fire({ title: 'Format Salah', text: `Gagal membaca file. Detail: ${error.message}`, icon: 'error' }); }
+                            } else AppSwal.fire({ title: 'Data Kosong', text: 'File tidak memiliki data.', icon: 'info' });
+                        } catch (error) { AppSwal.fire({ title: 'Format Salah', text: `Gagal membaca file. Detail: ${error.message}`, icon: 'error' }); }
                         historyFileInput.value.value = '';
                     }; reader.readAsArrayBuffer(file);
                 };
@@ -2269,6 +2307,7 @@
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, dashboardDate, dailyCheckStatus, checkedTodayCount, uncheckedTodayCount,
                     availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch, selectedTrendItemName,
                     showModal, isEditing, formItem, addFormItems, addNewItemRow, removeNewItemRow, excelFileInput, historyFileInput, trendFilter, renderCharts,
+                    showEditLogModal, editLogForm, openEditLogByItem, openEditLog, submitEditLog,
                     searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
                     logSearchQuery, logSortKey, logSortAsc, logCurrentPage, logItemsPerPage, processedTransactions, paginatedTransactions, logTotalPages,
