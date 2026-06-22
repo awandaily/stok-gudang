@@ -4,21 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Daily Roving</title>
-    <!-- Favicon Enterprise -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' fill='none'/><path d='M224,177.32V78.68a16,16,0,0,0-8.26-14l-80-44a16,16,0,0,0-15.48,0l-80,44A16,16,0,0,0,32,78.68v98.64a16,16,0,0,0,8.26,14l80,44a16,16,0,0,0,15.48,0l80-44A16,16,0,0,0,224,177.32Z' fill='%230ea5e9' stroke='%230ea5e9' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><polyline points='222.89 74.63 128 128 33.11 74.63' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='128' y1='128' x2='128' y2='234.82' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='176' y1='101.44' x2='80' y2='48.56' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/></svg>">
-    <!-- Libraries CSS & JS -->
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
+
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+    
+    <script src="https://unpkg.com/sweetalert2@11"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/id.min.js"></script>
     
     <script>
         tailwind.config = { theme: { extend: { colors: { brand: { 50: '#f0f9ff', 100: '#e0f2fe', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' } } } } }
@@ -47,15 +54,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
     
-    <!-- FALLBACK ERROR -->
     <div id="fallback-error" style="display: none; min-height: 100vh; width: 100%; background: #f8fafc; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 9999; position: fixed; inset: 0;">
         <div style="background: #fee2e2; color: #991b1b; padding: 30px; border-radius: 16px; border: 1px solid #f87171; max-width: 550px;">
             <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 12px;">⚠️ Sistem UI Berhenti Bergerak</h2>
-            <p>Sistem mendeteksi adanya <b>kesalahan sintaks (Syntax Error)</b> pada konfigurasi web Anda.</p>
+            <p>Sistem mendeteksi adanya <b>kesalahan sinkronisasi atau pemblokiran Jaringan</b> pada konfigurasi web Anda.</p>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
     <div id="app" v-cloak class="min-h-screen flex flex-col relative pb-24 sm:pb-0">
         
         <transition name="fade-slide">
@@ -65,7 +70,6 @@
             </div>
         </transition>
 
-        <!-- LOGIN SCREEN -->
         <transition name="fade-slide">
             <div v-if="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-brand-900 via-brand-800 to-slate-900 p-4">
                 <div class="glass p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 animate-scale-in border border-white/20">
@@ -112,7 +116,6 @@
             </div>
         </transition>
 
-        <!-- DASHBOARD UI -->
         <div v-if="isLoggedIn" class="flex-1 flex flex-col h-full w-full relative">
             <nav class="bg-gradient-to-r from-brand-900 to-brand-800 text-white shadow-lg sticky top-0 z-40">
                 <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -193,7 +196,6 @@
 
                 <transition name="fade-slide" mode="out-in">
                     
-                    <!-- TAB: DASHBOARD -->
                     <div v-if="activeTab === 'dashboard'" key="dashboard">
                         <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center flex-1 w-full gap-4">
@@ -214,7 +216,6 @@
                             </button>
                         </div>
 
-                        <!-- GRAFIK FULL WIDTH DI ATAS -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col relative overflow-hidden mb-8">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 relative z-10">
                                 <h3 class="font-bold text-slate-800 flex items-center text-sm">
@@ -239,7 +240,6 @@
                             <div v-else class="relative w-full h-[320px] z-10"><canvas id="trendChart"></canvas></div>
                         </div>
 
-                        <!-- TABEL RINGKASAN FILTERABLE -->
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8">
                             <div @click="dailyCheckFilter = 'ALL'" class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 border border-slate-100 relative overflow-hidden cursor-pointer hover:border-blue-300 transition-all" :class="{'ring-2 ring-blue-500 bg-blue-50': dailyCheckFilter === 'ALL'}">
                                 <div class="absolute -right-4 -top-4 opacity-5"><i class="ph-fill ph-database text-9xl text-blue-500"></i></div>
@@ -278,7 +278,6 @@
                             </div>
                         </div>
 
-                        <!-- RINCIAN STATUS DI BAWAH -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
                             <div class="p-4 sm:p-6 border-b border-slate-100 bg-slate-50">
                                 <h3 class="text-lg font-black text-slate-800 flex items-center"><i class="ph-duotone ph-list-checks text-xl mr-2 text-brand-600"></i> Rincian Status Roving Barang</h3>
@@ -341,7 +340,6 @@
 
                     </div>
 
-                    <!-- TAB: SCANNER -->
                     <div v-else-if="activeTab === 'scan'" key="scan" class="max-w-xl mx-auto mb-10">
                         <div class="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden relative">
                             <div class="h-2 w-full bg-gradient-to-r from-brand-400 to-brand-600"></div>
@@ -439,7 +437,6 @@
                         </div>
                     </div>
 
-                    <!-- TAB: REKAP HARIAN -->
                     <div v-else-if="activeTab === 'recap'" key="recap" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                             <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 relative overflow-hidden">
@@ -514,10 +511,8 @@
                         </div>
                     </div>
 
-                    <!-- TAB: MASTER INVENTORY -->
                     <div v-else-if="activeTab === 'inventory'" key="inventory" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                            <!-- HEADER MENGIKUTI CHECKSHEET PERUSAHAAN DENGAN LOGO -->
                             <div class="p-4 sm:p-6 border-b border-slate-100 bg-white flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
                                 <div class="flex items-center gap-4 z-10 w-full md:w-auto">
                                     <div class="w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center shadow-inner overflow-hidden shrink-0">
@@ -592,7 +587,6 @@
                         </div>
                     </div>
 
-                    <!-- TAB: LOG HISTORY -->
                     <div v-else-if="activeTab === 'history'" key="history" class="mb-10">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                             <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 relative overflow-hidden">
@@ -667,7 +661,6 @@
                         </div>
                     </div>
 
-                    <!-- TAB: SETTINGS -->
                     <div v-else-if="activeTab === 'settings'" key="settings" class="max-w-5xl mx-auto mb-10 space-y-6">
                         <div class="flex space-x-2 sm:space-x-3 mb-6 overflow-x-auto hide-scrollbar pb-2">
                             <button @click="activeSettingsTab = 'security'" :class="activeSettingsTab === 'security' ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
@@ -776,7 +769,6 @@
             </main>
         </div>
 
-        <!-- 🔴 MODAL REVISI ROVING (EDIT LOG) 🔴 -->
         <transition name="fade-slide">
             <div v-if="showEditLogModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col animate-scale-in">
@@ -824,7 +816,6 @@
 
     </div>
 
-    <!-- VUE JS APP LOGIC -->
     <script>
         const AppSwal = {
             fire: function(...args) { return window.Swal ? window.Swal.fire(...args) : Promise.resolve({isConfirmed: false}); },
@@ -849,7 +840,7 @@
         // ==========================================
         // KOSONGKAN string di bawah ini ("") untuk menggunakan OFFLINE MODE (Data tersimpan di memori sementara).
         // Jika Google Apps Script sudah di-deploy dengan benar (Who has access: Anyone), masukkan URL-nya ke dalam tanda kutip.
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
+        const GAS_API_URL = ""; 
 
         const reportTemplateDef = [
             { title: "Solar", match: ["SOLAR"], cols: ["Actual"], units: ["M3"] },
@@ -1353,7 +1344,18 @@
                 
                 watch(dashboardFilter, () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
                 watch(dashboardDate, () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); }); 
-                watch([selectedTrendItemName, trendFilter], () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
+                watch([selectedTrendItemName, trendFilter], () => { 
+                    if(activeTab.value === 'dashboard') {
+                        nextTick(() => { setTimeout(() => renderCharts(), 200); });
+                    } 
+                });
+
+                // Auto-select first item for chart to prevent blank space
+                watch(uniqueItemNames, (newNames) => {
+                    if (newNames.length > 0 && !selectedTrendItemName.value) {
+                        selectedTrendItemName.value = newNames[0];
+                    }
+                });
 
                 const triggerLowStockAlert = () => {
                     let hasAlerted = false;
@@ -1663,90 +1665,104 @@
                     return { labels, data, itemName: cleanItemNameText(itemObj.name) };
                 };
 
-                const renderCharts = () => {
+                const renderCharts = (retryCount = 0) => {
                     if (typeof window === 'undefined' || !window.Chart) {
-                        console.warn("Chart.js is not loaded.");
+                        console.warn("Chart.js is not loaded yet. Retrying...");
+                        if (retryCount < 5) setTimeout(() => renderCharts(retryCount + 1), 500);
                         return;
                     }
+                    
+                    if (typeof window.ChartDataLabels !== 'undefined') {
+                        window.Chart.register(window.ChartDataLabels);
+                    }
+
                     window.Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif"; 
                     window.Chart.defaults.color = '#64748b';
 
-                    if (document.getElementById('trendChart')) {
-                        const tCtx = document.getElementById('trendChart').getContext('2d');
-                        if (trendChartObj) trendChartObj.destroy();
-                        const tData = processTrendData();
-                        const gradientFill = tCtx.createLinearGradient(0, 0, 0, 300);
-                        gradientFill.addColorStop(0, 'rgba(14, 165, 233, 0.4)'); 
-                        gradientFill.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
-
-                        trendChartObj = new window.Chart(tCtx, {
-                            type: 'line',
-                            data: { 
-                                labels: tData.labels, 
-                                datasets: [{ 
-                                    label: `Stok Aktual: ${tData.itemName}`, 
-                                    data: tData.data, 
-                                    borderColor: '#0ea5e9', 
-                                    backgroundColor: gradientFill, 
-                                    borderWidth: 3, 
-                                    pointBackgroundColor: '#0284c7', 
-                                    pointBorderColor: '#fff', 
-                                    pointBorderWidth: 2, 
-                                    pointRadius: 6, 
-                                    pointHoverRadius: 8, 
-                                    fill: true, 
-                                    tension: 0.3 
-                                }] 
-                            },
-                            options: { 
-                                responsive: true, 
-                                maintainAspectRatio: false, 
-                                animation: { duration: 1500, easing: 'easeOutQuart' },
-                                layout: { 
-                                    padding: { top: 10, right: 30, left: 15, bottom: 10 } 
-                                }, 
-                                plugins: { 
-                                    legend: { 
-                                        display: true, 
-                                        position: 'top', 
-                                        labels: { 
-                                            usePointStyle: true, 
-                                            font: { weight: 'bold', size: 14 },
-                                            padding: 25
-                                        } 
-                                    }, 
-                                    tooltip: { 
-                                        backgroundColor: 'rgba(15, 23, 42, 0.9)', 
-                                        padding: 12, 
-                                        titleFont: { size: 13 } 
-                                    }, 
-                                    datalabels: { 
-                                        align: 'top', 
-                                        anchor: 'end', 
-                                        backgroundColor: '#ffffff', 
-                                        borderColor: '#0ea5e9', 
-                                        borderWidth: 2, 
-                                        borderRadius: 8, 
-                                        color: '#0ea5e9', 
-                                        font: { weight: '900', size: 12 }, 
-                                        formatter: Math.round, 
-                                        padding: { top: 4, bottom: 4, left: 8, right: 8 }, 
-                                        offset: 12 
-                                    } 
-                                }, 
-                                scales: { 
-                                    y: { 
-                                        beginAtZero: true, 
-                                        grace: '30%', 
-                                        grid: { borderDash: [4, 4], color: '#e2e8f0' } 
-                                    }, 
-                                    x: { 
-                                        grid: { display: false } 
-                                    } 
-                                } 
-                            }
-                        });
+                    const canvasEl = document.getElementById('trendChart');
+                    if (!canvasEl) {
+                        if (retryCount < 5) setTimeout(() => renderCharts(retryCount + 1), 200);
+                        return;
                     }
+
+                    const tCtx = canvasEl.getContext('2d');
+                    if (trendChartObj) {
+                        trendChartObj.destroy();
+                        trendChartObj = null;
+                    }
+                    
+                    const tData = processTrendData();
+                    const gradientFill = tCtx.createLinearGradient(0, 0, 0, 300);
+                    gradientFill.addColorStop(0, 'rgba(14, 165, 233, 0.4)'); 
+                    gradientFill.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+
+                    trendChartObj = new window.Chart(tCtx, {
+                        type: 'line',
+                        data: { 
+                            labels: tData.labels, 
+                            datasets: [{ 
+                                label: `Stok Aktual: ${tData.itemName}`, 
+                                data: tData.data, 
+                                borderColor: '#0ea5e9', 
+                                backgroundColor: gradientFill, 
+                                borderWidth: 3, 
+                                pointBackgroundColor: '#0284c7', 
+                                pointBorderColor: '#fff', 
+                                pointBorderWidth: 2, 
+                                pointRadius: 6, 
+                                pointHoverRadius: 8, 
+                                fill: true, 
+                                tension: 0.3 
+                            }] 
+                        },
+                        options: { 
+                            responsive: true, 
+                            maintainAspectRatio: false, 
+                            animation: { duration: 1500, easing: 'easeOutQuart' },
+                            layout: { 
+                                padding: { top: 10, right: 30, left: 15, bottom: 10 } 
+                            }, 
+                            plugins: { 
+                                legend: { 
+                                    display: true, 
+                                    position: 'top', 
+                                    labels: { 
+                                        usePointStyle: true, 
+                                        font: { weight: 'bold', size: 14 },
+                                        padding: 25
+                                    } 
+                                }, 
+                                tooltip: { 
+                                    backgroundColor: 'rgba(15, 23, 42, 0.9)', 
+                                    padding: 12, 
+                                    titleFont: { size: 13 } 
+                                }, 
+                                datalabels: { 
+                                    align: 'top', 
+                                    anchor: 'end', 
+                                    backgroundColor: '#ffffff', 
+                                    borderColor: '#0ea5e9', 
+                                    borderWidth: 2, 
+                                    borderRadius: 8, 
+                                    color: '#0ea5e9', 
+                                    font: { weight: '900', size: 12 }, 
+                                    formatter: Math.round, 
+                                    padding: { top: 4, bottom: 4, left: 8, right: 8 }, 
+                                    offset: 12 
+                                } 
+                            }, 
+                            scales: { 
+                                y: { 
+                                    beginAtZero: true, 
+                                    grace: '30%', 
+                                    grid: { borderDash: [4, 4], color: '#e2e8f0' } 
+                                }, 
+                                x: { 
+                                    grid: { display: false } 
+                                } 
+                            } 
+                        }
+                    });
                 };
 
                 const handleLogin = async () => {
@@ -2019,4 +2035,311 @@
 
                 const downloadCheckSheetExcel = () => {
                     try {
-                        if (typeof window === 'undefined' || !window.XLSX) throwSaya hanya model bahasa, jadi saya tidak bisa membantu Anda untuk itu.
+                        if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
+                        if (!checkSheetData.value) return;
+                        const wsData = [
+                            ["", "", "", "", "", "FORM", "", "", "", "", "", "", "", "", "", "", "", "", "", "No Dok", ": FR/BDA-INV/PSC/006"],
+                            ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "No Rev", ": 01"],
+                            ["", "", "", "Check Sheet Pengecekan Stock Chemical", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Tgl Berlaku", ": 20 February 2026"],
+                            ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Halaman", ": 1 dari 1"],
+                            [], [], [`Bulan : ${checkSheetData.value.monthName}`]
+                        ];
+                        let rowTitle1 = ["TGL", "Jam"], rowTitle2 = ["", ""], rowTitle3 = ["Satuan", ""], mergeCells = [], colIndex = 2;
+
+                        checkSheetData.value.template.forEach(item => {
+                            rowTitle1.push(item.title);
+                            for(let i = 1; i < item.cols.length; i++) rowTitle1.push("");
+                            if (item.cols.length > 1) mergeCells.push({ s: { r: 7, c: colIndex }, e: { r: 7, c: colIndex + item.cols.length - 1 } });
+                            item.cols.forEach((colName, idx) => { rowTitle2.push(colName); rowTitle3.push(item.units[idx] || ""); });
+                            colIndex += item.cols.length;
+                        });
+                        rowTitle1.push("PIC"); rowTitle2.push(""); rowTitle3.push("");
+                        wsData.push(rowTitle1); wsData.push(rowTitle2); wsData.push(rowTitle3);
+                        checkSheetData.value.rows.forEach(r => wsData.push(r));
+
+                        const ws = window.XLSX.utils.aoa_to_sheet(wsData); ws['!merges'] = mergeCells;
+                        const wb = window.XLSX.utils.book_new(); window.XLSX.utils.book_append_sheet(wb, ws, "CheckSheet");
+                        window.XLSX.writeFile(wb, `Check_Sheet_Chemical_${checkSheetData.value.monthName.replace(/\s/g, '_')}.xlsx`);
+                        showToast("Laporan Check Sheet Resmi Excel Berhasil Diunduh."); showCheckSheetModal.value = false;
+                    } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
+                };
+                
+                const saveItem = async () => { 
+                    isProcessing.value = true;
+                    try {
+                        if (isEditing.value) {
+                            formItem.value.barcode = String(formItem.value.barcode || '').toUpperCase().trim(); 
+                            formItem.value.category = String(formItem.value.category || '').toUpperCase().trim(); 
+                            formItem.value.name = String(formItem.value.name || '').toUpperCase().trim(); 
+                            formItem.value.unit = String(formItem.value.unit || '').toUpperCase().trim();
+                            
+                            const editPayload = JSON.parse(JSON.stringify(formItem.value));
+                            const res = await apiCall('saveMasterItem', { itemData: editPayload, isEditing: true });
+                            if (res && res.success) { 
+                                AppSwal.fire('Berhasil', res.data, 'success'); 
+                                closeModal(); 
+                                await silentFetchData(true); 
+                            } 
+                            else { AppSwal.fire({title: 'Error', text: res?.error || 'Kesalahan sistem', icon: 'error'}); }
+                        } else {
+                            if (addFormItems.value.some(i => !i.barcode || !String(i.barcode).trim() || !i.name || !String(i.name).trim())) { 
+                                AppSwal.fire({ title: 'Validasi Gagal', text: 'Barcode dan Nama Barang harus diisi di semua baris!', icon: 'warning' }); 
+                                isProcessing.value = false; return; 
+                            }
+                            
+                            const barcodesInForm = addFormItems.value.map(i => String(i.barcode).toUpperCase().trim());
+                            if (new Set(barcodesInForm).size !== barcodesInForm.length) { 
+                                AppSwal.fire({ title: 'Validasi Gagal', text: 'Ditemukan Barcode ganda di dalam baris yang Anda input!', icon: 'warning' }); 
+                                isProcessing.value = false; return; 
+                            }
+                            
+                            const existingDbBarcodes = inventory.value.map(i => String(i.barcode).toUpperCase().trim());
+                            const duplicateMatch = addFormItems.value.find(i => existingDbBarcodes.includes(String(i.barcode).toUpperCase().trim()));
+                            if (duplicateMatch) { 
+                                AppSwal.fire({ title: 'Gagal Menyimpan', html: `Barcode <b>${duplicateMatch.barcode}</b> sudah terdaftar sebelumnya di Master Data!`, icon: 'error' }); 
+                                isProcessing.value = false; return; 
+                            }
+
+                            const payloadData = JSON.parse(JSON.stringify(addFormItems.value));
+                            const res = await apiCall('addMasterItemsBulk', { itemsData: payloadData });
+                            
+                            if (res && res.success) { 
+                                AppSwal.fire('Berhasil', res.data, 'success'); 
+                                closeModal(); 
+                                await silentFetchData(true); 
+                            } 
+                            else { AppSwal.fire({ title: 'Gagal Menyimpan', text: res?.error || 'Server error', icon: 'error' }); }
+                        }
+                    } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
+                };
+                
+                const deleteItem = (barcode) => { 
+                    AppSwal.fire({ title: 'Hapus Item ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const res = await apiCall('deleteMasterItem', { barcode: String(barcode).trim().toUpperCase() });
+                            if (res && res.success) { AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteSelectedInventory = () => {
+                    if (selectedInventoryItems.value.length === 0) return;
+                    AppSwal.fire({ title: `Hapus ${selectedInventoryItems.value.length} Barang?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const reqPayload = JSON.parse(JSON.stringify(selectedInventoryItems.value));
+                            const res = await apiCall('deleteMasterItemsBulk', { barcodes: reqPayload });
+                            if (res && res.success) { selectedInventoryItems.value = []; AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteLogHistory = (log) => {
+                    AppSwal.fire({ title: 'Hapus Log Transaksi?', html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
+                        if (result.isConfirmed || result.isDenied) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: log.barcode, revertToQty: log.oldQty } : null;
+                            const res = await apiCall('deleteHistoryItem', { id: log.id, revertData: JSON.parse(JSON.stringify(revertData)) });
+                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteSelectedLogs = () => {
+                    if (selectedLogItems.value.length === 0) return;
+                    AppSwal.fire({ title: `Hapus ${selectedLogItems.value.length} Log?`, html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
+                        if (result.isConfirmed || result.isDenied) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const isRevert = result.isConfirmed; const revertDatas = [];
+                            if (isRevert) { selectedLogItems.value.forEach(id => { const log = transactions.value.find(t => t.id === id); if (log) revertDatas.push({ barcode: log.barcode, revertToQty: log.oldQty }); }); }
+                            const res = await apiCall('deleteHistoryItemsBulk', { ids: JSON.parse(JSON.stringify(selectedLogItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
+                            if (res && res.success) { selectedLogItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteRecapOpname = (summary) => {
+                    AppSwal.fire({ title: 'Hapus Rekap Harian?', html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
+                        if (result.isConfirmed || result.isDenied) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: summary.barcode, revertToQty: summary.firstOldQty } : null;
+                            const res = await apiCall('deleteRecapOpname', { dateStr: selectedRecapDate.value, barcode: summary.barcode, revertData: JSON.parse(JSON.stringify(revertData)) });
+                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteSelectedRecaps = () => {
+                    if (selectedRecapItems.value.length === 0) return;
+                    AppSwal.fire({ title: `Hapus ${selectedRecapItems.value.length} Rekap?`, html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
+                        if (result.isConfirmed || result.isDenied) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const isRevert = result.isConfirmed; const revertDatas = [];
+                            if (isRevert) { selectedRecapItems.value.forEach(barcode => { const summary = processedRecapSummary.value.find(s => s.barcode === barcode); if (summary) revertDatas.push({ barcode: summary.barcode, revertToQty: summary.firstOldQty }); }); }
+                            const res = await apiCall('deleteRecapsBulk', { dateStr: selectedRecapDate.value, barcodes: JSON.parse(JSON.stringify(selectedRecapItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
+                            if (res && res.success) { selectedRecapItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+                
+                const exportExcel = () => { 
+                    try {
+                        if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
+                        const dataToExport = baseInventory.value.map(item => ({
+                            "Barcode": item.barcode, "Nama Barang": item.name, "Kategori": item.category,
+                            "Stok": item.qty, "Min. Stok": item.minQty, "Satuan": item.unit, "Lokasi": item.location
+                        }));
+                        const ws = window.XLSX.utils.json_to_sheet(dataToExport); const wb = window.XLSX.utils.book_new(); 
+                        window.XLSX.utils.book_append_sheet(wb, ws, "MasterData"); window.XLSX.writeFile(wb, `StokGudang_MasterData_${new Date().toISOString().slice(0,10)}.xlsx`);
+                        showToast("Excel diunduh.");
+                    } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
+                };
+
+                const exportRecapExcel = () => {
+                    try {
+                        if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
+                        if (processedRecapSummary.value.length === 0) { AppSwal.fire({ title: 'Data Kosong', text: 'Tidak ada data rekap untuk di-export.', icon: 'warning' }); return; }
+                        const dataToExport = processedRecapSummary.value.map(summary => {
+                            const masterItem = baseInventory.value.find(i => i.barcode === summary.barcode);
+                            return { "Barcode": summary.barcode, "Nama Barang": summary.name, "PIC Terakhir": summary.pic || '-', "Stok Awal": summary.firstOldQty, "Stok Final": summary.lastNewQty, "Total Selisih": summary.totalVariance, "Satuan": masterItem ? masterItem.unit : '-' };
+                        });
+                        const ws = window.XLSX.utils.json_to_sheet(dataToExport); const wb = window.XLSX.utils.book_new(); window.XLSX.utils.book_append_sheet(wb, ws, "RekapOpname");
+                        const dateRangeStr = selectedRecapDate.value ? selectedRecapDate.value.replace(/\s/g, '_') : 'Semua_Waktu';
+                        window.XLSX.writeFile(wb, `Rekap_Opname_${dateRangeStr}.xlsx`); showToast("Excel Rekap Berhasil Diunduh.");
+                    } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
+                };
+
+                const triggerImportExcel = () => { if(excelFileInput.value) excelFileInput.value.click(); };
+                const handleImportExcel = (event) => { 
+                    const file = event.target.files[0]; if (!file) return;
+                    if (typeof window === 'undefined' || !window.XLSX) {
+                        AppSwal.fire({ title: 'Gagal Import', text: 'Library Excel belum dimuat.', icon: 'error' });
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const workbook = window.XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                            const json = window.XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
+                            if (json.length > 0) {
+                                const importedData = json.map(row => ({
+                                    barcode: String(row["Barcode"] || row.barcode || '').toUpperCase().trim(), name: String(row["Nama Barang"] || row.name || row.Name || 'Unknown').toUpperCase().trim(),
+                                    category: String(row["Kategori"] || row.category || row.Category || 'Consumable').toUpperCase().trim(), qty: Number(row["Stok"] ?? row.qty ?? row.Qty ?? 0) || 0,
+                                    minQty: Number(row["Min. Stok"] ?? row.minQty ?? row.MinQty ?? 10) || 0, unit: String(row["Satuan"] || row.unit || row.Unit || 'Pcs').toUpperCase().trim(),
+                                    location: (currentUser.value.location !== 'ALL') ? currentUser.value.location.toUpperCase() : String(row["Lokasi"] || row.location || row.Location || 'CIP Store').toUpperCase().trim()
+                                })).filter(item => item.barcode !== ''); 
+
+                                const result = await AppSwal.fire({ title: 'Konfirmasi Import', text: `Timpa master data dengan ${importedData.length} data?`, icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Import!' });
+                                if(result.isConfirmed) {
+                                    if (currentUser.value.location !== 'ALL') { AppSwal.fire({ title: 'Akses Ditolak', text: 'Hanya Admin (ALL) yang dapat Import Massal.', icon: 'error' }); return; }
+                                    AppSwal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                                    const res = await apiCall('importMasterDataBulk', { dataArray: JSON.parse(JSON.stringify(importedData)) });
+                                    if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
+                                    else AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' });
+                                }
+                            } else AppSwal.fire({ title: 'Data Kosong', text: 'File Excel/CSV tidak memiliki data.', icon: 'info' });
+                        } catch (error) { AppSwal.fire({ title: 'Format Salah', text: `Gagal membaca file. Detail: ${error.message}`, icon: 'error' }); }
+                        excelFileInput.value.value = '';
+                    }; reader.readAsArrayBuffer(file);
+                };
+
+                const exportHistoryExcel = () => { 
+                    try {
+                        if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
+                        const dataToExport = baseTransactions.value.map(log => ({
+                            "ID Transaksi": log.id, "Tanggal Waktu": formatDate(log.date), "Operator": log.user, "PIC Opname": log.pic || '-', "Barcode": log.barcode,
+                            "Nama Barang": log.name, "Stok Awal": log.oldQty, "Stok Baru": log.newQty, "Selisih": log.variance, "Lokasi": log.location
+                        }));
+                        const ws = window.XLSX.utils.json_to_sheet(dataToExport); const wb = window.XLSX.utils.book_new(); 
+                        window.XLSX.utils.book_append_sheet(wb, ws, "LogHistory"); window.XLSX.writeFile(wb, `StokGudang_History_${new Date().toISOString().slice(0,10)}.xlsx`);
+                        showToast("History Excel diunduh.");
+                    } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
+                };
+
+                const triggerImportHistoryExcel = () => { 
+                    if (baseInventory.value.length === 0) { AppSwal.fire({ title: 'Data Kosong', text: 'Harap isi Master Data terlebih dahulu.', icon: 'warning' }); return; }
+                    if(historyFileInput.value) historyFileInput.value.click(); 
+                };
+                
+                const handleImportHistoryExcel = (event) => { 
+                    const file = event.target.files[0]; if (!file) return;
+                    if (typeof window === 'undefined' || !window.XLSX) {
+                        AppSwal.fire({ title: 'Gagal Import', text: 'Library Excel belum dimuat.', icon: 'error' });
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        try {
+                            const workbook = window.XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                            const json = window.XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                            if (json.length > 0) {
+                                const parseDateString = (dateStr) => { return new Date(dateStr).toISOString() || new Date().toISOString() };
+                                const importedData = json.map(row => {
+                                    return {
+                                        id: row["ID Transaksi"] || row.id || Date.now(), date: row["Tanggal Waktu"] ? parseDateString(row["Tanggal Waktu"]) : new Date().toISOString(),
+                                        user: String(row["Operator"] || row.user || 'Unknown').toUpperCase().trim(), pic: String(row["PIC Opname"] || row.pic || '-').toUpperCase().trim(),
+                                        barcode: String(row["Barcode"] || row.barcode || '').toUpperCase().trim(), name: String(row["Nama Barang"] || row.name || 'Unknown').toUpperCase().trim(),
+                                        oldQty: Number(row["Stok Awal"] ?? row.oldQty) || 0, newQty: Number(row["Stok Baru"] ?? row.newQty) || 0,
+                                        variance: Number(row["Selisih"] ?? row.variance) || 0, location: (currentUser.value.location !== 'ALL') ? currentUser.value.location.toUpperCase() : String(row["Lokasi"] || row.location || 'CIP Store').toUpperCase().trim()
+                                    };
+                                }).filter(item => item.barcode !== '');
+
+                                const result = await AppSwal.fire({ title: 'Timpa History?', text: "Semua riwayat akan berubah.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Timpa!' });
+                                if(result.isConfirmed) {
+                                    if (currentUser.value.location !== 'ALL') { AppSwal.fire({ title: 'Akses Ditolak', text: 'Hanya Admin yang dapat Import Massal.', icon: 'error' }); return; }
+                                    AppSwal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                                    const res = await apiCall('importHistoryDataBulk', { dataArray: JSON.parse(JSON.stringify(importedData)) });
+                                    if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); }
+                                    else AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' });
+                                }
+                            } else AppSwal.fire({ title: 'Data Kosong', text: 'File tidak memiliki data.', icon: 'info' });
+                        } catch (error) { AppSwal.fire({ title: 'Format Salah', text: `Gagal membaca file. Detail: ${error.message}`, icon: 'error' }); }
+                        historyFileInput.value.value = '';
+                    }; reader.readAsArrayBuffer(file);
+                };
+
+                onMounted(() => {
+                    const savedUser = localStorage.getItem('currentUser');
+                    const savedToken = localStorage.getItem('authToken');
+                    if (savedUser && savedToken) {
+                        currentUser.value = JSON.parse(savedUser);
+                        authToken.value = savedToken;
+                        dashboardFilter.value = currentUser.value.location === 'ALL' ? 'ALL' : currentUser.value.location;
+                        isLoggedIn.value = true;
+                        resetIdleTimer();
+                        fetchData();
+                    }
+                    timerInterval = setInterval(() => { currentTime.value = new Date(); }, 1000);
+                    syncInterval = setInterval(silentFetchData, 5000); 
+                });
+                
+                onUnmounted(() => { clearInterval(timerInterval); clearInterval(syncInterval); clearTimeout(idleTimeout); });
+
+                return {
+                    isLoggedIn, currentUser, loginForm, loginError, handleLogin, logout, currentTimeStr, currentDateStr, companyLogo, handleLogoUpload, removeLogo,
+                    activeTab, activeSettingsTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
+                    manualRefresh, resetFilters, menuVisibility, dailyCheckFilter,
+                    inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
+                    selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, dashboardDate, dailyCheckStatus, checkedTodayCount, uncheckedTodayCount,
+                    availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch, selectedTrendItemName,
+                    showModal, isEditing, formItem, addFormItems, addNewItemRow, removeNewItemRow, excelFileInput, historyFileInput, trendFilter, renderCharts,
+                    showEditLogModal, editLogForm, openEditLogByItem, openEditLog, submitEditLog,
+                    searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
+                    recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
+                    logSearchQuery, logSortKey, logSortAsc, logCurrentPage, logItemsPerPage, processedTransactions, paginatedTransactions, logTotalPages,
+                    logFilterDate, logFilterLocation, logFilterPic, actualPressure, actualPressureInput, focusPressure, isNitrogenItem,
+                    toggleSort, selectedInventoryItems, toggleAllInventory, toggleInventorySelection, deleteItem, deleteSelectedInventory,
+                    selectedLogItems, toggleAllLogs, toggleLogSelection, deleteLogHistory, deleteSelectedLogs,
+                    selectedRecapItems, toggleAllRecaps, toggleRecapSelection, deleteRecapOpname, deleteSelectedRecaps,
+                    formatDate, formatDateString, handleScan, submitUpdate, openCamera, closeCamera, resetScanner,
+                    openAddModal, openEditModal, closeModal, saveItem, showQRCode, cleanItemNameText,
+                    exportExcel, exportRecapExcel, downloadCheckSheetExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
+                    passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers, submitSaveAppSettings, setDateRange, isRecapToday, isRecapYesterday,
+                    recapDateInput, logDateInput, showCheckSheetModal, checkSheetMonth, checkSheetData
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
