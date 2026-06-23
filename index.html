@@ -436,6 +436,22 @@
                                                         <span v-else><i class="ph-fill ph-warning-circle text-lg mr-1 text-orange-500"></i> Selisih: <strong class="mx-1 text-base bg-orange-100 px-2 rounded">{{ variance > 0 ? '+' : '' }}{{ variance }}</strong> {{ activeItem.unit }}</span>
                                                     </div>
                                                 </transition>
+                                                
+                                                <!-- FITUR BACKDATE KHUSUS ADMIN -->
+                                                <div v-if="currentUser.role === 'Super Admin'" class="mt-4 pt-4 border-t border-brand-200/50">
+                                                    <label class="flex items-center space-x-2 text-xs sm:text-sm font-black text-slate-700 mb-2 cursor-pointer">
+                                                        <input type="checkbox" v-model="isBackdate" class="w-4 h-4 text-brand-600 rounded">
+                                                        <span><i class="ph-bold ph-clock-counter-clockwise mr-1 text-brand-500"></i> Input Backdate (Admin Only)</span>
+                                                    </label>
+                                                    <transition name="fade-slide">
+                                                        <div v-if="isBackdate" class="flex flex-col space-y-2">
+                                                            <input type="datetime-local" v-model="backdateValue" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none bg-white font-bold text-slate-700 focus:ring-2 focus:ring-brand-500">
+                                                            <p class="text-[10px] text-red-500 font-medium leading-tight"><i class="ph-fill ph-warning"></i> Gunakan fitur ini HANYA jika Anda lupa input pada shift sebelumnya. Waktu roving akan tercatat mundur sesuai input ini.</p>
+                                                        </div>
+                                                    </transition>
+                                                </div>
+                                                <!-- END FITUR BACKDATE -->
+
                                             </div>
 
                                             <div class="mt-5 flex space-x-2">
@@ -584,7 +600,7 @@
                                             <td class="p-3 text-right"><span class="font-black text-lg" :class="item.qty < item.minQty ? 'text-red-600' : 'text-slate-800'">{{ item.qty }}</span> <span class="text-slate-500 text-[10px] font-bold uppercase">{{ item.unit }}</span></td>
                                             <td class="p-3 text-center">
                                                 <div v-if="item.qty < item.minQty" class="px-2 py-1 bg-red-50 text-red-700 text-[10px] rounded-lg font-bold border border-red-200">Low (Min: {{item.minQty}})</div>
-                                                <div v-else class="px-2 py-1 bg-slate-50 text-slate-500 text-[10px] rounded-lg font-bold border border-slate-200">Aman</div>
+                                                <div v-else class="px-2 py-1 bg-slate-50 text-slate-500 text-[10px] rounded-lg font-bold border border-slate-200">Aman (Min: {{item.minQty}})</div>
                                             </td>
                                             <td class="p-3 text-center">
                                                 <div class="flex items-center justify-center space-x-2">
@@ -835,6 +851,96 @@
             </div>
         </transition>
 
+        <!-- MODAL TAMBAH/EDIT MASTER DATA -->
+        <transition name="fade-slide">
+            <div v-if="showModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+                <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl flex flex-col my-auto animate-scale-in">
+                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+                        <h3 class="font-black text-lg flex items-center text-brand-700">
+                            <i class="ph-duotone ph-database mr-2 text-xl"></i>
+                            {{ isEditing ? 'Edit Data Barang' : 'Tambah Data Barang Baru' }}
+                        </h3>
+                        <button @click="closeModal" class="text-slate-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+                    </div>
+                    <div class="p-6 bg-white overflow-y-auto max-h-[70vh]">
+                        
+                        <!-- Mode Edit Satu Barang -->
+                        <form v-if="isEditing" @submit.prevent="saveItem" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-black mb-1 text-slate-700">Barcode / Kode</label><input v-model="formItem.barcode" type="text" required class="w-full px-3 py-2 border rounded-xl outline-none uppercase bg-slate-50 font-mono text-sm" readonly></div>
+                                <div><label class="block text-xs font-black mb-1 text-slate-700">Nama Barang</label><input v-model="formItem.name" type="text" required class="w-full px-3 py-2 border rounded-xl outline-none uppercase text-sm"></div>
+                                <div><label class="block text-xs font-black mb-1 text-slate-700">Kategori</label><input v-model="formItem.category" type="text" required class="w-full px-3 py-2 border rounded-xl outline-none uppercase text-sm"></div>
+                                <div><label class="block text-xs font-black mb-1 text-slate-700">Lokasi Gudang</label><select v-model="formItem.location" required class="w-full px-3 py-2 border rounded-xl outline-none uppercase text-sm"><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div><label class="block text-xs font-black mb-1 text-slate-700">Stok (Qty)</label><input v-model.number="formItem.qty" type="number" step="0.01" required class="w-full px-3 py-2 border rounded-xl outline-none text-sm"></div>
+                                    <div><label class="block text-xs font-black mb-1 text-slate-700">Batas Min</label><input v-model.number="formItem.minQty" type="number" step="0.01" required class="w-full px-3 py-2 border rounded-xl outline-none text-sm"></div>
+                                    <div><label class="block text-xs font-black mb-1 text-slate-700">Satuan</label><input v-model="formItem.unit" type="text" required class="w-full px-3 py-2 border rounded-xl outline-none uppercase text-sm"></div>
+                                </div>
+                            </div>
+                            <div class="pt-4 flex justify-end gap-3 mt-4">
+                                <button type="button" @click="closeModal" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200">Batal</button>
+                                <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-black shadow-md flex items-center" :disabled="isProcessing"><i v-if="isProcessing" class="ph ph-spinner animate-spin mr-2"></i> Simpan Perubahan</button>
+                            </div>
+                        </form>
+
+                        <!-- Mode Tambah Barang Massal -->
+                        <form v-else @submit.prevent="saveItem">
+                            <div class="space-y-3">
+                                <div v-for="(item, index) in addFormItems" :key="index" class="flex flex-col md:flex-row gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl relative group">
+                                    <div class="flex-1"><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Barcode</label><input v-model="item.barcode" type="text" required class="w-full px-3 py-2 border rounded-lg text-xs outline-none uppercase font-mono"></div>
+                                    <div class="flex-[2]"><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Nama Barang</label><input v-model="item.name" type="text" required class="w-full px-3 py-2 border rounded-lg text-xs outline-none uppercase"></div>
+                                    <div class="flex-1"><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Kategori</label><input v-model="item.category" type="text" required class="w-full px-3 py-2 border rounded-lg text-xs outline-none uppercase"></div>
+                                    <div class="w-20"><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Qty</label><input v-model.number="item.qty" type="number" step="0.01" required class="w-full px-2 py-2 border rounded-lg text-xs outline-none text-center"></div>
+                                    <div class="w-20"><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Min</label><input v-model.number="item.minQty" type="number" step="0.01" required class="w-full px-2 py-2 border rounded-lg text-xs outline-none text-center"></div>
+                                    <div class="w-20"><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Unit</label><input v-model="item.unit" type="text" required class="w-full px-2 py-2 border rounded-lg text-xs outline-none uppercase text-center"></div>
+                                    <div class="flex-1"><label class="block text-[10px] font-black uppercase text-slate-500 mb-1">Lokasi</label><select v-model="item.location" required class="w-full px-2 py-2 border rounded-lg text-xs outline-none uppercase"><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
+                                    
+                                    <button v-if="addFormItems.length > 1" type="button" @click="removeNewItemRow(index)" class="absolute -right-2 -top-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><i class="ph-bold ph-x text-xs"></i></button>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center border-t border-slate-100 pt-4">
+                                <button type="button" @click="addNewItemRow" class="px-4 py-2 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-xl font-bold text-xs flex items-center hover:bg-indigo-100"><i class="ph-bold ph-plus mr-1"></i> Tambah Baris Baru</button>
+                                <div class="flex gap-2">
+                                    <button type="button" @click="closeModal" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200">Batal</button>
+                                    <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-black shadow-md flex items-center" :disabled="isProcessing"><i v-if="isProcessing" class="ph ph-spinner animate-spin mr-2"></i> Simpan Data</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- MODAL CHECK SHEET -->
+        <transition name="fade-slide">
+            <div v-if="showCheckSheetModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                <div class="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col animate-scale-in">
+                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-indigo-50 rounded-t-2xl">
+                        <h3 class="font-black text-lg flex items-center text-indigo-700">
+                            <i class="ph-duotone ph-table mr-2 text-xl"></i> Download Check Sheet
+                        </h3>
+                        <button @click="showCheckSheetModal = false" class="text-slate-400 hover:text-red-500 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-5">
+                            <label class="block text-xs font-black text-slate-700 mb-2">Pilih Bulan & Tahun</label>
+                            <input type="month" v-model="checkSheetMonth" class="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl mb-6 flex items-start">
+                            <i class="ph-fill ph-info text-yellow-500 text-xl mr-3 mt-0.5"></i>
+                            <p class="text-xs text-yellow-700 font-medium">Data check sheet akan digenerate berdasarkan log transaksi bulan yang dipilih. Format sesuai standar <strong class="font-black">FR/BDA-INV/PSC/006</strong>.</p>
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button @click="showCheckSheetModal = false" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200">Batal</button>
+                            <button @click="downloadCheckSheetExcel" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black shadow-md flex items-center" :disabled="!checkSheetMonth">
+                                <i class="ph-bold ph-download-simple mr-2"></i> Generate Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
     </div>
 
     <!-- VUE JS APP LOGIC -->
@@ -860,9 +966,7 @@
         // ==========================================
         // KONFIGURASI API KEY (URL DEPLOY CODE.GS)
         // ==========================================
-        // GANTI TULISAN "MASUKKAN_URL_WEB_APP_ANDA_DISINI" DENGAN URL GOOGLE SCRIPT ANDA!
-        // CONTOH: const GAS_API_URL = "https://script.google.com/macros/s/AKfycbz_..../exec";
-        
+        // Sesuai permintaan Anda, URL sudah saya Hardcode ke dalam file
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
 
         const reportTemplateDef = [
@@ -948,6 +1052,10 @@
                 const actualStock = ref(0);
                 const actualPressure = ref(0);
                 const actualPressureInput = ref(null);
+
+                // State untuk fitur Backdate
+                const isBackdate = ref(false);
+                const backdateValue = ref('');
 
                 const variance = computed(() => {
                     if (!activeItem.value) return null;
@@ -1563,7 +1671,6 @@
                                             <li>Deployment Google Apps Script belum diset ke <b>"Anyone" (Siapa Saja)</b>.</li>
                                             <li>URL Web App tidak valid atau sudah kadaluarsa.</li>
                                         </ul>
-                                        <p class="mt-2 text-brand-600 font-bold">Harap kosongkan parameter <code class="bg-brand-50 px-1 rounded">GAS_API_URL</code> di HTML untuk mengaktifkan kembali Mode Offline (Mock Data).</p>
                                     </div>`,
                                     icon: 'error'
                                 });
@@ -1861,7 +1968,16 @@
                     if (scanStr.startsWith('HTTP://') || scanStr.startsWith('HTTPS://')) { scanStr = scanStr.split('/').pop() || scanStr; scannedCode.value = scanStr; }
                     
                     const item = baseInventory.value.find(i => String(i.barcode).trim().toUpperCase() === scanStr);
-                    if (item) { activeItem.value = item; actualStock.value = item.qty; nextTick(() => { if (actualStockInput.value) { actualStockInput.value.focus(); actualStockInput.value.select(); } }); } 
+                    if (item) { 
+                        activeItem.value = item; actualStock.value = item.qty; 
+                        
+                        // Set default backdate ke waktu sekarang saat scan berhasil
+                        const now = new Date();
+                        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                        backdateValue.value = now.toISOString().slice(0, 16);
+                        
+                        nextTick(() => { if (actualStockInput.value) { actualStockInput.value.focus(); actualStockInput.value.select(); } }); 
+                    } 
                     else { 
                         const globalItem = inventory.value.find(i => String(i.barcode).trim().toUpperCase() === scanStr);
                         if (globalItem) AppSwal.fire({ icon: 'warning', title: 'Akses Ditolak', text: `Barang (${globalItem.name}) berada di gudang ${globalItem.location}.` });
@@ -1871,19 +1987,26 @@
                     scannedCode.value = ''; 
                 };
 
-                const resetScanner = () => { activeItem.value = null; actualStock.value = 0; actualPressure.value = 0; scannedCode.value = ''; isProcessing.value = false; if(activeTab.value === 'scan') nextTick(() => { if (barcodeInput.value) barcodeInput.value.focus(); }); };
+                const resetScanner = () => { activeItem.value = null; actualStock.value = 0; actualPressure.value = 0; scannedCode.value = ''; isProcessing.value = false; isBackdate.value = false; if(activeTab.value === 'scan') nextTick(() => { if (barcodeInput.value) barcodeInput.value.focus(); }); };
 
                 const submitUpdate = async () => {
                     if (!activeItem.value || actualStock.value === '' || actualStock.value < 0 || typeof actualStock.value !== 'number') return;
                     if (isNitrogenItem.value && (actualPressure.value === '' || actualPressure.value < 0 || typeof actualPressure.value !== 'number')) { AppSwal.fire({ icon: 'warning', title: 'Pressure Kosong', text: 'Khusus item Nitrogen, wajib mengisi data Pressure Aktual (Bar).' }); return; }
+                    if (isBackdate.value && !backdateValue.value) { AppSwal.fire({ icon: 'warning', title: 'Waktu Kosong', text: 'Anda mencentang Input Backdate, silakan isi tanggal dan waktunya.' }); return; }
 
                     isProcessing.value = true;
                     try {
                         let finalName = String(activeItem.value.name).toUpperCase();
                         if (isNitrogenItem.value) finalName += ` [Pressure: ${actualPressure.value} Bar]`;
 
+                        // Tentukan Waktu Transaksi (Current vs Backdate)
+                        let transactionDate = currentTime.value.toISOString();
+                        if (currentUser.value.role === 'Super Admin' && isBackdate.value && backdateValue.value) {
+                            transactionDate = new Date(backdateValue.value).toISOString();
+                        }
+
                         const payload = { 
-                            id: Date.now(), date: currentTime.value.toISOString(), barcode: String(activeItem.value.barcode).toUpperCase(), 
+                            id: Date.now(), date: transactionDate, barcode: String(activeItem.value.barcode).toUpperCase(), 
                             name: finalName, oldQty: activeItem.value.qty, newQty: actualStock.value, 
                             variance: actualStock.value - activeItem.value.qty, user: String(currentUser.value.username).toUpperCase() || 'SISTEM',
                             location: String(activeItem.value.location).toUpperCase(), pic: String(currentUser.value.username).toUpperCase()
@@ -2323,28 +2446,6 @@
                 };
 
                 onMounted(() => {
-                    // Peringatan otomatis jika URL Web App belum diisi
-                    if (GAS_API_URL.includes("MASUKKAN_URL_WEB_APP_ANDA_DISINI") || !GAS_API_URL) {
-                        setTimeout(() => {
-                            AppSwal.fire({
-                                title: 'TINDAKAN DIPERLUKAN!',
-                                html: `<div class="text-left text-sm space-y-3">
-                                       <p>Aplikasi saat ini menampilkan <b>Data Bohongan (Mock Data)</b> karena belum terhubung ke Google Sheets.</p>
-                                       <p><b>Cara Mengatasi:</b></p>
-                                       <ol class="list-decimal pl-5">
-                                           <li>Buka Google Apps Script, klik <b>Terapkan (Deploy)</b> -> <b>Deployment Baru</b>.</li>
-                                           <li>Pilih Akses: <b>Siapa Saja (Anyone)</b>, lalu klik Terapkan.</li>
-                                           <li>Copy URL Web App yang muncul.</li>
-                                           <li>Buka file <code>index.html</code> Anda, cari <b>Baris 586</b>.</li>
-                                           <li>Ganti teks <code>MASUKKAN_URL_WEB_APP_ANDA_DISINI</code> dengan URL yang dicopy.</li>
-                                       </ol>
-                                       </div>`,
-                                icon: 'warning',
-                                confirmButtonText: 'Tutup & Perbaiki'
-                            });
-                        }, 1000);
-                    }
-
                     const savedUser = localStorage.getItem('currentUser');
                     const savedToken = localStorage.getItem('authToken');
                     if (savedUser && savedToken) {
@@ -2366,6 +2467,7 @@
                     activeTab, activeSettingsTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
                     manualRefresh, resetFilters, menuVisibility, dailyCheckFilter,
                     inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
+                    isBackdate, backdateValue,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, dashboardDate, dailyCheckStatus, checkedTodayCount, uncheckedTodayCount,
                     availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch, selectedTrendItemName,
                     showModal, isEditing, formItem, addFormItems, addNewItemRow, removeNewItemRow, excelFileInput, historyFileInput, trendFilter, renderCharts,
