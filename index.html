@@ -7,11 +7,9 @@
     <!-- Favicon Enterprise -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' fill='none'/><path d='M224,177.32V78.68a16,16,0,0,0-8.26-14l-80-44a16,16,0,0,0-15.48,0l-80,44A16,16,0,0,0,32,78.68v98.64a16,16,0,0,0,8.26,14l80,44a16,16,0,0,0,15.48,0l80-44A16,16,0,0,0,224,177.32Z' fill='%230ea5e9' stroke='%230ea5e9' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><polyline points='222.89 74.63 128 128 33.11 74.63' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='128' y1='128' x2='128' y2='234.82' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='176' y1='101.44' x2='80' y2='48.56' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/></svg>">
     
-    <!-- FIX JARINGAN KANTOR: Migrasi Seluruh Library dari jsdelivr ke CDNJS & Unpkg -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     
-    <!-- Phosphor Icons (Dimuat via CSS langsung agar tidak diarahkan paksa ke jsdelivr oleh scriptnya) -->
     <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
     <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
     <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css" />
@@ -20,15 +18,10 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    
-    <!-- Chart.js via CDNJS Cloudflare -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
-    
-    <!-- SweetAlert2 via UNPKG -->
     <script src="https://unpkg.com/sweetalert2@11"></script>
     
-    <!-- Flatpickr via CDNJS Cloudflare -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/id.min.js"></script>
@@ -55,12 +48,10 @@
         .table-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
         .table-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
         .table-scrollbar::-webkit-scrollbar-track { background: #f8fafc; border-radius: 10px; }
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
     
-    <!-- FALLBACK ERROR -->
     <div id="fallback-error" style="display: none; min-height: 100vh; width: 100%; background: #f8fafc; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 9999; position: fixed; inset: 0;">
         <div style="background: #fee2e2; color: #991b1b; padding: 30px; border-radius: 16px; border: 1px solid #f87171; max-width: 550px;">
             <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 12px;">⚠️ Sistem UI Berhenti Bergerak</h2>
@@ -68,7 +59,6 @@
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
     <div id="app" v-cloak class="min-h-screen flex flex-col relative pb-24 sm:pb-0">
         
         <transition name="fade-slide">
@@ -78,7 +68,6 @@
             </div>
         </transition>
 
-        <!-- LOGIN SCREEN -->
         <transition name="fade-slide">
             <div v-if="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-brand-900 via-brand-800 to-slate-900 p-4">
                 <div class="glass p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 animate-scale-in border border-white/20">
@@ -125,7 +114,6 @@
             </div>
         </transition>
 
-        <!-- DASHBOARD UI -->
         <div v-if="isLoggedIn" class="flex-1 flex flex-col h-full w-full relative">
             <nav class="bg-gradient-to-r from-brand-900 to-brand-800 text-white shadow-lg sticky top-0 z-40">
                 <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -200,7 +188,7 @@
                     <button v-if="menuVisibility.scan" @click="changeTab('scan')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'scan' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-barcode text-xl mr-2"></i> Scan Roving</button>
                     <button v-if="menuVisibility.recap" @click="changeTab('recap')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'recap' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-list-numbers text-xl mr-2"></i> Rekap Tabel Roving</button>
                     <button v-if="menuVisibility.inventory" @click="changeTab('inventory')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'inventory' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-database text-xl mr-2"></i> Master Data</button>
-                    <button v-if="menuVisibility.history" @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2"></i> Log History Transaksi Roving</button>
+                    <button v-if="menuVisibility.history" @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2"></i> Log History</button>
                     <button @click="changeTab('settings')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap ml-auto" :class="activeTab === 'settings' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-gear text-xl mr-2"></i> Pengaturan</button>
                 </div>
 
@@ -351,7 +339,6 @@
                                 </table>
                             </div>
                         </div>
-
                     </div>
 
                     <!-- TAB: SCANNER -->
@@ -438,20 +425,17 @@
                                                 </transition>
                                                 
                                                 <!-- FITUR BACKDATE KHUSUS ADMIN -->
-                                                <div v-if="currentUser.role === 'Super Admin'" class="mt-4 pt-4 border-t border-brand-200/50">
-                                                    <label class="flex items-center space-x-2 text-xs sm:text-sm font-black text-slate-700 mb-2 cursor-pointer">
-                                                        <input type="checkbox" v-model="isBackdate" class="w-4 h-4 text-brand-600 rounded">
-                                                        <span><i class="ph-bold ph-clock-counter-clockwise mr-1 text-brand-500"></i> Input Backdate (Admin Only)</span>
+                                                <div v-if="currentUser.role === 'Super Admin'" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                                                    <label class="flex items-center space-x-2 cursor-pointer mb-2">
+                                                        <input type="checkbox" v-model="isBackdate" class="w-4 h-4 text-red-600 rounded focus:ring-red-500 cursor-pointer">
+                                                        <span class="text-xs font-black text-red-700 uppercase">Input Backdate (Admin Only)</span>
                                                     </label>
                                                     <transition name="fade-slide">
-                                                        <div v-if="isBackdate" class="flex flex-col space-y-2">
-                                                            <input type="datetime-local" v-model="backdateValue" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none bg-white font-bold text-slate-700 focus:ring-2 focus:ring-brand-500">
-                                                            <p class="text-[10px] text-red-500 font-medium leading-tight"><i class="ph-fill ph-warning"></i> Gunakan fitur ini HANYA jika Anda lupa input pada shift sebelumnya. Waktu roving akan tercatat mundur sesuai input ini.</p>
+                                                        <div v-if="isBackdate" class="mt-2">
+                                                            <input type="datetime-local" v-model="backdateValue" class="w-full px-3 py-2 border border-red-300 rounded-lg text-xs font-bold outline-none text-red-700 bg-white shadow-inner">
                                                         </div>
                                                     </transition>
                                                 </div>
-                                                <!-- END FITUR BACKDATE -->
-
                                             </div>
 
                                             <div class="mt-5 flex space-x-2">
@@ -492,13 +476,13 @@
                             </div>
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4" v-if="selectedRecapDate && paginatedRecapSummary.length > 0">
                                 <div class="relative w-full sm:max-w-md">
-                                    <input v-model="recapSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border rounded-xl text-sm outline-none uppercase">
+                                    <input v-model="recapSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border rounded-xl text-sm outline-none uppercase bg-slate-50">
                                     <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
                                     <button v-if="recapSearchQuery" @click="recapSearchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
                                 </div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
                                     <button v-if="selectedRecapItems.length > 0" @click="deleteSelectedRecaps" class="px-3 py-2 bg-red-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-red-700 flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedRecapItems.length }})</button>
-                                    <select v-model.number="recapItemsPerPage" class="py-2 pl-3 pr-8 border rounded-xl text-xs font-bold outline-none cursor-pointer"><option value="10">10 Baris</option><option value="25">25 Baris</option><option value="50">50 Baris</option></select>
+                                    <select v-model.number="recapItemsPerPage" class="py-2.5 pl-3 pr-8 border rounded-xl text-xs font-bold outline-none cursor-pointer"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
                                 </div>
                             </div>
                             
@@ -568,13 +552,13 @@
                             
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div class="relative w-full sm:max-w-md">
-                                    <input v-model="searchQuery" @input="searchQuery = String(searchQuery).toUpperCase()" type="text" placeholder="Omni Search..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white">
-                                    <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-lg"></i>
+                                    <input v-model="searchQuery" type="text" placeholder="Omni Search..." class="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm outline-none uppercase bg-white">
+                                    <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-lg"></i>
                                 </div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
                                     <button v-if="selectedInventoryItems.length > 0" @click="deleteSelectedInventory" class="px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-bold flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedInventoryItems.length }})</button>
-                                    <select v-if="currentUser.role === 'Super Admin'" v-model="dashboardFilter" class="py-2 px-3 border rounded-xl text-brand-700 bg-brand-50 text-xs font-bold outline-none uppercase"><option value="ALL">📍 Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option></select>
-                                    <select v-model.number="invItemsPerPage" class="py-2 px-3 border rounded-xl text-xs font-bold outline-none bg-white"><option value="10">10 Baris</option><option value="25">25 Baris</option><option value="50">50 Baris</option></select>
+                                    <select v-if="currentUser.role === 'Super Admin'" v-model="dashboardFilter" class="py-2.5 px-3 border rounded-xl text-brand-700 bg-brand-50 text-xs font-bold outline-none uppercase"><option value="ALL">📍 Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option></select>
+                                    <select v-model.number="invItemsPerPage" class="py-2.5 px-3 border rounded-xl text-xs font-bold outline-none bg-white"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
                                 </div>
                             </div>
                             <div class="overflow-auto max-h-[65vh] table-scrollbar relative">
@@ -638,23 +622,33 @@
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row gap-4 items-end">
                                 <div class="w-full sm:w-auto flex-1">
                                     <label class="block text-xs font-black uppercase mb-1">Tanggal</label>
-                                    <input id="logDateInputId" type="text" placeholder="Pilih Rentang Tanggal..." class="w-full px-3 py-2 border rounded-xl text-sm outline-none font-bold cursor-pointer">
+                                    <input id="logDateInputId" type="text" placeholder="Pilih Rentang Tanggal..." class="w-full px-3 py-2.5 border rounded-xl text-sm outline-none font-bold cursor-pointer bg-slate-50">
                                 </div>
                                 <div v-if="currentUser.role === 'Super Admin'" class="w-full sm:w-auto flex-1">
                                     <label class="block text-xs font-black uppercase mb-1">Gudang</label>
-                                    <select v-model="logFilterLocation" class="w-full px-3 py-2 border rounded-xl text-sm font-bold uppercase"><option value="ALL">Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">{{ loc }}</option></select>
+                                    <select v-model="logFilterLocation" class="w-full px-3 py-2.5 border rounded-xl text-sm font-bold uppercase bg-slate-50"><option value="ALL">Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">{{ loc }}</option></select>
                                 </div>
                                 <div class="w-full sm:w-auto flex-1">
                                     <label class="block text-xs font-black uppercase mb-1">Petugas</label>
-                                    <select v-model="logFilterPic" class="w-full px-3 py-2 border rounded-xl text-sm font-bold uppercase"><option value="ALL">Semua PIC</option><option v-for="pic in uniquePics" :key="pic" :value="pic">{{ pic }}</option></select>
+                                    <select v-model="logFilterPic" class="w-full px-3 py-2.5 border rounded-xl text-sm font-bold uppercase bg-slate-50"><option value="ALL">Semua PIC</option><option v-for="pic in uniquePics" :key="pic" :value="pic">{{ pic }}</option></select>
                                 </div>
-                                <button @click="resetFilters" class="w-full sm:w-auto px-4 py-2 bg-slate-100 rounded-xl font-bold text-sm border"><i class="ph-bold ph-x mr-1.5"></i> Clear</button>
+                                <button @click="resetFilters" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 rounded-xl font-bold text-sm border"><i class="ph-bold ph-x mr-1.5"></i> Clear</button>
                             </div>
-                            <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                                <input v-model="logSearchQuery" type="text" placeholder="Omni Search..." class="w-full max-w-md px-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white shadow-sm">
-                                <select v-model.number="logItemsPerPage" class="py-2 px-3 border rounded-xl text-xs font-bold outline-none ml-4 bg-white"><option value="10">10 Baris</option><option value="25">25 Baris</option><option value="50">50 Baris</option></select>
+                            
+                            <!-- BAGIAN PENCARIAN & TOMBOL HAPUS DI ATAS -->
+                            <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                                <div class="relative w-full sm:max-w-md">
+                                    <input v-model="logSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border rounded-xl text-sm outline-none uppercase bg-white shadow-sm">
+                                    <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
+                                    <button v-if="logSearchQuery" @click="logSearchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
+                                </div>
+                                <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
+                                    <button v-if="selectedLogItems.length > 0" @click="deleteSelectedLogs" class="px-3 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-red-700 flex items-center transition-colors"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedLogItems.length }})</button>
+                                    <select v-model.number="logItemsPerPage" class="py-2.5 px-3 border rounded-xl text-xs font-bold outline-none bg-white cursor-pointer"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
+                                </div>
                             </div>
-                            <div class="overflow-auto max-h-[65vh] table-scrollbar border-t border-slate-100 relative">
+
+                            <div class="overflow-auto max-h-[65vh] table-scrollbar relative">
                                 <table class="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
                                     <thead>
                                         <tr class="text-slate-500 text-[10px] sm:text-[11px] uppercase tracking-widest select-none">
@@ -679,8 +673,11 @@
                                             <td class="p-3 text-center font-black text-brand-700">{{ log.newQty }}</td>
                                             <td class="p-3 text-right font-black"><span v-if="log.variance === 0" class="text-slate-400">0</span><span v-else :class="log.variance > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="px-2 py-1 rounded-lg border">{{ log.variance > 0 ? '+' : '' }}{{ log.variance }}</span></td>
                                             <td class="p-3 text-center">
-                                                <button @click="openEditLog(log)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Revisi Roving">
+                                                <button @click="openEditLog(log)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg mr-1" title="Revisi Roving">
                                                     <i class="ph-bold ph-pencil-simple text-base"></i>
+                                                </button>
+                                                <button @click="deleteLogHistory(log)" class="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg" title="Hapus Log & Pulihkan">
+                                                    <i class="ph-bold ph-trash text-base"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -688,7 +685,6 @@
                                 </table>
                             </div>
                             <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end text-xs font-bold" v-if="processedTransactions.length > 0">
-                                <button v-if="selectedLogItems.length > 0" @click="deleteSelectedLogs" class="px-3 py-1.5 bg-red-600 text-white rounded-lg mr-auto"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedLogItems.length }})</button>
                                 <button @click="logCurrentPage > 1 && logCurrentPage--" :disabled="logCurrentPage === 1" class="px-3 py-1.5 bg-white border rounded-lg mr-2 disabled:opacity-50">Prev</button>
                                 <span class="px-2 py-1.5 text-slate-700">{{ logCurrentPage }} / {{ logTotalPages }}</span>
                                 <button @click="logCurrentPage < logTotalPages && logCurrentPage++" :disabled="logCurrentPage === logTotalPages" class="px-3 py-1.5 bg-white border rounded-lg ml-2 disabled:opacity-50">Next</button>
@@ -966,7 +962,6 @@
         // ==========================================
         // KONFIGURASI API KEY (URL DEPLOY CODE.GS)
         // ==========================================
-        // Sesuai permintaan Anda, URL sudah saya Hardcode ke dalam file
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
 
         const reportTemplateDef = [
@@ -1028,15 +1023,15 @@
 
                 const searchQuery = ref('');
                 const invSortKey = ref('name'); const invSortAsc = ref(true); 
-                const invCurrentPage = ref(1); const invItemsPerPage = ref(10);
+                const invCurrentPage = ref(1); const invItemsPerPage = ref(20);
 
                 const recapSearchQuery = ref('');
                 const recapSortKey = ref('name'); const recapSortAsc = ref(true); 
-                const recapCurrentPage = ref(1); const recapItemsPerPage = ref(10);
+                const recapCurrentPage = ref(1); const recapItemsPerPage = ref(20);
 
                 const logSearchQuery = ref('');
                 const logSortKey = ref('date'); const logSortAsc = ref(false); 
-                const logCurrentPage = ref(1); const logItemsPerPage = ref(10);
+                const logCurrentPage = ref(1); const logItemsPerPage = ref(20);
                 const logFilterDate = ref('');
                 const logFilterLocation = ref('ALL');
                 const logFilterPic = ref('ALL');
@@ -1053,7 +1048,6 @@
                 const actualPressure = ref(0);
                 const actualPressureInput = ref(null);
 
-                // State untuk fitur Backdate
                 const isBackdate = ref(false);
                 const backdateValue = ref('');
 
@@ -1191,10 +1185,20 @@
                     });
                 };
 
+                // PERBAIKAN: Logika Omni Search yang lebih robust (Mencari di semua Key)
                 const omniSearch = (item, query) => {
                     if (!query) return true;
-                    query = query.toLowerCase();
-                    return Object.values(item).some(val => val !== null && val !== undefined && String(val).toLowerCase().includes(query));
+                    query = String(query).toLowerCase().trim();
+                    if (query === '') return true;
+
+                    for (const key in item) {
+                        if (item[key] !== null && item[key] !== undefined) {
+                            if (String(item[key]).toLowerCase().includes(query)) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
                 };
 
                 const isDateInRange = (dateIsoStr, rangeStr) => {
@@ -1215,7 +1219,7 @@
 
                 const processedInventory = computed(() => {
                     let res = baseInventory.value;
-                    const q = searchQuery.value.toLowerCase();
+                    const q = searchQuery.value.toLowerCase().trim();
                     if (q) {
                         if (q === '@low') res = res.filter(i => i.qty < i.minQty);
                         else res = res.filter(i => omniSearch(i, q));
@@ -1469,9 +1473,10 @@
                     showToast('Semua filter berhasil direset', 'success');
                 };
 
-                watch([invCurrentPage, searchQuery, invItemsPerPage], () => selectedInventoryItems.value = []);
-                watch([logCurrentPage, logSearchQuery, logFilterDate, logFilterLocation, logFilterPic, logItemsPerPage], () => selectedLogItems.value = []);
-                watch([recapCurrentPage, recapSearchQuery, selectedRecapDate, recapItemsPerPage], () => selectedRecapItems.value = []);
+                // Watchers for Resetting Pagination on Search Change
+                watch([searchQuery, invItemsPerPage], () => { invCurrentPage.value = 1; selectedInventoryItems.value = []; });
+                watch([logSearchQuery, logFilterDate, logFilterLocation, logFilterPic, logItemsPerPage], () => { logCurrentPage.value = 1; selectedLogItems.value = []; });
+                watch([recapSearchQuery, selectedRecapDate, recapItemsPerPage], () => { recapCurrentPage.value = 1; selectedRecapItems.value = []; });
                 
                 watch(dashboardFilter, () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
                 watch(dashboardDate, () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); }); 
@@ -1481,7 +1486,6 @@
                     } 
                 });
 
-                // Auto-select first item for chart to prevent blank space
                 watch(uniqueItemNames, (newNames) => {
                     if (newNames.length > 0 && !selectedTrendItemName.value) {
                         selectedTrendItemName.value = newNames[0];
@@ -1518,7 +1522,7 @@
                 window.addEventListener('keypress', resetIdleTimer);
                 window.addEventListener('touchstart', resetIdleTimer);
 
-                // 🔴 API CALL DISPATCHER CERDAS (MENGATASI "FAILED TO FETCH" & OFFLINE MOCK)
+                // 🔴 API CALL DISPATCHER CERDAS
                 const apiCall = async (action, payload = {}, isSilent = false) => {
                     if (isPreview.value) {
                         await new Promise(r => setTimeout(r, 400));
@@ -1968,16 +1972,7 @@
                     if (scanStr.startsWith('HTTP://') || scanStr.startsWith('HTTPS://')) { scanStr = scanStr.split('/').pop() || scanStr; scannedCode.value = scanStr; }
                     
                     const item = baseInventory.value.find(i => String(i.barcode).trim().toUpperCase() === scanStr);
-                    if (item) { 
-                        activeItem.value = item; actualStock.value = item.qty; 
-                        
-                        // Set default backdate ke waktu sekarang saat scan berhasil
-                        const now = new Date();
-                        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                        backdateValue.value = now.toISOString().slice(0, 16);
-                        
-                        nextTick(() => { if (actualStockInput.value) { actualStockInput.value.focus(); actualStockInput.value.select(); } }); 
-                    } 
+                    if (item) { activeItem.value = item; actualStock.value = item.qty; nextTick(() => { if (actualStockInput.value) { actualStockInput.value.focus(); actualStockInput.value.select(); } }); } 
                     else { 
                         const globalItem = inventory.value.find(i => String(i.barcode).trim().toUpperCase() === scanStr);
                         if (globalItem) AppSwal.fire({ icon: 'warning', title: 'Akses Ditolak', text: `Barang (${globalItem.name}) berada di gudang ${globalItem.location}.` });
@@ -1987,26 +1982,40 @@
                     scannedCode.value = ''; 
                 };
 
-                const resetScanner = () => { activeItem.value = null; actualStock.value = 0; actualPressure.value = 0; scannedCode.value = ''; isProcessing.value = false; isBackdate.value = false; if(activeTab.value === 'scan') nextTick(() => { if (barcodeInput.value) barcodeInput.value.focus(); }); };
+                const resetScanner = () => { 
+                    activeItem.value = null; 
+                    actualStock.value = 0; 
+                    actualPressure.value = 0; 
+                    scannedCode.value = ''; 
+                    isProcessing.value = false; 
+                    isBackdate.value = false;
+                    backdateValue.value = '';
+                    if(activeTab.value === 'scan') nextTick(() => { if (barcodeInput.value) barcodeInput.value.focus(); }); 
+                };
 
                 const submitUpdate = async () => {
                     if (!activeItem.value || actualStock.value === '' || actualStock.value < 0 || typeof actualStock.value !== 'number') return;
                     if (isNitrogenItem.value && (actualPressure.value === '' || actualPressure.value < 0 || typeof actualPressure.value !== 'number')) { AppSwal.fire({ icon: 'warning', title: 'Pressure Kosong', text: 'Khusus item Nitrogen, wajib mengisi data Pressure Aktual (Bar).' }); return; }
-                    if (isBackdate.value && !backdateValue.value) { AppSwal.fire({ icon: 'warning', title: 'Waktu Kosong', text: 'Anda mencentang Input Backdate, silakan isi tanggal dan waktunya.' }); return; }
 
                     isProcessing.value = true;
                     try {
                         let finalName = String(activeItem.value.name).toUpperCase();
                         if (isNitrogenItem.value) finalName += ` [Pressure: ${actualPressure.value} Bar]`;
-
-                        // Tentukan Waktu Transaksi (Current vs Backdate)
-                        let transactionDate = currentTime.value.toISOString();
-                        if (currentUser.value.role === 'Super Admin' && isBackdate.value && backdateValue.value) {
-                            transactionDate = new Date(backdateValue.value).toISOString();
+                        
+                        let submitDate = currentTime.value.toISOString();
+                        if (isBackdate.value && backdateValue.value) {
+                            const bd = new Date(backdateValue.value);
+                            if (!isNaN(bd.getTime())) {
+                                submitDate = bd.toISOString();
+                            } else {
+                                AppSwal.fire({ icon: 'error', title: 'Tanggal Salah', text: 'Format tanggal backdate tidak valid.'});
+                                isProcessing.value = false;
+                                return;
+                            }
                         }
 
                         const payload = { 
-                            id: Date.now(), date: transactionDate, barcode: String(activeItem.value.barcode).toUpperCase(), 
+                            id: Date.now(), date: submitDate, barcode: String(activeItem.value.barcode).toUpperCase(), 
                             name: finalName, oldQty: activeItem.value.qty, newQty: actualStock.value, 
                             variance: actualStock.value - activeItem.value.qty, user: String(currentUser.value.username).toUpperCase() || 'SISTEM',
                             location: String(activeItem.value.location).toUpperCase(), pic: String(currentUser.value.username).toUpperCase()
@@ -2150,6 +2159,77 @@
                 
                 const closeModal = () => { showModal.value = false; isProcessing.value = false; };
 
+                // PERBAIKAN: Tombol Hapus Log & Hapus Rekap Disederhanakan (Langsung Hapus & Pulihkan Stok)
+                const deleteItem = (barcode) => { 
+                    AppSwal.fire({ title: 'Hapus Item ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const res = await apiCall('deleteMasterItem', { barcode: String(barcode).trim().toUpperCase() });
+                            if (res && res.success) { AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteSelectedInventory = () => {
+                    if (selectedInventoryItems.value.length === 0) return;
+                    AppSwal.fire({ title: `Hapus ${selectedInventoryItems.value.length} Barang?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const reqPayload = JSON.parse(JSON.stringify(selectedInventoryItems.value));
+                            const res = await apiCall('deleteMasterItemsBulk', { barcodes: reqPayload });
+                            if (res && res.success) { selectedInventoryItems.value = []; AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteLogHistory = (log) => {
+                    AppSwal.fire({ title: 'Hapus Log Transaksi?', text: 'Stok barang akan otomatis dikembalikan ke jumlah sebelumnya.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus & Pulihkan Stok' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const revertData = { barcode: log.barcode, revertToQty: log.oldQty };
+                            const res = await apiCall('deleteHistoryItem', { id: log.id, revertData: JSON.parse(JSON.stringify(revertData)) });
+                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteSelectedLogs = () => {
+                    if (selectedLogItems.value.length === 0) return;
+                    AppSwal.fire({ title: `Hapus ${selectedLogItems.value.length} Log?`, text: 'Stok barang dari log yang dihapus akan otomatis dikembalikan ke jumlah sebelumnya.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const revertDatas = [];
+                            selectedLogItems.value.forEach(id => { const log = transactions.value.find(t => t.id === id); if (log) revertDatas.push({ barcode: log.barcode, revertToQty: log.oldQty }); }); 
+                            const res = await apiCall('deleteHistoryItemsBulk', { ids: JSON.parse(JSON.stringify(selectedLogItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
+                            if (res && res.success) { selectedLogItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteRecapOpname = (summary) => {
+                    AppSwal.fire({ title: 'Hapus Rekap Harian?', text: 'Stok barang akan otomatis dikembalikan ke jumlah awal di hari tersebut.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus & Pulihkan Stok' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const revertData = { barcode: summary.barcode, revertToQty: summary.firstOldQty };
+                            const res = await apiCall('deleteRecapOpname', { dateStr: selectedRecapDate.value, barcode: summary.barcode, revertData: JSON.parse(JSON.stringify(revertData)) });
+                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteSelectedRecaps = () => {
+                    if (selectedRecapItems.value.length === 0) return;
+                    AppSwal.fire({ title: `Hapus ${selectedRecapItems.value.length} Rekap?`, text: 'Stok barang dari rekap yang dihapus akan otomatis dikembalikan ke jumlah awal di hari tersebut.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const revertDatas = [];
+                            selectedRecapItems.value.forEach(barcode => { const summary = processedRecapSummary.value.find(s => s.barcode === barcode); if (summary) revertDatas.push({ barcode: summary.barcode, revertToQty: summary.firstOldQty }); }); 
+                            const res = await apiCall('deleteRecapsBulk', { dateStr: selectedRecapDate.value, barcodes: JSON.parse(JSON.stringify(selectedRecapItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
+                            if (res && res.success) { selectedRecapItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+                
                 const showQRCode = (item) => {
                     AppSwal.fire({
                         title: `<span class="text-lg font-black uppercase text-slate-800">Label Barang</span>`,
@@ -2258,77 +2338,7 @@
                         }
                     } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
-                
-                const deleteItem = (barcode) => { 
-                    AppSwal.fire({ title: 'Hapus Item ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const res = await apiCall('deleteMasterItem', { barcode: String(barcode).trim().toUpperCase() });
-                            if (res && res.success) { AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
 
-                const deleteSelectedInventory = () => {
-                    if (selectedInventoryItems.value.length === 0) return;
-                    AppSwal.fire({ title: `Hapus ${selectedInventoryItems.value.length} Barang?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const reqPayload = JSON.parse(JSON.stringify(selectedInventoryItems.value));
-                            const res = await apiCall('deleteMasterItemsBulk', { barcodes: reqPayload });
-                            if (res && res.success) { selectedInventoryItems.value = []; AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-
-                const deleteLogHistory = (log) => {
-                    AppSwal.fire({ title: 'Hapus Log Transaksi?', html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
-                        if (result.isConfirmed || result.isDenied) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: log.barcode, revertToQty: log.oldQty } : null;
-                            const res = await apiCall('deleteHistoryItem', { id: log.id, revertData: JSON.parse(JSON.stringify(revertData)) });
-                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-
-                const deleteSelectedLogs = () => {
-                    if (selectedLogItems.value.length === 0) return;
-                    AppSwal.fire({ title: `Hapus ${selectedLogItems.value.length} Log?`, html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
-                        if (result.isConfirmed || result.isDenied) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const isRevert = result.isConfirmed; const revertDatas = [];
-                            if (isRevert) { selectedLogItems.value.forEach(id => { const log = transactions.value.find(t => t.id === id); if (log) revertDatas.push({ barcode: log.barcode, revertToQty: log.oldQty }); }); }
-                            const res = await apiCall('deleteHistoryItemsBulk', { ids: JSON.parse(JSON.stringify(selectedLogItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
-                            if (res && res.success) { selectedLogItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-
-                const deleteRecapOpname = (summary) => {
-                    AppSwal.fire({ title: 'Hapus Rekap Harian?', html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
-                        if (result.isConfirmed || result.isDenied) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const isRevert = result.isConfirmed; const revertData = isRevert ? { barcode: summary.barcode, revertToQty: summary.firstOldQty } : null;
-                            const res = await apiCall('deleteRecapOpname', { dateStr: selectedRecapDate.value, barcode: summary.barcode, revertData: JSON.parse(JSON.stringify(revertData)) });
-                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-
-                const deleteSelectedRecaps = () => {
-                    if (selectedRecapItems.value.length === 0) return;
-                    AppSwal.fire({ title: `Hapus ${selectedRecapItems.value.length} Rekap?`, html: `<b>Pilih Opsi:</b>`, icon: 'warning', showDenyButton: true, showCancelButton: true, confirmButtonText: 'Hapus & Pulihkan Stok', confirmButtonColor: '#0284c7', denyButtonText: 'Hanya Hapus Log', denyButtonColor: '#d33' }).then(async (result) => {
-                        if (result.isConfirmed || result.isDenied) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const isRevert = result.isConfirmed; const revertDatas = [];
-                            if (isRevert) { selectedRecapItems.value.forEach(barcode => { const summary = processedRecapSummary.value.find(s => s.barcode === barcode); if (summary) revertDatas.push({ barcode: summary.barcode, revertToQty: summary.firstOldQty }); }); }
-                            const res = await apiCall('deleteRecapsBulk', { dateStr: selectedRecapDate.value, barcodes: JSON.parse(JSON.stringify(selectedRecapItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
-                            if (res && res.success) { selectedRecapItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-                
                 const exportExcel = () => { 
                     try {
                         if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
@@ -2467,7 +2477,6 @@
                     activeTab, activeSettingsTab, changeTab, filterLowStockAndGo, loading, isProcessing, isSyncing,
                     manualRefresh, resetFilters, menuVisibility, dailyCheckFilter,
                     inventory, transactions, settingsData, usersData, scannedCode, activeItem, barcodeInput, actualStockInput, actualStock, variance, isCameraOpen,
-                    isBackdate, backdateValue,
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, dashboardDate, dailyCheckStatus, checkedTodayCount, uncheckedTodayCount,
                     availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch, selectedTrendItemName,
                     showModal, isEditing, formItem, addFormItems, addNewItemRow, removeNewItemRow, excelFileInput, historyFileInput, trendFilter, renderCharts,
@@ -2476,6 +2485,7 @@
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
                     logSearchQuery, logSortKey, logSortAsc, logCurrentPage, logItemsPerPage, processedTransactions, paginatedTransactions, logTotalPages,
                     logFilterDate, logFilterLocation, logFilterPic, actualPressure, actualPressureInput, focusPressure, isNitrogenItem,
+                    isBackdate, backdateValue,
                     toggleSort, selectedInventoryItems, toggleAllInventory, toggleInventorySelection, deleteItem, deleteSelectedInventory,
                     selectedLogItems, toggleAllLogs, toggleLogSelection, deleteLogHistory, deleteSelectedLogs,
                     selectedRecapItems, toggleAllRecaps, toggleRecapSelection, deleteRecapOpname, deleteSelectedRecaps,
