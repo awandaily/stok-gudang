@@ -18,6 +18,7 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
@@ -38,7 +39,7 @@
         .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
         div:where(.swal2-container) { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
         body { padding-bottom: constant(safe-area-inset-bottom); padding-bottom: env(safe-area-inset-bottom); }
@@ -48,8 +49,7 @@
         .table-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
         .table-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
         .table-scrollbar::-webkit-scrollbar-track { background: #f8fafc; border-radius: 10px; }
-        .preview-th { border: 1px solid #cbd5e1; padding: 6px 10px; text-align: center; }
-        .preview-td { border: 1px solid #e2e8f0; padding: 6px 10px; text-align: center; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
@@ -61,6 +61,7 @@
         </div>
     </div>
 
+    <!-- MAIN APP CONTAINER -->
     <div id="app" v-cloak class="min-h-screen flex flex-col relative pb-24 sm:pb-0">
         
         <transition name="fade-slide">
@@ -70,6 +71,7 @@
             </div>
         </transition>
 
+        <!-- LOGIN SCREEN -->
         <transition name="fade-slide">
             <div v-if="!isLoggedIn" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-brand-900 via-brand-800 to-slate-900 p-4">
                 <div class="glass p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md relative z-10 animate-scale-in border border-white/20">
@@ -116,6 +118,7 @@
             </div>
         </transition>
 
+        <!-- DASHBOARD UI -->
         <div v-if="isLoggedIn" class="flex-1 flex flex-col h-full w-full relative">
             <nav class="bg-gradient-to-r from-brand-900 to-brand-800 text-white shadow-lg sticky top-0 z-40">
                 <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -127,6 +130,12 @@
                         </div>
                         
                         <div class="flex items-center space-x-2 sm:space-x-5">
+                            <!-- INDIKATOR ANTREAN LOKAL (QUEUE) -->
+                            <div v-if="syncQueue.length > 0" @click="forceSyncQueue" class="cursor-pointer flex items-center bg-orange-500/20 hover:bg-orange-500/40 px-2.5 py-1.5 rounded-lg border border-orange-500/30 transition-colors" title="Data menunggu dikirim">
+                                <i class="ph-bold ph-cloud-arrow-up animate-bounce text-orange-400 sm:mr-1.5"></i>
+                                <span class="text-[10px] font-black text-orange-300 tracking-widest hidden sm:block">PENDING: {{ syncQueue.length }}</span>
+                            </div>
+
                             <div class="flex items-center bg-green-500/20 px-2.5 py-1.5 rounded-lg border border-green-500/30">
                                 <div class="w-2 h-2 rounded-full bg-green-400 sm:mr-2" :class="{'animate-pulse': isSyncing}"></div>
                                 <span class="text-[10px] font-black text-green-300 tracking-widest hidden sm:block">{{ isSyncing ? 'LIVE' : 'SYNC' }}</span>
@@ -190,7 +199,7 @@
                     <button v-if="menuVisibility.scan" @click="changeTab('scan')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'scan' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-barcode text-xl mr-2"></i> Scan Roving</button>
                     <button v-if="menuVisibility.recap" @click="changeTab('recap')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'recap' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-list-numbers text-xl mr-2"></i> Rekap Tabel Roving</button>
                     <button v-if="menuVisibility.inventory" @click="changeTab('inventory')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'inventory' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-database text-xl mr-2"></i> Master Data</button>
-                    <button v-if="menuVisibility.history" @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2"></i> Log History</button>
+                    <button v-if="menuVisibility.history" @click="changeTab('history')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap" :class="activeTab === 'history' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-clock-counter-clockwise text-xl mr-2"></i> Log History Transaksi Roving</button>
                     <button @click="changeTab('settings')" class="snap-start flex items-center px-4 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap ml-auto" :class="activeTab === 'settings' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100'"><i class="ph-duotone ph-gear text-xl mr-2"></i> Pengaturan</button>
                 </div>
 
@@ -341,6 +350,7 @@
                                 </table>
                             </div>
                         </div>
+
                     </div>
 
                     <!-- TAB: SCANNER -->
@@ -352,7 +362,7 @@
                             </div>
                             
                             <div class="p-5 sm:p-8">
-                                <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex justify-between items-center">
+                                <div class="mb-5 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex justify-between items-center relative">
                                     <div>
                                         <label class="block text-xs font-black uppercase tracking-wider text-blue-800 mb-1 flex items-center"><i class="ph-duotone ph-identification-card text-lg mr-1.5"></i> Petugas Roving (PIC)</label>
                                         <div class="text-sm font-black uppercase flex items-center"><i class="ph-fill ph-user-circle mr-2 text-blue-500 text-xl"></i> {{ currentUser.username }}</div>
@@ -425,18 +435,17 @@
                                                         <span v-else><i class="ph-fill ph-warning-circle text-lg mr-1 text-orange-500"></i> Selisih: <strong class="mx-1 text-base bg-orange-100 px-2 rounded">{{ variance > 0 ? '+' : '' }}{{ variance }}</strong> {{ activeItem.unit }}</span>
                                                     </div>
                                                 </transition>
-                                                
-                                                <!-- FITUR BACKDATE KHUSUS ADMIN -->
-                                                <div v-if="currentUser.role === 'Super Admin'" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-                                                    <label class="flex items-center space-x-2 cursor-pointer mb-2">
-                                                        <input type="checkbox" v-model="isBackdate" class="w-4 h-4 text-red-600 rounded focus:ring-red-500 cursor-pointer">
-                                                        <span class="text-xs font-black text-red-700 uppercase">Input Backdate (Admin Only)</span>
-                                                    </label>
-                                                    <transition name="fade-slide">
-                                                        <div v-if="isBackdate" class="mt-2">
-                                                            <input type="datetime-local" v-model="backdateValue" class="w-full px-3 py-2 border border-red-300 rounded-lg text-xs font-bold outline-none text-red-700 bg-white shadow-inner">
-                                                        </div>
-                                                    </transition>
+                                            </div>
+
+                                            <!-- FITUR BACKDATE (ADMIN ONLY) -->
+                                            <div v-if="currentUser.role === 'Super Admin'" class="mt-4 p-3 bg-slate-100 border border-slate-200 rounded-xl">
+                                                <label class="flex items-center space-x-2 cursor-pointer mb-2">
+                                                    <input type="checkbox" v-model="useBackdate" class="w-4 h-4 text-brand-600 rounded">
+                                                    <span class="text-xs font-black text-slate-700"><i class="ph-fill ph-clock-counter-clockwise mr-1"></i> Input Backdate (Admin Only)</span>
+                                                </label>
+                                                <div v-if="useBackdate" class="pl-6">
+                                                    <input type="datetime-local" v-model="backdateValue" class="w-full px-3 py-2 text-xs border border-slate-300 rounded outline-none font-bold">
+                                                    <p class="text-[9px] text-slate-500 mt-1 italic">Gunakan ini hanya jika kemarin sistem bermasalah sehingga gagal input.</p>
                                                 </div>
                                             </div>
 
@@ -476,16 +485,16 @@
                                     <button @click="exportRecapExcel" class="w-full sm:w-auto px-4 py-2.5 bg-green-600 text-white rounded-xl font-bold text-sm shadow-sm flex items-center justify-center whitespace-nowrap"><i class="ph-bold ph-file-xls mr-2 text-lg"></i> Export Rekap</button>
                                 </div>
                             </div>
-                            
-                            <!-- Search & Action Bar Rekap -->
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4" v-if="selectedRecapDate && paginatedRecapSummary.length > 0">
-                                <div class="relative w-full sm:max-w-md">
-                                    <input v-model="recapSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border rounded-xl text-sm outline-none uppercase bg-slate-50">
-                                    <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
-                                    <button v-if="recapSearchQuery" @click="recapSearchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
+                                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                    <div class="relative w-full sm:max-w-md">
+                                        <input v-model="recapSearchQuery" type="text" placeholder="Strict Search..." class="w-full pl-11 pr-4 py-2.5 border rounded-xl text-sm outline-none uppercase">
+                                        <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
+                                        <button v-if="recapSearchQuery" @click="recapSearchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
+                                    </div>
+                                    <button v-if="selectedRecapItems.length > 0" @click="deleteSelectedRecaps" class="px-3 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-red-700 flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedRecapItems.length }})</button>
                                 </div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
-                                    <button v-if="selectedRecapItems.length > 0" @click="deleteSelectedRecaps" class="px-3 py-2 bg-red-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-red-700 flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus & Pulihkan Stok ({{ selectedRecapItems.length }})</button>
                                     <select v-model.number="recapItemsPerPage" class="py-2.5 pl-3 pr-8 border rounded-xl text-xs font-bold outline-none cursor-pointer"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
                                 </div>
                             </div>
@@ -554,19 +563,19 @@
                                 </div>
                             </div>
                             
-                            <!-- Search & Action Bar Master Data -->
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
-                                <div class="relative w-full sm:max-w-md">
-                                    <input v-model="searchQuery" type="text" placeholder="Omni Search..." class="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm outline-none uppercase bg-white">
-                                    <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-lg"></i>
+                                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                    <div class="relative w-full sm:max-w-md">
+                                        <input v-model="searchQuery" @input="searchQuery = String(searchQuery).toUpperCase()" type="text" placeholder="Strict Search..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white">
+                                        <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-lg"></i>
+                                    </div>
+                                    <button v-if="selectedInventoryItems.length > 0" @click="deleteSelectedInventory" class="px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-bold flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedInventoryItems.length }})</button>
                                 </div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
-                                    <button v-if="selectedInventoryItems.length > 0" @click="deleteSelectedInventory" class="px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-bold flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedInventoryItems.length }})</button>
-                                    <select v-if="currentUser.role === 'Super Admin'" v-model="dashboardFilter" class="py-2.5 px-3 border rounded-xl text-brand-700 bg-brand-50 text-xs font-bold outline-none uppercase"><option value="ALL">📍 Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option></select>
-                                    <select v-model.number="invItemsPerPage" class="py-2.5 px-3 border rounded-xl text-xs font-bold outline-none bg-white"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
+                                    <select v-if="currentUser.role === 'Super Admin'" v-model="dashboardFilter" class="py-2 px-3 border rounded-xl text-brand-700 bg-brand-50 text-xs font-bold outline-none uppercase"><option value="ALL">📍 Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option></select>
+                                    <select v-model.number="invItemsPerPage" class="py-2 px-3 border rounded-xl text-xs font-bold outline-none bg-white"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
                                 </div>
                             </div>
-                            
                             <div class="overflow-auto max-h-[65vh] table-scrollbar relative">
                                 <table class="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
                                     <thead>
@@ -628,33 +637,26 @@
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-white flex flex-col sm:flex-row gap-4 items-end">
                                 <div class="w-full sm:w-auto flex-1">
                                     <label class="block text-xs font-black uppercase mb-1">Tanggal</label>
-                                    <input id="logDateInputId" type="text" placeholder="Pilih Rentang Tanggal..." class="w-full px-3 py-2.5 border rounded-xl text-sm outline-none font-bold cursor-pointer bg-slate-50">
+                                    <input id="logDateInputId" type="text" placeholder="Pilih Rentang Tanggal..." class="w-full px-3 py-2 border rounded-xl text-sm outline-none font-bold cursor-pointer">
                                 </div>
                                 <div v-if="currentUser.role === 'Super Admin'" class="w-full sm:w-auto flex-1">
                                     <label class="block text-xs font-black uppercase mb-1">Gudang</label>
-                                    <select v-model="logFilterLocation" class="w-full px-3 py-2.5 border rounded-xl text-sm font-bold uppercase bg-slate-50"><option value="ALL">Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">{{ loc }}</option></select>
+                                    <select v-model="logFilterLocation" class="w-full px-3 py-2 border rounded-xl text-sm font-bold uppercase"><option value="ALL">Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">{{ loc }}</option></select>
                                 </div>
                                 <div class="w-full sm:w-auto flex-1">
                                     <label class="block text-xs font-black uppercase mb-1">Petugas</label>
-                                    <select v-model="logFilterPic" class="w-full px-3 py-2.5 border rounded-xl text-sm font-bold uppercase bg-slate-50"><option value="ALL">Semua PIC</option><option v-for="pic in uniquePics" :key="pic" :value="pic">{{ pic }}</option></select>
+                                    <select v-model="logFilterPic" class="w-full px-3 py-2 border rounded-xl text-sm font-bold uppercase"><option value="ALL">Semua PIC</option><option v-for="pic in uniquePics" :key="pic" :value="pic">{{ pic }}</option></select>
                                 </div>
-                                <button @click="resetFilters" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 rounded-xl font-bold text-sm border"><i class="ph-bold ph-x mr-1.5"></i> Clear</button>
+                                <button @click="resetFilters" class="w-full sm:w-auto px-4 py-2 bg-slate-100 rounded-xl font-bold text-sm border"><i class="ph-bold ph-x mr-1.5"></i> Clear</button>
                             </div>
-                            
-                            <!-- Search & Action Bar Log History -->
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
-                                <div class="relative w-full sm:max-w-md">
-                                    <input v-model="logSearchQuery" type="text" placeholder="Omni Search..." class="w-full pl-11 pr-4 py-2.5 border rounded-xl text-sm outline-none uppercase bg-white shadow-sm">
-                                    <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
-                                    <button v-if="logSearchQuery" @click="logSearchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
+                                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                    <input v-model="logSearchQuery" type="text" placeholder="Strict Search..." class="w-full sm:w-64 px-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white shadow-sm">
+                                    <button v-if="selectedLogItems.length > 0" @click="deleteSelectedLogs" class="px-3 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold flex items-center shadow-sm"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedLogItems.length }})</button>
                                 </div>
-                                <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
-                                    <button v-if="selectedLogItems.length > 0" @click="deleteSelectedLogs" class="px-3 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-red-700 flex items-center transition-colors"><i class="ph-bold ph-trash mr-1.5"></i> Hapus & Pulihkan Stok ({{ selectedLogItems.length }})</button>
-                                    <select v-model.number="logItemsPerPage" class="py-2.5 px-3 border rounded-xl text-xs font-bold outline-none bg-white cursor-pointer"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
-                                </div>
+                                <select v-model.number="logItemsPerPage" class="py-2.5 px-3 border rounded-xl text-xs font-bold outline-none bg-white"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
                             </div>
-
-                            <div class="overflow-auto max-h-[65vh] table-scrollbar relative">
+                            <div class="overflow-auto max-h-[65vh] table-scrollbar border-t border-slate-100 relative">
                                 <table class="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
                                     <thead>
                                         <tr class="text-slate-500 text-[10px] sm:text-[11px] uppercase tracking-widest select-none">
@@ -670,7 +672,7 @@
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 text-xs sm:text-sm bg-white">
                                         <tr v-if="paginatedTransactions.length === 0"><td colspan="8" class="p-10 text-center text-slate-500">Tidak ada data riwayat.</td></tr>
-                                        <tr v-for="log in paginatedTransactions" :key="log.id + '-' + log.barcode" class="hover:bg-slate-50" :class="{'bg-orange-50/50': selectedLogItems.includes(log.id)}">
+                                        <tr v-for="log in paginatedTransactions" :key="log.id" class="hover:bg-slate-50" :class="{'bg-orange-50/50': selectedLogItems.includes(log.id)}">
                                             <td class="p-3 text-center"><input type="checkbox" :value="log.id" v-model="selectedLogItems" class="rounded text-brand-600 w-4 h-4 cursor-pointer"></td>
                                             <td class="p-3 cursor-pointer" @click="toggleLogSelection(log.id)"><div class="font-bold text-slate-700">{{ formatDate(log.date).split(' ')[0] }}</div><div class="text-[10px] font-mono mt-0.5">{{ formatDate(log.date).split(' ')[1] }}</div></td>
                                             <td class="p-3"><div class="font-bold text-brand-700 text-[10px] uppercase">{{ log.location }}</div><div class="text-[10px] text-blue-600 mt-0.5 font-bold uppercase">PIC: {{ log.pic || log.user }}</div></td>
@@ -679,11 +681,8 @@
                                             <td class="p-3 text-center font-black text-brand-700">{{ log.newQty }}</td>
                                             <td class="p-3 text-right font-black"><span v-if="log.variance === 0" class="text-slate-400">0</span><span v-else :class="log.variance > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="px-2 py-1 rounded-lg border">{{ log.variance > 0 ? '+' : '' }}{{ log.variance }}</span></td>
                                             <td class="p-3 text-center">
-                                                <button @click="openEditLog(log)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg mr-1" title="Revisi Roving">
+                                                <button @click="openEditLog(log)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Revisi Roving">
                                                     <i class="ph-bold ph-pencil-simple text-base"></i>
-                                                </button>
-                                                <button @click="deleteLogHistory(log)" class="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg" title="Hapus Log & Pulihkan">
-                                                    <i class="ph-bold ph-trash text-base"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -805,9 +804,39 @@
                     </div>
                 </transition>
             </main>
+
+            <!-- BOTTOM NAVIGATION BAR (KHUSUS MOBILE) -->
+            <nav v-if="isLoggedIn" class="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-5px_15px_-10px_rgba(0,0,0,0.1)] z-40 pb-safe pb-2">
+                <div class="flex justify-around items-center h-16 px-2 relative">
+                    <button v-if="menuVisibility.dashboard" @click="changeTab('dashboard')" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors" :class="activeTab === 'dashboard' ? 'text-brand-600' : 'text-slate-400'">
+                        <i class="text-2xl" :class="activeTab === 'dashboard' ? 'ph-fill ph-chart-line-up' : 'ph-duotone ph-chart-line-up'"></i>
+                        <span class="text-[10px] font-bold">Home</span>
+                    </button>
+                    <button v-if="menuVisibility.recap" @click="changeTab('recap')" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors" :class="activeTab === 'recap' ? 'text-brand-600' : 'text-slate-400'">
+                        <i class="text-2xl" :class="activeTab === 'recap' ? 'ph-fill ph-list-numbers' : 'ph-duotone ph-list-numbers'"></i>
+                        <span class="text-[10px] font-bold">Rekap</span>
+                    </button>
+                    
+                    <div v-if="menuVisibility.scan" class="relative w-full flex justify-center h-full">
+                        <button @click="changeTab('scan')" class="absolute -top-6 flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-brand-600 to-brand-400 rounded-full text-white shadow-[0_5px_15px_rgba(14,165,233,0.4)] border-4 border-slate-50 transition-transform transform hover:scale-105 active:scale-95 z-50">
+                            <i class="ph-bold ph-barcode text-2xl"></i>
+                        </button>
+                    </div>
+
+                    <button v-if="menuVisibility.inventory" @click="changeTab('inventory')" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors" :class="activeTab === 'inventory' ? 'text-brand-600' : 'text-slate-400'">
+                        <i class="text-2xl" :class="activeTab === 'inventory' ? 'ph-fill ph-database' : 'ph-duotone ph-database'"></i>
+                        <span class="text-[10px] font-bold">Master</span>
+                    </button>
+                    <button @click="changeTab('settings')" class="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors" :class="activeTab === 'settings' ? 'text-slate-800' : 'text-slate-400'">
+                        <i class="text-2xl" :class="activeTab === 'settings' ? 'ph-fill ph-gear' : 'ph-duotone ph-gear'"></i>
+                        <span class="text-[10px] font-bold">Seting</span>
+                    </button>
+                </div>
+            </nav>
+
         </div>
 
-        <!-- 🔴 MODAL REVISI ROVING (EDIT LOG) 🔴 -->
+        <!-- MODAL REVISI ROVING (EDIT LOG) -->
         <transition name="fade-slide">
             <div v-if="showEditLogModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
                 <div class="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col animate-scale-in">
@@ -866,7 +895,6 @@
                     </div>
                     <div class="p-6 bg-white overflow-y-auto max-h-[70vh]">
                         
-                        <!-- Mode Edit Satu Barang -->
                         <form v-if="isEditing" @submit.prevent="saveItem" class="space-y-4">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div><label class="block text-xs font-black mb-1 text-slate-700">Barcode / Kode</label><input v-model="formItem.barcode" type="text" required class="w-full px-3 py-2 border rounded-xl outline-none uppercase bg-slate-50 font-mono text-sm" readonly></div>
@@ -885,7 +913,6 @@
                             </div>
                         </form>
 
-                        <!-- Mode Tambah Barang Massal -->
                         <form v-else @submit.prevent="saveItem">
                             <div class="space-y-3">
                                 <div v-for="(item, index) in addFormItems" :key="index" class="flex flex-col md:flex-row gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl relative group">
@@ -913,71 +940,60 @@
             </div>
         </transition>
 
-        <!-- MODAL CHECK SHEET PREVIEW FULL SCREEN -->
+        <!-- MODAL FULL SCREEN CHECK SHEET RESMI -->
         <transition name="fade-slide">
-            <div v-if="showCheckSheetModal" class="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-slate-900/80 backdrop-blur-sm">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-[95vw] h-[90vh] flex flex-col animate-scale-in border border-slate-200 overflow-hidden">
-                    
-                    <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex justify-between items-center bg-indigo-600 shrink-0 text-white shadow-md z-10">
-                        <h3 class="font-black text-base sm:text-lg flex items-center">
-                            <i class="ph-duotone ph-table mr-2 text-xl sm:text-2xl"></i> Preview & Download Check Sheet
-                        </h3>
-                        <button @click="showCheckSheetModal = false" class="text-indigo-200 hover:text-white transition-colors bg-indigo-700 hover:bg-red-500 p-1.5 rounded-lg"><i class="ph-bold ph-x text-xl"></i></button>
+            <div v-if="showCheckSheetModal" class="fixed inset-0 z-[60] flex flex-col bg-slate-100 animate-scale-in pb-16 sm:pb-0">
+                <div class="px-6 py-4 bg-white border-b border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
+                    <h3 class="font-black text-lg flex items-center text-indigo-700">
+                        <div class="bg-indigo-100 p-2 rounded-lg mr-3"><i class="ph-duotone ph-table text-2xl"></i></div>
+                        Preview Form Check Sheet (FR/BDA-INV/PSC/006)
+                    </h3>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <input type="month" v-model="checkSheetMonth" class="px-4 py-2 border border-slate-200 rounded-xl outline-none font-bold text-slate-700 bg-slate-50 w-full sm:w-auto">
+                        <button @click="downloadCheckSheetExcel" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-black shadow-md flex items-center shrink-0" :disabled="!checkSheetMonth">
+                            <i class="ph-bold ph-file-xls mr-2 text-lg"></i> Download
+                        </button>
+                        <button @click="showCheckSheetModal = false" class="px-4 py-2 bg-slate-200 hover:bg-red-100 hover:text-red-600 text-slate-700 rounded-xl font-black transition-colors shrink-0">Tutup</button>
                     </div>
-                    
-                    <div class="p-4 sm:p-6 flex-1 flex flex-col overflow-hidden bg-slate-50">
-                        <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-                                <label class="text-xs sm:text-sm font-black text-slate-700 whitespace-nowrap"><i class="ph-duotone ph-calendar-check mr-1 text-indigo-600"></i> Pilih Bulan & Tahun:</label>
-                                <input type="month" v-model="checkSheetMonth" class="w-full sm:w-48 px-4 py-2 border border-slate-300 rounded-xl outline-none font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-500 shadow-inner bg-slate-50">
-                            </div>
-                            <div class="flex gap-2 w-full sm:w-auto">
-                                <button @click="downloadCheckSheetExcel" class="w-full sm:w-auto px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-black shadow-md flex items-center justify-center transition-all" :disabled="!checkSheetMonth || !checkSheetData">
-                                    <i class="ph-bold ph-file-xls mr-2 text-lg"></i> Download .XLSX
-                                </button>
-                            </div>
+                </div>
+                
+                <div class="flex-1 overflow-auto p-4 sm:p-6 custom-scrollbar bg-slate-50">
+                    <div v-if="checkSheetData" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mx-auto w-max border border-slate-200 min-h-full">
+                        
+                        <div class="text-center mb-8 border-b-2 border-black pb-4">
+                            <h2 class="text-xl font-bold uppercase tracking-widest font-serif">Check Sheet Pengecekan Stock Chemical</h2>
+                            <p class="text-sm font-medium mt-1">Bulan : <span class="font-bold border-b border-black inline-block px-4">{{ checkSheetData.monthName }}</span></p>
                         </div>
-
-                        <!-- TABEL PREVIEW MENGAMBANG DI DALAM MODAL -->
-                        <div class="flex-1 bg-white border border-slate-200 rounded-xl shadow-inner overflow-auto custom-scrollbar relative" v-if="checkSheetData && checkSheetData.rows.length > 0">
-                            <table class="w-full min-w-[2800px] text-[10px] sm:text-xs border-collapse text-center">
-                                <thead class="sticky top-0 z-20 shadow-sm">
-                                    <tr class="bg-indigo-100 text-indigo-900 font-black tracking-wider">
-                                        <th rowspan="2" class="preview-th w-10">TGL</th>
-                                        <th rowspan="2" class="preview-th w-16">Jam</th>
-                                        <th v-for="item in checkSheetData.template" :colspan="item.cols.length" class="preview-th uppercase">{{ item.title }}</th>
-                                        <th rowspan="3" class="preview-th w-32 align-middle border-b-2 border-b-indigo-200">PIC</th>
-                                    </tr>
-                                    <tr class="bg-indigo-50 text-indigo-800 font-bold">
-                                        <template v-for="item in checkSheetData.template">
-                                            <th v-for="col in item.cols" class="preview-th border-t-0">{{ col }}</th>
-                                        </template>
-                                    </tr>
-                                    <tr class="bg-slate-100 text-slate-600 font-bold border-b-2 border-b-slate-300">
-                                        <th class="preview-th">Satuan</th>
-                                        <th class="preview-th"></th>
-                                        <template v-for="item in checkSheetData.template">
-                                            <th v-for="unit in item.units" class="preview-th">{{ unit }}</th>
-                                        </template>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(row, idx) in checkSheetData.rows" :key="idx" class="hover:bg-indigo-50/40 transition-colors border-b border-slate-100">
-                                        <td v-for="(cell, cIdx) in row" :key="cIdx" class="preview-td" 
-                                            :class="{'bg-slate-50 font-black text-slate-800': cIdx === 0, 
-                                                     'font-medium text-slate-500': cIdx === 1, 
-                                                     'font-black text-indigo-700 bg-indigo-50/20': cIdx > 1 && cIdx < row.length - 1 && cell !== '',
-                                                     'text-xs text-blue-600 font-bold uppercase': cIdx === row.length - 1 }">
-                                            {{ cell }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div v-else class="flex-1 flex flex-col items-center justify-center bg-white border border-slate-200 rounded-xl border-dashed">
-                             <i class="ph-duotone ph-calendar-blank text-6xl text-slate-300 mb-4 animate-pulse"></i>
-                             <p class="text-slate-500 font-bold">Pilih bulan dan tahun untuk merender Check Sheet.</p>
-                        </div>
+                        
+                        <table class="border-collapse border border-black text-[10px] sm:text-xs text-center font-serif">
+                            <thead>
+                                <tr class="bg-slate-100">
+                                    <th rowspan="3" class="border border-black p-2 w-8">TGL</th>
+                                    <th rowspan="3" class="border border-black p-2 w-12">Jam</th>
+                                    <th v-for="item in checkSheetData.template" :colspan="item.cols.length" class="border border-black p-2 font-bold max-w-[80px] break-words">{{ item.title }}</th>
+                                    <th rowspan="3" class="border border-black p-2 w-20">PIC</th>
+                                </tr>
+                                <tr class="bg-slate-50">
+                                    <template v-for="item in checkSheetData.template">
+                                        <th v-for="col in item.cols" class="border border-black p-1">{{ col }}</th>
+                                    </template>
+                                </tr>
+                                <tr class="bg-slate-50">
+                                    <template v-for="item in checkSheetData.template">
+                                        <th v-for="unit in item.units" class="border border-black p-1 italic text-slate-500">{{ unit }}</th>
+                                    </template>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="row in checkSheetData.rows" :key="row[0]" :class="row[0] % 2 === 0 ? 'bg-slate-50/50' : 'bg-white'">
+                                    <td v-for="(cell, idx) in row" :class="{'font-bold': idx === 0, 'bg-slate-100': cell === '' && idx > 1}" class="border border-black p-1.5 h-6">{{ cell }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                    </div>
+                    <div v-else class="h-full flex items-center justify-center text-slate-400">
+                        Pilih bulan untuk menampilkan preview Check Sheet.
                     </div>
                 </div>
             </div>
@@ -1063,21 +1079,26 @@
                 const settingsData = ref([]); 
                 const usersData = ref([]);
 
+                // 🔴 FITUR BARU: ANTREAN LOKAL (OFFLINE QUEUE)
+                const syncQueue = ref(JSON.parse(localStorage.getItem('rovingSyncQueue') || '[]'));
+                watch(syncQueue, (newVal) => { localStorage.setItem('rovingSyncQueue', JSON.stringify(newVal)); }, { deep: true });
+                const isQueueProcessing = ref(false);
+
                 const dailyCheckFilter = ref('ALL');
                 const dashboardFilter = ref('ALL');
                 const dashboardDate = ref(new Date().toISOString().slice(0,10));
 
                 const searchQuery = ref('');
                 const invSortKey = ref('name'); const invSortAsc = ref(true); 
-                const invCurrentPage = ref(1); const invItemsPerPage = ref(20);
+                const invCurrentPage = ref(1); const invItemsPerPage = ref(20); // Default 20
 
                 const recapSearchQuery = ref('');
                 const recapSortKey = ref('name'); const recapSortAsc = ref(true); 
-                const recapCurrentPage = ref(1); const recapItemsPerPage = ref(20);
+                const recapCurrentPage = ref(1); const recapItemsPerPage = ref(20); // Default 20
 
                 const logSearchQuery = ref('');
                 const logSortKey = ref('date'); const logSortAsc = ref(false); 
-                const logCurrentPage = ref(1); const logItemsPerPage = ref(20);
+                const logCurrentPage = ref(1); const logItemsPerPage = ref(20); // Default 20
                 const logFilterDate = ref('');
                 const logFilterLocation = ref('ALL');
                 const logFilterPic = ref('ALL');
@@ -1093,8 +1114,9 @@
                 const actualStock = ref(0);
                 const actualPressure = ref(0);
                 const actualPressureInput = ref(null);
-
-                const isBackdate = ref(false);
+                
+                // BACKDATE ADMIN
+                const useBackdate = ref(false);
                 const backdateValue = ref('');
 
                 const variance = computed(() => {
@@ -1231,25 +1253,13 @@
                     });
                 };
 
-                // PERBAIKAN: Logika Omni Search yang Ketat & Akurat (Mencegah BUG Miss-match ID/Timestamp)
-                const omniSearch = (item, query) => {
+                const strictSearch = (item, query, isLog = false) => {
                     if (!query) return true;
-                    query = String(query).toLowerCase().trim();
-                    if (query === '') return true;
-
-                    // Daftarkan Field Spesifik yang boleh di-search
-                    const searchableFields = [
-                        item.name, 
-                        item.barcode, 
-                        item.location, 
-                        item.pic, 
-                        item.user, 
-                        item.category
-                    ];
-
-                    return searchableFields.some(val => {
-                        return val !== null && val !== undefined && String(val).toLowerCase().includes(query);
-                    });
+                    query = query.toLowerCase();
+                    const searchProps = [item.name, item.barcode, item.location, item.category];
+                    if (isLog) { searchProps.push(item.pic, item.user); }
+                    
+                    return searchProps.some(val => val !== null && val !== undefined && String(val).toLowerCase().includes(query));
                 };
 
                 const isDateInRange = (dateIsoStr, rangeStr) => {
@@ -1270,10 +1280,10 @@
 
                 const processedInventory = computed(() => {
                     let res = baseInventory.value;
-                    const q = searchQuery.value.toLowerCase().trim();
+                    const q = searchQuery.value.toLowerCase();
                     if (q) {
                         if (q === '@low') res = res.filter(i => i.qty < i.minQty);
-                        else res = res.filter(i => omniSearch(i, q));
+                        else res = res.filter(i => strictSearch(i, q, false));
                     }
                     return sortArray(res, invSortKey.value, invSortAsc.value);
                 });
@@ -1306,7 +1316,7 @@
 
                 const processedRecapSummary = computed(() => {
                     let res = dailyRecapSummary.value;
-                    if (recapSearchQuery.value) res = res.filter(i => omniSearch(i, recapSearchQuery.value));
+                    if (recapSearchQuery.value) res = res.filter(i => strictSearch(i, recapSearchQuery.value, true));
                     return sortArray(res, recapSortKey.value, recapSortAsc.value);
                 });
                 const paginatedRecapSummary = computed(() => {
@@ -1320,7 +1330,7 @@
                     if (logFilterDate.value) res = res.filter(t => isDateInRange(t.date, logFilterDate.value));
                     if (logFilterLocation.value !== 'ALL') res = res.filter(t => isMatchLoc(t.location, logFilterLocation.value));
                     if (logFilterPic.value !== 'ALL') res = res.filter(t => String(t.pic).trim().toUpperCase() === String(logFilterPic.value).trim().toUpperCase());
-                    if (logSearchQuery.value) res = res.filter(t => omniSearch(t, logSearchQuery.value));
+                    if (logSearchQuery.value) res = res.filter(t => strictSearch(t, logSearchQuery.value, true));
                     return sortArray(res, logSortKey.value, logSortAsc.value);
                 });
 
@@ -1330,7 +1340,6 @@
                 });
                 const logTotalPages = computed(() => Math.ceil(processedTransactions.value.length / logItemsPerPage.value) || 1);
 
-                // PERBAIKAN: Menyesuaikan Data Check Sheet agar mudah di-render di Table UI Preview
                 const checkSheetData = computed(() => {
                     if (!checkSheetMonth.value) return null;
                     const [yearStr, monthStr] = checkSheetMonth.value.split('-');
@@ -1353,9 +1362,19 @@
                         let dayOfWeek = currentDate.getDay(); 
 
                         if (dayOfWeek === 6 || dayOfWeek === 0) {
+                            // SAbtu Minggu Copy nilai jumat / 0 jika kosong
                             let picForDay = "";
+                            let previousFridayDay = day;
+                            while(new Date(year, month, previousFridayDay).getDay() !== 5 && previousFridayDay > 0){ previousFridayDay--; }
+                            let fridayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === previousFridayDay);
+
                             reportTemplateDef.forEach(itemDef => {
-                                itemDef.cols.forEach(() => rowData.push(""));
+                                let log = fridayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => checkItemMatch(l.name, itemDef.match));
+                                if(log) {
+                                     if (itemDef.title === "Solar") rowData.push(log.newQty);
+                                     else if (itemDef.title === "N2") { let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i); rowData.push(log.newQty, pMatch ? pMatch[1] : ""); }
+                                     else rowData.push(log.newQty, "");
+                                } else { itemDef.cols.forEach(() => rowData.push("")); }
                             });
                             rowData.push(picForDay || "");
                             rows.push(rowData);
@@ -1364,23 +1383,14 @@
                             let picForDay = "";
 
                             reportTemplateDef.forEach(itemDef => {
-                                let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => 
-                                    checkItemMatch(l.name, itemDef.match)
-                                );
-                                
+                                let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => checkItemMatch(l.name, itemDef.match));
                                 if (log) {
-                                    if (itemDef.title === "Solar") {
-                                        rowData.push(log.newQty);
-                                    } else if (itemDef.title === "N2") {
-                                        let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i);
-                                        rowData.push(log.newQty, pMatch ? pMatch[1] : "");
-                                    } else {
-                                        rowData.push(log.newQty, "");
-                                    }
+                                    if (itemDef.title === "Solar") rowData.push(log.newQty);
+                                    else if (itemDef.title === "N2") { let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i); rowData.push(log.newQty, pMatch ? pMatch[1] : ""); }
+                                    else rowData.push(log.newQty, "");
+                                    
                                     if(log.pic && !picForDay) picForDay = log.pic;
-                                } else {
-                                    itemDef.cols.forEach(() => rowData.push(""));
-                                }
+                                } else { itemDef.cols.forEach(() => rowData.push("")); }
                             });
                             rowData.push(picForDay || "");
                             rows.push(rowData);
@@ -1525,10 +1535,12 @@
                     showToast('Semua filter berhasil direset', 'success');
                 };
 
-                // Watchers for Resetting Pagination on Search Change
-                watch([searchQuery, invItemsPerPage], () => { invCurrentPage.value = 1; selectedInventoryItems.value = []; });
-                watch([logSearchQuery, logFilterDate, logFilterLocation, logFilterPic, logItemsPerPage], () => { logCurrentPage.value = 1; selectedLogItems.value = []; });
-                watch([recapSearchQuery, selectedRecapDate, recapItemsPerPage], () => { recapCurrentPage.value = 1; selectedRecapItems.value = []; });
+                watch(searchQuery, () => { invCurrentPage.value = 1; selectedInventoryItems.value = []; });
+                watch(logSearchQuery, () => { logCurrentPage.value = 1; selectedLogItems.value = []; });
+                watch(recapSearchQuery, () => { recapCurrentPage.value = 1; selectedRecapItems.value = []; });
+                watch([invItemsPerPage], () => selectedInventoryItems.value = []);
+                watch([logFilterDate, logFilterLocation, logFilterPic, logItemsPerPage], () => selectedLogItems.value = []);
+                watch([selectedRecapDate, recapItemsPerPage], () => selectedRecapItems.value = []);
                 
                 watch(dashboardFilter, () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); });
                 watch(dashboardDate, () => { if(activeTab.value === 'dashboard') setTimeout(() => { nextTick(() => renderCharts()); }, 50); }); 
@@ -1601,7 +1613,8 @@
                             case 'submitOpnameUpdate':
                                 const opnameIdx = inventory.value.findIndex(i => i.barcode === payload.barcode);
                                 if (opnameIdx > -1) inventory.value[opnameIdx].qty = payload.newQty;
-                                transactions.value.push(payload);
+                                // Jangan re-push transaction di local mock kalau sudah didorong optimistic update
+                                if (!transactions.value.find(t=> t.id === payload.id)) transactions.value.push(payload);
                                 return { success: true, data: "Opname Tersimpan." };
                             case 'editLogTransaction':
                                 const logIdx = transactions.value.findIndex(t => t.id === payload.id);
@@ -1737,6 +1750,50 @@
                     }
                 };
 
+                // 🔴 LOGIKA PROCESS ANTREAN (OFFLINE QUEUE SYNC)
+                const processQueue = async () => {
+                    if (isQueueProcessing.value || syncQueue.value.length === 0 || !GAS_API_URL.startsWith('http')) return;
+                    isQueueProcessing.value = true;
+                    try {
+                        while (syncQueue.value.length > 0) {
+                            const payload = syncQueue.value[0];
+                            const res = await apiCall('submitOpnameUpdate', payload, true); 
+                            if (res && res.success) {
+                                syncQueue.value.shift(); // Hapus item pertama jika sukses
+                            } else if (res && res.error === "SESSION_EXPIRED") {
+                                break; 
+                            } else {
+                                break; // Jika koneksi error/timeout, berhenti dan biarkan di antrean untuk dicoba lagi nanti
+                            }
+                        }
+                    } catch(e) {
+                        console.warn("Queue sync delay...", e);
+                    } finally {
+                        isQueueProcessing.value = false;
+                    }
+                };
+
+                const forceSyncQueue = () => {
+                    if (currentUser.value.role === 'Super Admin') {
+                        AppSwal.fire({
+                            title: 'Kelola Antrean Lokal',
+                            text: `Terdapat ${syncQueue.value.length} data yang tertahan dan belum terkirim ke server.`,
+                            icon: 'info',
+                            showCancelButton: true,
+                            showDenyButton: true,
+                            confirmButtonText: 'Kirim Sekarang',
+                            denyButtonText: 'Hapus (Force Clear)',
+                            cancelButtonText: 'Batal'
+                        }).then((res) => {
+                            if (res.isConfirmed) { processQueue(); showToast('Mencoba mengirim antrean...', 'info'); }
+                            if (res.isDenied) { syncQueue.value = []; showToast('Antrean dibersihkan paksa', 'success'); }
+                        });
+                    } else {
+                        processQueue();
+                        showToast('Mencoba sinkronisasi ulang...', 'info');
+                    }
+                };
+
                 const fetchData = async () => {
                     loading.value = true;
                     try {
@@ -1769,7 +1826,7 @@
                 };
 
                 const silentFetchData = async (force = false) => {
-                    if (!force && (isPreview.value || !isLoggedIn.value || isProcessing.value || loading.value)) return; 
+                    if (!force && (isPreview.value || !isLoggedIn.value || isProcessing.value || loading.value || isSyncing.value || isQueueProcessing.value)) return; 
                     if (!force && (selectedInventoryItems.value.length > 0 || selectedLogItems.value.length > 0 || selectedRecapItems.value.length > 0)) return;
                     if (!force && activeTab.value === 'settings') return;
 
@@ -2034,53 +2091,54 @@
                 };
 
                 const resetScanner = () => { 
-                    activeItem.value = null; 
-                    actualStock.value = 0; 
-                    actualPressure.value = 0; 
-                    scannedCode.value = ''; 
+                    activeItem.value = null; actualStock.value = 0; actualPressure.value = 0; scannedCode.value = ''; 
+                    useBackdate.value = false; backdateValue.value = '';
                     isProcessing.value = false; 
-                    isBackdate.value = false;
-                    backdateValue.value = '';
                     if(activeTab.value === 'scan') nextTick(() => { if (barcodeInput.value) barcodeInput.value.focus(); }); 
                 };
 
+                // 🔴 OPTIMISTIC UPDATE: Langsung update UI lalu lempar ke Antrean (Local Queue)
                 const submitUpdate = async () => {
                     if (!activeItem.value || actualStock.value === '' || actualStock.value < 0 || typeof actualStock.value !== 'number') return;
                     if (isNitrogenItem.value && (actualPressure.value === '' || actualPressure.value < 0 || typeof actualPressure.value !== 'number')) { AppSwal.fire({ icon: 'warning', title: 'Pressure Kosong', text: 'Khusus item Nitrogen, wajib mengisi data Pressure Aktual (Bar).' }); return; }
 
-                    isProcessing.value = true;
                     try {
                         let finalName = String(activeItem.value.name).toUpperCase();
                         if (isNitrogenItem.value) finalName += ` [Pressure: ${actualPressure.value} Bar]`;
-                        
-                        let submitDate = currentTime.value.toISOString();
-                        if (isBackdate.value && backdateValue.value) {
-                            const bd = new Date(backdateValue.value);
-                            if (!isNaN(bd.getTime())) {
-                                submitDate = bd.toISOString();
-                            } else {
-                                AppSwal.fire({ icon: 'error', title: 'Tanggal Salah', text: 'Format tanggal backdate tidak valid.'});
-                                isProcessing.value = false;
-                                return;
-                            }
+
+                        let logDateIso = currentTime.value.toISOString();
+                        if (useBackdate.value && backdateValue.value) {
+                            const d = new Date(backdateValue.value);
+                            if (!isNaN(d.getTime())) logDateIso = d.toISOString();
                         }
 
                         const payload = { 
-                            id: Date.now(), date: submitDate, barcode: String(activeItem.value.barcode).toUpperCase(), 
+                            id: Date.now(), date: logDateIso, barcode: String(activeItem.value.barcode).toUpperCase(), 
                             name: finalName, oldQty: activeItem.value.qty, newQty: actualStock.value, 
                             variance: actualStock.value - activeItem.value.qty, user: String(currentUser.value.username).toUpperCase() || 'SISTEM',
                             location: String(activeItem.value.location).toUpperCase(), pic: String(currentUser.value.username).toUpperCase()
                         };
                         const isBecomingLowStock = actualStock.value < activeItem.value.minQty; 
 
-                        const res = await apiCall('submitOpnameUpdate', JSON.parse(JSON.stringify(payload)));
-                        if (res && res.success) {
-                            if (isBecomingLowStock) AppSwal.fire({ icon: 'success', title: 'Opname Tersimpan!', html: `<div class="text-sm text-slate-600 mb-4">Data stok berhasil diperbarui.</div><div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-pulse text-left"><div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div><p class="text-xs text-red-600 font-medium">Stok menyentuh batas minimum.<br>Sistem telah <b>otomatis mengirim email notifikasi reorder</b> ke PIC Gudang.</p></div>`, confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!' });
-                            else AppSwal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Data stok tersimpan!', showConfirmButton: false, timer: 2000, timerProgressBar: true });
-                            resetScanner(); 
-                            await silentFetchData(true); 
-                        } else { AppSwal.fire({title: 'Gagal Menyimpan', text: res?.error || 'Sistem sibuk / bentrok', icon: 'error'}); }
-                    } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
+                        // 1. UPDATE OPTIMISTIS LOKAL (Langsung render di UI)
+                        const invIdx = inventory.value.findIndex(i => i.barcode === activeItem.value.barcode);
+                        if (invIdx > -1) inventory.value[invIdx].qty = actualStock.value;
+                        transactions.value.push(payload);
+
+                        // 2. MASUKKAN KE ANTREAN LOKAL
+                        syncQueue.value.push(payload);
+
+                        // 3. RESPONS INSTAN
+                        if (isBecomingLowStock) {
+                            AppSwal.fire({ icon: 'success', title: 'Tersimpan (Local Queue)', html: `<div class="text-sm text-slate-600 mb-4">Data stok berhasil masuk antrean.</div><div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-pulse text-left"><div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div><p class="text-xs text-red-600 font-medium">Stok menyentuh batas minimum.<br>Sistem akan mengirim email notifikasi reorder setelah sinkronisasi server berhasil.</p></div>`, confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!' });
+                        } else {
+                            AppSwal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Disimpan di Antrean Lokal!', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+                        }
+                        
+                        resetScanner(); 
+                        processQueue(); // Trigger background sync immediately
+
+                    } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); }
                 };
 
                 const openEditLogByItem = (itemStatus) => {
@@ -2210,76 +2268,6 @@
                 
                 const closeModal = () => { showModal.value = false; isProcessing.value = false; };
 
-                const deleteItem = (barcode) => { 
-                    AppSwal.fire({ title: 'Hapus Item ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const res = await apiCall('deleteMasterItem', { barcode: String(barcode).trim().toUpperCase() });
-                            if (res && res.success) { AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-
-                const deleteSelectedInventory = () => {
-                    if (selectedInventoryItems.value.length === 0) return;
-                    AppSwal.fire({ title: `Hapus ${selectedInventoryItems.value.length} Barang?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const reqPayload = JSON.parse(JSON.stringify(selectedInventoryItems.value));
-                            const res = await apiCall('deleteMasterItemsBulk', { barcodes: reqPayload });
-                            if (res && res.success) { selectedInventoryItems.value = []; AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-
-                const deleteLogHistory = (log) => {
-                    AppSwal.fire({ title: 'Hapus Log Transaksi?', text: 'Stok barang otomatis dikembalikan ke jumlah sebelumnya.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus & Pulihkan Stok' }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const revertData = { barcode: log.barcode, revertToQty: log.oldQty };
-                            const res = await apiCall('deleteHistoryItem', { id: log.id, revertData: JSON.parse(JSON.stringify(revertData)) });
-                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-
-                const deleteSelectedLogs = () => {
-                    if (selectedLogItems.value.length === 0) return;
-                    AppSwal.fire({ title: `Hapus ${selectedLogItems.value.length} Log?`, text: 'Stok barang otomatis dikembalikan ke jumlah sebelumnya.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const revertDatas = [];
-                            selectedLogItems.value.forEach(id => { const log = transactions.value.find(t => t.id === id); if (log) revertDatas.push({ barcode: log.barcode, revertToQty: log.oldQty }); }); 
-                            const res = await apiCall('deleteHistoryItemsBulk', { ids: JSON.parse(JSON.stringify(selectedLogItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
-                            if (res && res.success) { selectedLogItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-
-                const deleteRecapOpname = (summary) => {
-                    AppSwal.fire({ title: 'Hapus Rekap Harian?', text: 'Stok barang otomatis dikembalikan ke jumlah awal di hari tersebut.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus & Pulihkan Stok' }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const revertData = { barcode: summary.barcode, revertToQty: summary.firstOldQty };
-                            const res = await apiCall('deleteRecapOpname', { dateStr: selectedRecapDate.value, barcode: summary.barcode, revertData: JSON.parse(JSON.stringify(revertData)) });
-                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-
-                const deleteSelectedRecaps = () => {
-                    if (selectedRecapItems.value.length === 0) return;
-                    AppSwal.fire({ title: `Hapus ${selectedRecapItems.value.length} Rekap?`, text: 'Stok barang otomatis dikembalikan ke jumlah awal.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
-                            const revertDatas = [];
-                            selectedRecapItems.value.forEach(barcode => { const summary = processedRecapSummary.value.find(s => s.barcode === barcode); if (summary) revertDatas.push({ barcode: summary.barcode, revertToQty: summary.firstOldQty }); }); 
-                            const res = await apiCall('deleteRecapsBulk', { dateStr: selectedRecapDate.value, barcodes: JSON.parse(JSON.stringify(selectedRecapItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
-                            if (res && res.success) { selectedRecapItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
-                        }
-                    });
-                };
-                
                 const showQRCode = (item) => {
                     AppSwal.fire({
                         title: `<span class="text-lg font-black uppercase text-slate-800">Label Barang</span>`,
@@ -2388,7 +2376,77 @@
                         }
                     } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
+                
+                const deleteItem = (barcode) => { 
+                    AppSwal.fire({ title: 'Hapus Item ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus!' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const res = await apiCall('deleteMasterItem', { barcode: String(barcode).trim().toUpperCase() });
+                            if (res && res.success) { AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
 
+                const deleteSelectedInventory = () => {
+                    if (selectedInventoryItems.value.length === 0) return;
+                    AppSwal.fire({ title: `Hapus ${selectedInventoryItems.value.length} Barang?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Ya, Hapus Semua!' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const reqPayload = JSON.parse(JSON.stringify(selectedInventoryItems.value));
+                            const res = await apiCall('deleteMasterItemsBulk', { barcodes: reqPayload });
+                            if (res && res.success) { selectedInventoryItems.value = []; AppSwal.fire('Terhapus', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteLogHistory = (log) => {
+                    AppSwal.fire({ title: 'Hapus Log & Pulihkan Stok?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', confirmButtonColor: '#0284c7' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const revertData = { barcode: log.barcode, revertToQty: log.oldQty };
+                            const res = await apiCall('deleteHistoryItem', { id: log.id, revertData: JSON.parse(JSON.stringify(revertData)) });
+                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteSelectedLogs = () => {
+                    if (selectedLogItems.value.length === 0) return;
+                    AppSwal.fire({ title: `Hapus ${selectedLogItems.value.length} Log & Pulihkan Stok?`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus Semua', confirmButtonColor: '#0284c7' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const revertDatas = [];
+                            selectedLogItems.value.forEach(id => { const log = transactions.value.find(t => t.id === id); if (log) revertDatas.push({ barcode: log.barcode, revertToQty: log.oldQty }); });
+                            const res = await apiCall('deleteHistoryItemsBulk', { ids: JSON.parse(JSON.stringify(selectedLogItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
+                            if (res && res.success) { selectedLogItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteRecapOpname = (summary) => {
+                    AppSwal.fire({ title: 'Hapus Rekap & Pulihkan Stok?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', confirmButtonColor: '#0284c7' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const revertData = { barcode: summary.barcode, revertToQty: summary.firstOldQty };
+                            const res = await apiCall('deleteRecapOpname', { dateStr: selectedRecapDate.value, barcode: summary.barcode, revertData: JSON.parse(JSON.stringify(revertData)) });
+                            if (res && res.success) { AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+
+                const deleteSelectedRecaps = () => {
+                    if (selectedRecapItems.value.length === 0) return;
+                    AppSwal.fire({ title: `Hapus ${selectedRecapItems.value.length} Rekap & Pulihkan Stok?`, icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus Semua', confirmButtonColor: '#0284c7' }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            AppSwal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { AppSwal.showLoading() } });
+                            const revertDatas = [];
+                            selectedRecapItems.value.forEach(barcode => { const summary = processedRecapSummary.value.find(s => s.barcode === barcode); if (summary) revertDatas.push({ barcode: summary.barcode, revertToQty: summary.firstOldQty }); });
+                            const res = await apiCall('deleteRecapsBulk', { dateStr: selectedRecapDate.value, barcodes: JSON.parse(JSON.stringify(selectedRecapItems.value)), revertDatas: JSON.parse(JSON.stringify(revertDatas)) });
+                            if (res && res.success) { selectedRecapItems.value = []; AppSwal.fire('Berhasil', res.data, 'success'); await silentFetchData(true); } else { AppSwal.fire({ title: 'Error', text: res?.error, icon: 'error' }); }
+                        }
+                    });
+                };
+                
                 const exportExcel = () => { 
                     try {
                         if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
@@ -2517,7 +2575,12 @@
                         fetchData();
                     }
                     timerInterval = setInterval(() => { currentTime.value = new Date(); }, 1000);
-                    syncInterval = setInterval(silentFetchData, 5000); 
+                    
+                    // Interval Background Sync: 15 detik (Aman untuk server)
+                    syncInterval = setInterval(silentFetchData, 15000); 
+                    
+                    // 🔴 Interval Pemrosesan Antrean Offline (Cek tiap 3 detik)
+                    setInterval(processQueue, 3000);
                 });
                 
                 onUnmounted(() => { clearInterval(timerInterval); clearInterval(syncInterval); clearTimeout(idleTimeout); });
@@ -2530,12 +2593,11 @@
                     selectedRecapDate, availableDates, dailyRecapSummary, lowStockItems, dashboardFilter, dashboardDate, dailyCheckStatus, checkedTodayCount, uncheckedTodayCount,
                     availableLocations, availableLocationsFromSettings, uniquePics, uniqueItemNames, showNotifMenu, goToInventoryAndSearch, selectedTrendItemName,
                     showModal, isEditing, formItem, addFormItems, addNewItemRow, removeNewItemRow, excelFileInput, historyFileInput, trendFilter, renderCharts,
-                    showEditLogModal, editLogForm, openEditLogByItem, openEditLog, submitEditLog,
+                    showEditLogModal, editLogForm, openEditLogByItem, openEditLog, submitEditLog, useBackdate, backdateValue,
                     searchQuery, invSortKey, invSortAsc, invCurrentPage, invItemsPerPage, processedInventory, paginatedInventory, invTotalPages, baseInventory,
                     recapSearchQuery, recapSortKey, recapSortAsc, recapCurrentPage, recapItemsPerPage, processedRecapSummary, paginatedRecapSummary, recapTotalPages,
                     logSearchQuery, logSortKey, logSortAsc, logCurrentPage, logItemsPerPage, processedTransactions, paginatedTransactions, logTotalPages,
                     logFilterDate, logFilterLocation, logFilterPic, actualPressure, actualPressureInput, focusPressure, isNitrogenItem,
-                    isBackdate, backdateValue,
                     toggleSort, selectedInventoryItems, toggleAllInventory, toggleInventorySelection, deleteItem, deleteSelectedInventory,
                     selectedLogItems, toggleAllLogs, toggleLogSelection, deleteLogHistory, deleteSelectedLogs,
                     selectedRecapItems, toggleAllRecaps, toggleRecapSelection, deleteRecapOpname, deleteSelectedRecaps,
@@ -2543,7 +2605,8 @@
                     openAddModal, openEditModal, closeModal, saveItem, showQRCode, cleanItemNameText,
                     exportExcel, exportRecapExcel, downloadCheckSheetExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers, submitSaveAppSettings, setDateRange, isRecapToday, isRecapYesterday,
-                    recapDateInput, logDateInput, showCheckSheetModal, checkSheetMonth, checkSheetData
+                    recapDateInput, logDateInput, showCheckSheetModal, checkSheetMonth, checkSheetData,
+                    syncQueue, forceSyncQueue // Return ke UI Vue
                 };
             }
         }).mount('#app');
