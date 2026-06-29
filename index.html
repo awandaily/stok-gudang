@@ -2303,6 +2303,13 @@
                     try {
                         if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
                         if (!checkSheetData.value) return;
+
+                        // ============================================================
+                        // KONFIGURASI FONT - Ganti nama font di sini
+                        // Contoh: "Calibri", "Arial", "Times New Roman", "Tahoma"
+                        // ============================================================
+                        const FONT_NAME = "Calibri";
+
                         const wsData = [
                             ["", "", "", "", "", "FORM", "", "", "", "", "", "", "", "", "", "", "", "", "", "No Dok", ": FR/BDA-INV/PSC/006"],
                             ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "No Rev", ": 01"],
@@ -2323,9 +2330,33 @@
                         wsData.push(rowTitle1); wsData.push(rowTitle2); wsData.push(rowTitle3);
                         checkSheetData.value.rows.forEach(r => wsData.push(r));
 
-                        const ws = window.XLSX.utils.aoa_to_sheet(wsData); ws['!merges'] = mergeCells;
-                        const wb = window.XLSX.utils.book_new(); window.XLSX.utils.book_append_sheet(wb, ws, "CheckSheet");
-                        window.XLSX.writeFile(wb, `Check_Sheet_Chemical_${checkSheetData.value.monthName.replace(/\s/g, '_')}.xlsx`);
+                        const ws = window.XLSX.utils.aoa_to_sheet(wsData);
+                        ws['!merges'] = mergeCells;
+
+                        // ============================================================
+                        // FREEZE PANES: Beku sampai baris ke-10 (header TGL s/d Satuan)
+                        // dan kolom ke-2 (TGL + Jam). Data mulai scroll dari baris ke-11.
+                        // ============================================================
+                        ws['!freeze'] = { xSplit: 2, ySplit: 10, topLeftCell: "C11", activeCell: "C11", state: "frozen" };
+
+                        // ============================================================
+                        // STYLING FONT ke semua sel
+                        // ============================================================
+                        const range = window.XLSX.utils.decode_range(ws['!ref']);
+                        for (let R = range.s.r; R <= range.e.r; R++) {
+                            for (let C = range.s.c; C <= range.e.c; C++) {
+                                const cellAddr = window.XLSX.utils.encode_cell({ r: R, c: C });
+                                if (!ws[cellAddr]) ws[cellAddr] = { t: 'z', v: '' };
+                                if (!ws[cellAddr].s) ws[cellAddr].s = {};
+                                // Set font name di setiap sel
+                                ws[cellAddr].s.font = Object.assign(ws[cellAddr].s.font || {}, { name: FONT_NAME });
+                            }
+                        }
+
+                        const wb = window.XLSX.utils.book_new();
+                        window.XLSX.utils.book_append_sheet(wb, ws, "CheckSheet");
+                        // Styling butuh write option bookSST & cellStyles
+                        window.XLSX.writeFile(wb, `Check_Sheet_Chemical_${checkSheetData.value.monthName.replace(/\s/g, '_')}.xlsx`, { cellStyles: true, bookSST: false });
                         showToast("Laporan Check Sheet Resmi Excel Berhasil Diunduh."); showCheckSheetModal.value = false;
                     } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
