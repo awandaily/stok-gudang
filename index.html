@@ -955,42 +955,55 @@
                     </div>
                 </div>
                 
-                <div class="flex-1 overflow-auto p-4 sm:p-6 custom-scrollbar bg-slate-50">
-                    <div v-if="checkSheetData" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mx-auto w-max border border-slate-200 min-h-full">
-                        
-                        <div class="text-center mb-8 border-b-2 border-black pb-4">
+                <!-- WRAPPER: overflow di sini agar thead sticky bekerja -->
+                <div class="flex-1 overflow-auto custom-scrollbar bg-slate-50" style="position:relative;">
+                    <div v-if="checkSheetData" class="bg-white shadow-lg border border-slate-200 min-w-max">
+
+                        <!-- Judul (sticky kiri atas, tidak ikut scroll horizontal) -->
+                        <div class="text-center py-6 border-b-2 border-black bg-white sticky left-0">
                             <h2 class="text-xl font-bold uppercase tracking-widest font-serif">Check Sheet Pengecekan Stock Chemical</h2>
                             <p class="text-sm font-medium mt-1">Bulan : <span class="font-bold border-b border-black inline-block px-4">{{ checkSheetData.monthName }}</span></p>
                         </div>
-                        
-                        <table class="border-collapse border border-black text-[10px] sm:text-xs text-center font-serif">
-                            <thead>
-                                <tr class="bg-slate-100">
-                                    <th rowspan="3" class="border border-black p-2 w-8">TGL</th>
-                                    <th rowspan="3" class="border border-black p-2 w-12">Jam</th>
-                                    <th v-for="item in checkSheetData.template" :colspan="item.cols.length" class="border border-black p-2 font-bold max-w-[80px] break-words">{{ item.title }}</th>
-                                    <th rowspan="3" class="border border-black p-2 w-20">PIC</th>
-                                </tr>
-                                <tr class="bg-slate-50">
-                                    <template v-for="item in checkSheetData.template">
-                                        <th v-for="col in item.cols" class="border border-black p-1">{{ col }}</th>
-                                    </template>
-                                </tr>
-                                <tr class="bg-slate-50">
-                                    <template v-for="item in checkSheetData.template">
-                                        <th v-for="unit in item.units" class="border border-black p-1 italic text-slate-500">{{ unit }}</th>
-                                    </template>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="row in checkSheetData.rows" :key="row[0]" :class="row[0] % 2 === 0 ? 'bg-slate-50/50' : 'bg-white'">
-                                    <td v-for="(cell, idx) in row" :class="{'font-bold': idx === 0, 'bg-slate-100': cell === '' && idx > 1}" class="border border-black p-1.5 h-6">{{ cell }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        
+
+                        <!-- Wrapper overflow-x scroll untuk tabel saja -->
+                        <div style="overflow:auto; max-height:calc(100vh - 180px);">
+                            <table class="border-collapse border border-black text-[10px] sm:text-xs text-center font-serif" style="border-spacing:0;">
+                                <thead style="position:sticky; top:0; z-index:30;">
+                                    <!-- Baris 1: Nama Item -->
+                                    <tr class="bg-[#1E3A5F] text-white">
+                                        <th rowspan="3" class="border border-black p-2 w-8 font-bold bg-[#1E3A5F] text-white" style="position:sticky; left:0; z-index:40;">TGL</th>
+                                        <th rowspan="3" class="border border-black p-2 w-14 font-bold bg-[#1E3A5F] text-white" style="position:sticky; left:32px; z-index:40;">Jam</th>
+                                        <th v-for="item in checkSheetData.template" :colspan="item.cols.length" class="border border-black p-2 font-bold max-w-[80px] break-words bg-[#1E3A5F] text-white">{{ item.title }}</th>
+                                        <th rowspan="3" class="border border-black p-2 w-24 font-bold bg-[#1E3A5F] text-white">PIC</th>
+                                    </tr>
+                                    <!-- Baris 2: Actual / Oracle -->
+                                    <tr class="bg-[#2A4F7A] text-white">
+                                        <template v-for="item in checkSheetData.template">
+                                            <th v-for="col in item.cols" class="border border-black p-1 bg-[#2A4F7A] text-white">{{ col }}</th>
+                                        </template>
+                                    </tr>
+                                    <!-- Baris 3: Satuan -->
+                                    <tr class="bg-[#2A4F7A] text-blue-200">
+                                        <template v-for="item in checkSheetData.template">
+                                            <th v-for="unit in item.units" class="border border-black p-1 italic bg-[#2A4F7A]">{{ unit }}</th>
+                                        </template>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="row in checkSheetData.rows" :key="row[0]" :class="row[0] % 2 === 0 ? 'bg-slate-50' : 'bg-white'">
+                                        <!-- Kolom TGL - sticky kiri -->
+                                        <td class="border border-black p-1.5 h-6 font-bold bg-inherit" style="position:sticky; left:0; z-index:10; background:inherit;">{{ row[0] }}</td>
+                                        <!-- Kolom Jam - sticky kiri ke-2 -->
+                                        <td class="border border-black p-1.5 h-6 bg-inherit" style="position:sticky; left:32px; z-index:10; background:inherit;">{{ row[1] }}</td>
+                                        <!-- Kolom data -->
+                                        <td v-for="(cell, idx) in row.slice(2)" :class="{'bg-slate-100': cell === ''}" class="border border-black p-1.5 h-6">{{ cell }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
                     </div>
-                    <div v-else class="h-full flex items-center justify-center text-slate-400">
+                    <div v-else class="h-full flex items-center justify-center text-slate-400 p-20">
                         Pilih bulan untuk menampilkan preview Check Sheet.
                     </div>
                 </div>
