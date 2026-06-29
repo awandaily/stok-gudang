@@ -17,6 +17,7 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
@@ -2299,17 +2300,23 @@
                     });
                 };
 
-                const downloadCheckSheetExcel = () => {
+                const downloadCheckSheetExcel = async () => {
                     try {
-                        if (typeof window === 'undefined' || !window.XLSX) throw new Error("Library Excel belum dimuat.");
+                        if (!window.ExcelJS) throw new Error("Library ExcelJS belum dimuat.");
                         if (!checkSheetData.value) return;
 
                         // ============================================================
-                        // KONFIGURASI FONT - Ganti nama font di sini
-                        // Contoh: "Calibri", "Arial", "Times New Roman", "Tahoma"
+                        // KONFIGURASI - Ubah sesuai kebutuhan
                         // ============================================================
-                        const FONT_NAME = "Calibri";
+                        const FONT_NAME = "Calibri"; // Ganti font: "Arial", "Tahoma", "Times New Roman", dll
+                        const FONT_SIZE = 10;
 
+                        const wb = new window.ExcelJS.Workbook();
+                        const ws = wb.addWorksheet("CheckSheet");
+
+                        // ============================================================
+                        // SUSUN DATA ROWS
+                        // ============================================================
                         const wsData = [
                             ["", "", "", "", "", "FORM", "", "", "", "", "", "", "", "", "", "", "", "", "", "No Dok", ": FR/BDA-INV/PSC/006"],
                             ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "No Rev", ": 01"],
@@ -2317,47 +2324,110 @@
                             ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Halaman", ": 1 dari 1"],
                             [], [], [`Bulan : ${checkSheetData.value.monthName}`]
                         ];
-                        let rowTitle1 = ["TGL", "Jam"], rowTitle2 = ["", ""], rowTitle3 = ["Satuan", ""], mergeCells = [], colIndex = 2;
+
+                        let rowTitle1 = ["TGL", "Jam"], rowTitle2 = ["", ""], rowTitle3 = ["Satuan", ""];
+                        const mergeList = []; // { r1, c1, r2, c2 } 1-based
+                        let colIndex = 3; // 1-based, mulai setelah TGL(1) dan Jam(2)
 
                         checkSheetData.value.template.forEach(item => {
                             rowTitle1.push(item.title);
-                            for(let i = 1; i < item.cols.length; i++) rowTitle1.push("");
-                            if (item.cols.length > 1) mergeCells.push({ s: { r: 7, c: colIndex }, e: { r: 7, c: colIndex + item.cols.length - 1 } });
+                            for (let i = 1; i < item.cols.length; i++) rowTitle1.push("");
+                            if (item.cols.length > 1) {
+                                // baris header item ada di baris ke-8 (1-based) = wsData index 7 setelah push
+                                mergeList.push({ r1: 8, c1: colIndex, r2: 8, c2: colIndex + item.cols.length - 1 });
+                            }
                             item.cols.forEach((colName, idx) => { rowTitle2.push(colName); rowTitle3.push(item.units[idx] || ""); });
                             colIndex += item.cols.length;
                         });
                         rowTitle1.push("PIC"); rowTitle2.push(""); rowTitle3.push("");
-                        wsData.push(rowTitle1); wsData.push(rowTitle2); wsData.push(rowTitle3);
-                        checkSheetData.value.rows.forEach(r => wsData.push(r));
 
-                        const ws = window.XLSX.utils.aoa_to_sheet(wsData);
-                        ws['!merges'] = mergeCells;
+                        wsData.push(rowTitle1);  // baris 8
+                        wsData.push(rowTitle2);  // baris 9
+                        wsData.push(rowTitle3);  // baris 10
+                        checkSheetData.value.rows.forEach(r => wsData.push(r)); // baris 11+
 
                         // ============================================================
-                        // FREEZE PANES: Beku sampai baris ke-10 (header TGL s/d Satuan)
-                        // dan kolom ke-2 (TGL + Jam). Data mulai scroll dari baris ke-11.
+                        // ISI WORKSHEET
                         // ============================================================
-                        ws['!freeze'] = { xSplit: 2, ySplit: 10, topLeftCell: "C11", activeCell: "C11", state: "frozen" };
+                        wsData.forEach(rowArr => {
+                            ws.addRow(rowArr);
+                        });
+
+                        // ============================================================
+                        // MERGE CELLS
+                        // ============================================================
+                        mergeList.forEach(m => {
+                            ws.mergeCells(m.r1, m.c1, m.r2, m.c2);
+                        });
+                        // Merge header judul utama (baris 3, kolom D s/d T)
+                        ws.mergeCells(3, 4, 3, 19);
+
+                        // ============================================================
+                        // FREEZE PANES: Baris 1-10 dan Kolom A-B (TGL & Jam) beku
+                        // ============================================================
+                        ws.views = [{ state: "frozen", xSplit: 2, ySplit: 10 }];
 
                         // ============================================================
                         // STYLING FONT ke semua sel
                         // ============================================================
-                        const range = window.XLSX.utils.decode_range(ws['!ref']);
-                        for (let R = range.s.r; R <= range.e.r; R++) {
-                            for (let C = range.s.c; C <= range.e.c; C++) {
-                                const cellAddr = window.XLSX.utils.encode_cell({ r: R, c: C });
-                                if (!ws[cellAddr]) ws[cellAddr] = { t: 'z', v: '' };
-                                if (!ws[cellAddr].s) ws[cellAddr].s = {};
-                                // Set font name di setiap sel
-                                ws[cellAddr].s.font = Object.assign(ws[cellAddr].s.font || {}, { name: FONT_NAME });
+                        ws.eachRow((row) => {
+                            row.eachCell({ includeEmpty: true }, (cell) => {
+                                cell.font = { name: FONT_NAME, size: FONT_SIZE };
+                            });
+                        });
+
+                        // Style khusus baris header (8-10): bold + background biru gelap + warna putih
+                        [8, 9, 10].forEach(rNum => {
+                            const row = ws.getRow(rNum);
+                            row.eachCell({ includeEmpty: true }, (cell) => {
+                                cell.font = { name: FONT_NAME, size: FONT_SIZE, bold: true, color: { argb: "FFFFFFFF" } };
+                                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E3A5F" } };
+                                cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+                                cell.border = {
+                                    top: { style: "thin" }, bottom: { style: "thin" },
+                                    left: { style: "thin" }, right: { style: "thin" }
+                                };
+                            });
+                            row.commit();
+                        });
+
+                        // Border tipis untuk baris data (baris 11 ke bawah)
+                        const totalRows = wsData.length;
+                        const totalCols = rowTitle1.length;
+                        for (let r = 11; r <= totalRows; r++) {
+                            const row = ws.getRow(r);
+                            for (let c = 1; c <= totalCols; c++) {
+                                const cell = row.getCell(c);
+                                cell.border = {
+                                    top: { style: "hair" }, bottom: { style: "hair" },
+                                    left: { style: "hair" }, right: { style: "hair" }
+                                };
                             }
+                            row.commit();
                         }
 
-                        const wb = window.XLSX.utils.book_new();
-                        window.XLSX.utils.book_append_sheet(wb, ws, "CheckSheet");
-                        // Styling butuh write option bookSST & cellStyles
-                        window.XLSX.writeFile(wb, `Check_Sheet_Chemical_${checkSheetData.value.monthName.replace(/\s/g, '_')}.xlsx`, { cellStyles: true, bookSST: false });
-                        showToast("Laporan Check Sheet Resmi Excel Berhasil Diunduh."); showCheckSheetModal.value = false;
+                        // Lebar kolom otomatis
+                        ws.getColumn(1).width = 6;   // TGL
+                        ws.getColumn(2).width = 8;   // Jam
+                        for (let c = 3; c <= totalCols; c++) {
+                            ws.getColumn(c).width = 10;
+                        }
+                        ws.getColumn(totalCols).width = 18; // PIC
+
+                        // ============================================================
+                        // DOWNLOAD FILE
+                        // ============================================================
+                        const buffer = await wb.xlsx.writeBuffer();
+                        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `Check_Sheet_Chemical_${checkSheetData.value.monthName.replace(/\s/g, '_')}.xlsx`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+
+                        showToast("Laporan Check Sheet Resmi Excel Berhasil Diunduh.");
+                        showCheckSheetModal.value = false;
                     } catch (error) { AppSwal.fire({ title: 'Gagal Export', text: error.message, icon: 'error' }); }
                 };
                 
