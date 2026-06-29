@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,22 +7,19 @@
     <!-- Favicon Enterprise -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'><rect width='256' height='256' fill='none'/><path d='M224,177.32V78.68a16,16,0,0,0-8.26-14l-80-44a16,16,0,0,0-15.48,0l-80,44A16,16,0,0,0,32,78.68v98.64a16,16,0,0,0,8.26,14l80,44a16,16,0,0,0,15.48,0l80-44A16,16,0,0,0,224,177.32Z' fill='%230ea5e9' stroke='%230ea5e9' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><polyline points='222.89 74.63 128 128 33.11 74.63' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='128' y1='128' x2='128' y2='234.82' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/><line x1='176' y1='101.44' x2='80' y2='48.56' fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='16'/></svg>">
     
+    <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    
     <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" />
     <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" />
     <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css" />
     <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" />
-
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://unpkg.com/sweetalert2@11"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/id.min.js"></script>
@@ -1024,6 +1021,8 @@
         // ==========================================
         // KONFIGURASI API KEY (URL DEPLOY CODE.GS)
         // ==========================================
+        // WAJIB UBAH: Hapus URL lama di bawah ini, dan PASTE URL Web App Google Apps Script Anda yang baru.
+        // Formatnya harus diakhiri dengan /exec
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbymiM15eioXW_dFvqcrWV7GBl02mN-okmI403wpjI1NTLEmp6MAHqlmadQuQSvmpTwa/exec"; 
 
         const reportTemplateDef = [
@@ -1079,7 +1078,6 @@
                 const settingsData = ref([]); 
                 const usersData = ref([]);
 
-                // 🔴 FITUR BARU: ANTREAN LOKAL (OFFLINE QUEUE)
                 const syncQueue = ref(JSON.parse(localStorage.getItem('rovingSyncQueue') || '[]'));
                 watch(syncQueue, (newVal) => { localStorage.setItem('rovingSyncQueue', JSON.stringify(newVal)); }, { deep: true });
                 const isQueueProcessing = ref(false);
@@ -1090,15 +1088,15 @@
 
                 const searchQuery = ref('');
                 const invSortKey = ref('name'); const invSortAsc = ref(true); 
-                const invCurrentPage = ref(1); const invItemsPerPage = ref(20); // Default 20
+                const invCurrentPage = ref(1); const invItemsPerPage = ref(20);
 
                 const recapSearchQuery = ref('');
                 const recapSortKey = ref('name'); const recapSortAsc = ref(true); 
-                const recapCurrentPage = ref(1); const recapItemsPerPage = ref(20); // Default 20
+                const recapCurrentPage = ref(1); const recapItemsPerPage = ref(20);
 
                 const logSearchQuery = ref('');
                 const logSortKey = ref('date'); const logSortAsc = ref(false); 
-                const logCurrentPage = ref(1); const logItemsPerPage = ref(20); // Default 20
+                const logCurrentPage = ref(1); const logItemsPerPage = ref(20);
                 const logFilterDate = ref('');
                 const logFilterLocation = ref('ALL');
                 const logFilterPic = ref('ALL');
@@ -1491,7 +1489,20 @@
                     return selectedRecapDate.value === yestStr;
                 });
 
+                const closeCamera = async () => { 
+                    isCameraOpen.value = false;
+                    if (html5QrCode) { 
+                        try { await html5QrCode.stop(); } catch(e) {} 
+                        try { html5QrCode.clear(); html5QrCode = null; } catch(e) { html5QrCode = null; } 
+                    } 
+                };
+
                 const changeTab = (tab) => {
+                    // MENCEGAH KEBOCORAN MEMORI KAMERA JIKA USER PINDAH TAB
+                    if (activeTab.value === 'scan' && isCameraOpen.value) {
+                        closeCamera(); 
+                    }
+
                     activeTab.value = tab;
                     isProcessing.value = false;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1509,7 +1520,7 @@
                 };
 
                 const focusPressure = () => { nextTick(() => { if (actualPressureInput.value) { actualPressureInput.value.focus(); actualPressureInput.value.select(); } }); };
-                const filterLowStockAndGo = () => { searchQuery.value = '@low'; changeTab('inventory'); };
+                const filterLowStockAndGo = () => { searchQuery.value = '@low'; changeTab('inventory'); showNotifMenu.value = false; };
                 const goToInventoryAndSearch = (barcode) => { searchQuery.value = barcode; changeTab('inventory'); showNotifMenu.value = false; };
 
                 const toggleAllInventory = (e) => { if (e.target.checked) selectedInventoryItems.value = paginatedInventory.value.map(i => i.barcode); else selectedInventoryItems.value = []; };
@@ -1613,7 +1624,6 @@
                             case 'submitOpnameUpdate':
                                 const opnameIdx = inventory.value.findIndex(i => i.barcode === payload.barcode);
                                 if (opnameIdx > -1) inventory.value[opnameIdx].qty = payload.newQty;
-                                // Jangan re-push transaction di local mock kalau sudah didorong optimistic update
                                 if (!transactions.value.find(t=> t.id === payload.id)) transactions.value.push(payload);
                                 return { success: true, data: "Opname Tersimpan." };
                             case 'editLogTransaction':
@@ -1730,14 +1740,15 @@
                     } catch (err) { 
                         if (!isSilent) {
                             console.error("API Call Error:", err); 
-                            if (err.message.includes("Failed to fetch") || err.name === "TypeError") {
+                            if (err.message.includes("Failed to fetch") || err.name === "TypeError" || String(err.message).includes("Koneksi ditolak")) {
                                 AppSwal.fire({
                                     title: 'Koneksi API Gagal (CORS)',
                                     html: `<div class="text-left text-sm text-slate-600 space-y-2">
                                         <p><b>Gagal menghubungi Server Google. Penyebab umum:</b></p>
                                         <ul class="list-disc pl-5">
-                                            <li>Deployment Google Apps Script belum diset ke <b>"Anyone" (Siapa Saja)</b>.</li>
-                                            <li>URL Web App tidak valid atau sudah kadaluarsa.</li>
+                                            <li><b>Deployment Lupa Diupdate:</b> Anda mengubah Code.gs tapi lupa deploy sebagai "New Version".</li>
+                                            <li><b>Hak Akses Salah:</b> Saat Deploy, 'Who has access' belum diset ke <b>"Anyone"</b>.</li>
+                                            <li><b>Spreadsheet ID Salah:</b> Periksa kembali ID Database Anda.</li>
                                         </ul>
                                     </div>`,
                                     icon: 'error'
@@ -1750,7 +1761,6 @@
                     }
                 };
 
-                // 🔴 LOGIKA PROCESS ANTREAN (OFFLINE QUEUE SYNC)
                 const processQueue = async () => {
                     if (isQueueProcessing.value || syncQueue.value.length === 0 || !GAS_API_URL.startsWith('http')) return;
                     isQueueProcessing.value = true;
@@ -1758,12 +1768,16 @@
                         while (syncQueue.value.length > 0) {
                             const payload = syncQueue.value[0];
                             const res = await apiCall('submitOpnameUpdate', payload, true); 
+                            
                             if (res && res.success) {
-                                syncQueue.value.shift(); // Hapus item pertama jika sukses
+                                syncQueue.value.shift(); 
                             } else if (res && res.error === "SESSION_EXPIRED") {
                                 break; 
+                            } else if (res && res.error === "SYSTEM_BUSY") {
+                                console.warn("Sistem sibuk (Smart Lock aktif). Menunda antrean lokal...");
+                                break; 
                             } else {
-                                break; // Jika koneksi error/timeout, berhenti dan biarkan di antrean untuk dicoba lagi nanti
+                                break; 
                             }
                         }
                     } catch(e) {
@@ -2097,7 +2111,6 @@
                     if(activeTab.value === 'scan') nextTick(() => { if (barcodeInput.value) barcodeInput.value.focus(); }); 
                 };
 
-                // 🔴 OPTIMISTIC UPDATE: Langsung update UI lalu lempar ke Antrean (Local Queue)
                 const submitUpdate = async () => {
                     if (!activeItem.value || actualStock.value === '' || actualStock.value < 0 || typeof actualStock.value !== 'number') return;
                     if (isNitrogenItem.value && (actualPressure.value === '' || actualPressure.value < 0 || typeof actualPressure.value !== 'number')) { AppSwal.fire({ icon: 'warning', title: 'Pressure Kosong', text: 'Khusus item Nitrogen, wajib mengisi data Pressure Aktual (Bar).' }); return; }
@@ -2120,15 +2133,12 @@
                         };
                         const isBecomingLowStock = actualStock.value < activeItem.value.minQty; 
 
-                        // 1. UPDATE OPTIMISTIS LOKAL (Langsung render di UI)
                         const invIdx = inventory.value.findIndex(i => i.barcode === activeItem.value.barcode);
                         if (invIdx > -1) inventory.value[invIdx].qty = actualStock.value;
                         transactions.value.push(payload);
 
-                        // 2. MASUKKAN KE ANTREAN LOKAL
                         syncQueue.value.push(payload);
 
-                        // 3. RESPONS INSTAN
                         if (isBecomingLowStock) {
                             AppSwal.fire({ icon: 'success', title: 'Tersimpan (Local Queue)', html: `<div class="text-sm text-slate-600 mb-4">Data stok berhasil masuk antrean.</div><div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-pulse text-left"><div class="flex items-center text-red-700 font-black mb-2 text-sm uppercase tracking-wider"><i class="ph-fill ph-warning-circle text-lg mr-2"></i> Stok Kritis!</div><p class="text-xs text-red-600 font-medium">Stok menyentuh batas minimum.<br>Sistem akan mengirim email notifikasi reorder setelah sinkronisasi server berhasil.</p></div>`, confirmButtonColor: '#ef4444', confirmButtonText: 'Siap Lapor!' });
                         } else {
@@ -2136,7 +2146,7 @@
                         }
                         
                         resetScanner(); 
-                        processQueue(); // Trigger background sync immediately
+                        processQueue(); 
 
                     } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); }
                 };
@@ -2246,14 +2256,6 @@
                     } finally {
                         isCameraStarting = false;
                     }
-                };
-
-                const closeCamera = async () => { 
-                    isCameraOpen.value = false;
-                    if (html5QrCode) { 
-                        try { await html5QrCode.stop(); } catch(e) {} 
-                        try { html5QrCode.clear(); html5QrCode = null; } catch(e) { html5QrCode = null; } 
-                    } 
                 };
 
                 const openAddModal = () => { isEditing.value = false; let defLoc = currentUser.value.location === 'ALL' ? (availableLocationsFromSettings.value[0] || '') : currentUser.value.location; addFormItems.value = [{ barcode: '', name: '', category: 'CHEMICAL', qty: 0, minQty: 10, unit: 'PCS', location: defLoc }]; showModal.value = true; };
