@@ -956,8 +956,8 @@
                 </div>
                 
                 <!-- WRAPPER: overflow di sini agar thead sticky bekerja -->
-                <div class="flex-1 overflow-auto custom-scrollbar bg-slate-50" style="position:relative;">
-                    <div v-if="checkSheetData" class="bg-white shadow-lg border border-slate-200 min-w-max">
+                <div class="flex-1 overflow-auto custom-scrollbar bg-slate-50 p-4" style="position:relative;">
+                    <div v-if="checkSheetData" class="bg-white shadow-lg border border-slate-200 rounded-lg overflow-hidden w-fit mx-auto">
 
                         <!-- Judul (sticky kiri atas, tidak ikut scroll horizontal) -->
                         <div class="text-center py-6 border-b-2 border-black bg-white sticky left-0">
@@ -967,7 +967,7 @@
 
                         <!-- Wrapper overflow-x scroll untuk tabel saja -->
                         <div style="overflow:auto; max-height:calc(100vh - 180px);">
-                            <table class="border-collapse border border-black text-[10px] sm:text-xs text-center font-serif" style="border-spacing:0;">
+                            <table class="border-collapse border border-black text-[10px] sm:text-xs text-center font-serif mx-auto" style="border-spacing:0;">
                                 <thead style="position:sticky; top:0; z-index:30;">
                                     <!-- Baris 1: Nama Item -->
                                     <tr class="bg-[#1E3A5F] text-white">
@@ -990,13 +990,13 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="row in checkSheetData.rows" :key="row[0]" :class="row[0] % 2 === 0 ? 'bg-slate-50' : 'bg-white'">
+                                    <tr v-for="row in checkSheetData.rows" :key="row[0]" :class="isLiburRow(row) ? 'bg-red-100' : (row[0] % 2 === 0 ? 'bg-slate-50' : 'bg-white')">
                                         <!-- Kolom TGL - sticky kiri -->
                                         <td class="border border-black p-1.5 h-6 font-bold bg-inherit" style="position:sticky; left:0; z-index:10; background:inherit;">{{ row[0] }}</td>
                                         <!-- Kolom Jam - sticky kiri ke-2 -->
                                         <td class="border border-black p-1.5 h-6 bg-inherit" style="position:sticky; left:32px; z-index:10; background:inherit;">{{ row[1] }}</td>
                                         <!-- Kolom data -->
-                                        <td v-for="(cell, idx) in row.slice(2)" :class="{'bg-slate-100': cell === ''}" class="border border-black p-1.5 h-6">{{ cell }}</td>
+                                        <td v-for="(cell, idx) in row.slice(2)" :class="isLiburRow(row) ? 'bg-red-100' : {'bg-slate-100': cell === ''}" class="border border-black p-1.5 h-6">{{ cell }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1367,6 +1367,7 @@
                     });
 
                     const rows = [];
+                    const liburDays = []; // daftar tanggal (angka) yang Sabtu/Minggu -> diblok merah, bukan diisi teks
 
                     for (let day = 1; day <= daysInMonth; day++) {
                         let currentDate = new Date(year, month, day);
@@ -1374,12 +1375,13 @@
 
                         if (dayOfWeek === 6 || dayOfWeek === 0) {
                             // Sabtu & Minggu: gudang libur, tidak ada aktivitas checking.
-                            // Tidak lagi meng-copy angka hari Jumat -> diberi label "LIBUR" saja.
-                            let rowData = [day, "LIBUR"];
+                            // Tidak diisi teks apa pun - baris ini cukup diberi blok warna merah pudar di tampilan/Excel.
+                            liburDays.push(day);
+                            let rowData = [day, ""];
                             reportTemplateDef.forEach(itemDef => {
-                                itemDef.cols.forEach(() => rowData.push("LIBUR"));
+                                itemDef.cols.forEach(() => rowData.push(""));
                             });
-                            rowData.push("LIBUR"); // Kolom PIC
+                            rowData.push(""); // Kolom PIC
                             rows.push(rowData);
                         } else {
                             let rowData = [day, "08:00"];
@@ -1401,8 +1403,10 @@
                         }
                     }
 
-                    return { template: reportTemplateDef, rows, monthName };
+                    return { template: reportTemplateDef, rows, monthName, liburDays };
                 });
+
+                const isLiburRow = (row) => !!(checkSheetData.value && checkSheetData.value.liburDays && checkSheetData.value.liburDays.includes(row[0]));
 
                 const toggleSort = (table, key) => {
                     if (table === 'inv') { if (invSortKey.value === key) invSortAsc.value = !invSortAsc.value; else { invSortKey.value = key; invSortAsc.value = true; } }
@@ -2403,14 +2407,22 @@
                         // Border tipis untuk baris data (baris 11 ke bawah)
                         const totalRows = wsData.length;
                         const totalCols = rowTitle1.length;
+                        // Set berisi nomor tanggal (TGL) yang libur (Sabtu/Minggu), untuk diberi blok warna merah pudar.
+                        const liburDaysSet = new Set(checkSheetData.value.liburDays || []);
                         for (let r = 11; r <= totalRows; r++) {
                             const row = ws.getRow(r);
+                            const tglValue = row.getCell(1).value; // Kolom TGL ada di kolom 1
+                            const isLiburRowExcel = liburDaysSet.has(tglValue);
                             for (let c = 1; c <= totalCols; c++) {
                                 const cell = row.getCell(c);
                                 cell.border = {
                                     top: { style: "hair" }, bottom: { style: "hair" },
                                     left: { style: "hair" }, right: { style: "hair" }
                                 };
+                                if (isLiburRowExcel) {
+                                    // Merah pudar (bukan gelap) - FFF8D0D3
+                                    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8D0D3" } };
+                                }
                             }
                             row.commit();
                         }
@@ -2717,7 +2729,7 @@
                     openAddModal, openEditModal, closeModal, saveItem, showQRCode, cleanItemNameText,
                     exportExcel, exportRecapExcel, downloadCheckSheetExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers, submitSaveAppSettings, setDateRange, isRecapToday, isRecapYesterday,
-                    recapDateInput, logDateInput, showCheckSheetModal, checkSheetMonth, checkSheetData,
+                    recapDateInput, logDateInput, showCheckSheetModal, checkSheetMonth, checkSheetData, isLiburRow,
                     syncQueue, forceSyncQueue // Return ke UI Vue
                 };
             }
