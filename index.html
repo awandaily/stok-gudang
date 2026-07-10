@@ -788,13 +788,13 @@
                                     <div v-for="(u, index) in usersData" :key="index" class="p-4 bg-slate-50 border rounded-xl">
                                         <div class="grid grid-cols-4 gap-3">
                                             <div><label class="block text-xs font-black mb-1">Username</label><input v-model="u.username" type="text" class="w-full px-3 py-2 border rounded-lg outline-none lowercase"></div>
-                                            <div><label class="block text-xs font-black mb-1">Password</label><input v-model="u.password" type="text" class="w-full px-3 py-2 border rounded-lg outline-none"></div>
+                                            <div><label class="block text-xs font-black mb-1">Password</label><input v-model="u.password" type="text" :placeholder="u._isNew ? 'Wajib diisi' : 'Kosongkan = tidak diubah'" class="w-full px-3 py-2 border rounded-lg outline-none"></div>
                                             <div><label class="block text-xs font-black mb-1">Level Akses</label><select v-model="u.role" class="w-full px-3 py-2 border rounded-lg outline-none"><option>Staff Gudang</option><option>Super Admin</option></select></div>
                                             <div><label class="block text-xs font-black mb-1">Gudang</label><select v-model="u.location" class="w-full px-3 py-2 border rounded-lg uppercase outline-none"><option value="ALL">ALL</option><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
                                         </div>
                                         <button @click="usersData.splice(index, 1)" class="mt-2 text-xs text-red-600 font-bold border border-red-200 bg-red-50 px-2 py-1 rounded">Hapus Akun</button>
                                     </div>
-                                    <button @click="usersData.push({username: '', password: '', role: 'Staff Gudang', location: 'ALL'})" class="px-4 py-2 text-teal-600 border border-teal-300 border-dashed rounded-xl font-bold text-sm bg-teal-50">+ Akun Baru</button>
+                                    <button @click="usersData.push({username: '', password: '', role: 'Staff Gudang', location: 'ALL', _isNew: true})" class="px-4 py-2 text-teal-600 border border-teal-300 border-dashed rounded-xl font-bold text-sm bg-teal-50">+ Akun Baru</button>
                                     <button @click="submitSaveUsers" class="px-6 py-2 bg-teal-600 text-white rounded-xl font-black ml-2 shadow-md" :disabled="isProcessing">Simpan</button>
                                 </div>
                             </div>
@@ -1369,28 +1369,20 @@
                     const rows = [];
 
                     for (let day = 1; day <= daysInMonth; day++) {
-                        let rowData = [day, "08:00"]; 
                         let currentDate = new Date(year, month, day);
-                        let dayOfWeek = currentDate.getDay(); 
+                        let dayOfWeek = currentDate.getDay();
 
                         if (dayOfWeek === 6 || dayOfWeek === 0) {
-                            // SAbtu Minggu Copy nilai jumat / 0 jika kosong
-                            let picForDay = "";
-                            let previousFridayDay = day;
-                            while(new Date(year, month, previousFridayDay).getDay() !== 5 && previousFridayDay > 0){ previousFridayDay--; }
-                            let fridayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === previousFridayDay);
-
+                            // Sabtu & Minggu: gudang libur, tidak ada aktivitas checking.
+                            // Tidak lagi meng-copy angka hari Jumat -> diberi label "LIBUR" saja.
+                            let rowData = [day, "LIBUR"];
                             reportTemplateDef.forEach(itemDef => {
-                                let log = fridayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => checkItemMatch(l.name, itemDef.match));
-                                if(log) {
-                                     if (itemDef.title === "Solar") rowData.push(log.newQty);
-                                     else if (itemDef.title === "N2") { let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i); rowData.push(log.newQty, pMatch ? pMatch[1] : ""); }
-                                     else rowData.push(log.newQty, "");
-                                } else { itemDef.cols.forEach(() => rowData.push("")); }
+                                itemDef.cols.forEach(() => rowData.push("LIBUR"));
                             });
-                            rowData.push(picForDay || "");
+                            rowData.push("LIBUR"); // Kolom PIC
                             rows.push(rowData);
                         } else {
+                            let rowData = [day, "08:00"];
                             let dayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === day);
                             let picForDay = "";
 
@@ -1829,7 +1821,7 @@
                         if (res && res.success) {
                             inventory.value = res.data.inventory; transactions.value = res.data.transactions;
                             if (res.data.settings) settingsData.value = res.data.settings; 
-                            if (res.data.users) usersData.value = res.data.users; 
+                            if (res.data.users) usersData.value = res.data.users.map(u => ({ ...u, _isNew: false })); 
                             
                             if (res.data.appSettings) {
                                 res.data.appSettings.forEach(setting => {
@@ -2052,6 +2044,9 @@
                 
                 const logout = (isForce = false) => {
                     const doLogout = () => {
+                        // Hapus dulu sesi di server (CacheService) selagi token client masih ada,
+                        // baru bersihkan state & localStorage lokal.
+                        if (authToken.value) { apiCall('logout', {}, true).catch(() => {}); }
                         isLoggedIn.value = false; inventory.value = []; transactions.value = []; settingsData.value = []; usersData.value = [];
                         loginForm.value.password = ''; authToken.value = null;
                         localStorage.removeItem('currentUser'); localStorage.removeItem('authToken'); clearTimeout(idleTimeout);
@@ -2083,7 +2078,8 @@
                 };
 
                 const submitSaveUsers = async () => {
-                    if (usersData.value.some(u => !u.username || !u.password || !u.role || !u.location)) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Harap isi seluruh kolom Username, Password, Role, dan Lokasi.', icon: 'warning' }); return; }
+                    if (usersData.value.some(u => !u.username || !u.role || !u.location)) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Harap isi seluruh kolom Username, Role, dan Lokasi.', icon: 'warning' }); return; }
+                    if (usersData.value.some(u => u._isNew && !u.password)) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Akun baru wajib diisi Password.', icon: 'warning' }); return; }
                     const usernames = usersData.value.map(u => String(u.username).trim().toLowerCase());
                     if (new Set(usernames).size !== usernames.length) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Ditemukan Username yang sama/ganda. Username harus unik.', icon: 'warning' }); return; }
                     isProcessing.value = true;
