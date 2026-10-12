@@ -1176,7 +1176,7 @@
                 const availableLocations = computed(() => [...new Set((inventory.value || []).map(i => String(i.location || '').trim()))].filter(Boolean));
                 const availableLocationsFromSettings = computed(() => [...new Set((settingsData.value || []).map(s => String(s.Location || '').toUpperCase().trim()))].filter(Boolean));
                 const uniquePics = computed(() => [...new Set((transactions.value || []).map(t => t.pic ? String(t.pic).toUpperCase() : ''))].filter(Boolean));
-                const uniqueItemNames = computed(() => [...new Set((inventory.value || []).map(i => i.name ? String(i.name).toUpperCase() : ''))].filter(Boolean));
+                const uniqueItemNames = computed(() => [...new Set((baseInventory.value || []).map(i => i.name ? String(i.name).toUpperCase() : ''))].filter(Boolean));
                 
                 const cleanItemNameText = (name) => {
                     if(!name) return '';
@@ -1572,7 +1572,9 @@
                 });
 
                 watch(uniqueItemNames, (newNames) => {
-                    if (newNames.length > 0 && !selectedTrendItemName.value) {
+                    if (newNames.length === 0) {
+                        selectedTrendItemName.value = '';
+                    } else if (!selectedTrendItemName.value || !newNames.includes(String(selectedTrendItemName.value).toUpperCase())) {
                         selectedTrendItemName.value = newNames[0];
                     }
                 });
@@ -1885,7 +1887,7 @@
                     if (!selectedTrendItemName.value) return { labels: [], data: [], itemName: '' };
                     
                     const itemName = String(selectedTrendItemName.value).toUpperCase();
-                    const itemObj = inventory.value.find(i => String(i.name).toUpperCase() === itemName);
+                    const itemObj = baseInventory.value.find(i => String(i.name).toUpperCase() === itemName);
                     if (!itemObj) return { labels: [], data: [], itemName: selectedTrendItemName.value };
 
                     const barcode = itemObj.barcode;
