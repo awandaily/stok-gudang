@@ -1366,6 +1366,25 @@
                         return tDate.getMonth() === month && tDate.getFullYear() === year;
                     });
 
+                    // TEMPLATE DINAMIS: kolom item mengikuti filter gudang.
+                    // - Item yang cocok dengan template resmi memakai judul/urutan resmi.
+                    // - Item gudang lain (mis. AC300 di CIP STORE) ditambahkan sebagai kolom ekstra berdasarkan barcode.
+                    const invList = baseInventory.value || [];
+                    const activeTemplate = reportTemplateDef.filter(def => invList.some(i => checkItemMatch(i.name, def.match)));
+                    const seenExtra = new Set();
+                    invList.forEach(i => {
+                        if (reportTemplateDef.some(def => checkItemMatch(i.name, def.match))) return;
+                        if (seenExtra.has(i.barcode)) return;
+                        seenExtra.add(i.barcode);
+                        activeTemplate.push({
+                            title: cleanItemNameText(i.name) || String(i.name),
+                            barcode: i.barcode,
+                            match: [],
+                            cols: ["Actual", "Oracle"],
+                            units: [i.unit || "", ""]
+                        });
+                    });
+
                     const rows = [];
                     const liburDays = []; // daftar tanggal (angka) yang Sabtu/Minggu -> diblok merah, bukan diisi teks
 
@@ -1378,7 +1397,7 @@
                             // Tidak diisi teks apa pun - baris ini cukup diberi blok warna merah pudar di tampilan/Excel.
                             liburDays.push(day);
                             let rowData = [day, ""];
-                            reportTemplateDef.forEach(itemDef => {
+                            activeTemplate.forEach(itemDef => {
                                 itemDef.cols.forEach(() => rowData.push(""));
                             });
                             rowData.push(""); // Kolom PIC
@@ -1388,8 +1407,8 @@
                             let dayLogs = logsThisMonth.filter(t => new Date(t.date).getDate() === day);
                             let picForDay = "";
 
-                            reportTemplateDef.forEach(itemDef => {
-                                let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => checkItemMatch(l.name, itemDef.match));
+                            activeTemplate.forEach(itemDef => {
+                                let log = dayLogs.sort((a,b) => new Date(b.date) - new Date(a.date)).find(l => itemDef.barcode ? String(l.barcode) === String(itemDef.barcode) : checkItemMatch(l.name, itemDef.match));
                                 if (log) {
                                     if (itemDef.title === "Solar") rowData.push(log.newQty);
                                     else if (itemDef.title === "N2") { let pMatch = String(log.name).match(/\[Pressure: (.*?) Bar\]/i); rowData.push(log.newQty, pMatch ? pMatch[1] : ""); }
@@ -1403,7 +1422,7 @@
                         }
                     }
 
-                    return { template: reportTemplateDef, rows, monthName, liburDays };
+                    return { template: activeTemplate, rows, monthName, liburDays };
                 });
 
                 const isLiburRow = (row) => !!(checkSheetData.value && checkSheetData.value.liburDays && checkSheetData.value.liburDays.includes(row[0]));
