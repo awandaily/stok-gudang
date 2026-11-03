@@ -213,7 +213,7 @@
                                 </div>
                                 <div class="flex-1 w-full flex flex-col sm:flex-row gap-3">
                                     <input type="date" v-model="dashboardDate" class="w-full sm:w-48 px-4 py-2 bg-slate-50 border rounded-xl text-sm font-bold outline-none cursor-pointer shadow-inner">
-                                    <select v-if="currentUser.role === 'Super Admin'" v-model="dashboardFilter" class="w-full sm:w-56 px-4 py-2 bg-slate-50 border rounded-xl text-sm font-bold outline-none cursor-pointer uppercase">
+                                    <select v-if="canManage" v-model="dashboardFilter" class="w-full sm:w-56 px-4 py-2 bg-slate-50 border rounded-xl text-sm font-bold outline-none cursor-pointer uppercase">
                                         <option value="ALL">📍 Semua Gudang</option>
                                         <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">📍 {{ loc }}</option>
                                     </select>
@@ -339,7 +339,7 @@
                                                 <span v-else class="text-slate-300 text-xs italic">-</span>
                                             </td>
                                             <td class="p-3 sm:p-4 text-center">
-                                                <button v-if="item.isChecked" @click="openEditLogByItem(item)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Revisi Input Roving">
+                                                <button v-if="canManage && item.isChecked" @click="openEditLogByItem(item)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Revisi Input Roving">
                                                     <i class="ph-bold ph-pencil-simple text-base"></i>
                                                 </button>
                                             </td>
@@ -436,7 +436,7 @@
                                             </div>
 
                                             <!-- FITUR BACKDATE (ADMIN ONLY) -->
-                                            <div v-if="currentUser.role === 'Super Admin'" class="mt-4 p-3 bg-slate-100 border border-slate-200 rounded-xl">
+                                            <div v-if="canManage" class="mt-4 p-3 bg-slate-100 border border-slate-200 rounded-xl">
                                                 <label class="flex items-center space-x-2 cursor-pointer mb-2">
                                                     <input type="checkbox" v-model="useBackdate" class="w-4 h-4 text-brand-600 rounded">
                                                     <span class="text-xs font-black text-slate-700"><i class="ph-fill ph-clock-counter-clockwise mr-1"></i> Input Backdate (Admin Only)</span>
@@ -490,7 +490,7 @@
                                         <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-lg"></i>
                                         <button v-if="recapSearchQuery" @click="recapSearchQuery = ''" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
                                     </div>
-                                    <button v-if="selectedRecapItems.length > 0" @click="deleteSelectedRecaps" class="px-3 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-red-700 flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedRecapItems.length }})</button>
+                                    <button v-if="canManage && selectedRecapItems.length > 0" @click="deleteSelectedRecaps" class="px-3 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-red-700 flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedRecapItems.length }})</button>
                                 </div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
                                     <select v-model.number="recapItemsPerPage" class="py-2.5 pl-3 pr-8 border rounded-xl text-xs font-bold outline-none cursor-pointer"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
@@ -555,9 +555,9 @@
                                 </div>
                                 <div class="flex flex-wrap items-center justify-start sm:justify-end gap-2 w-full md:w-auto z-10">
                                     <input type="file" ref="excelFileInput" @change="handleImportExcel" accept=".xlsx, .xls, .csv" class="hidden">
-                                    <button @click="triggerImportExcel" class="px-3 py-2 bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold shadow-sm flex items-center hover:bg-slate-200 transition-colors"><i class="ph-bold ph-upload-simple mr-1.5"></i> Import</button>
+                                    <button v-if="isSuperAdmin" @click="triggerImportExcel" class="px-3 py-2 bg-slate-100 border border-slate-300 rounded-xl text-xs font-bold shadow-sm flex items-center hover:bg-slate-200 transition-colors"><i class="ph-bold ph-upload-simple mr-1.5"></i> Import</button>
                                     <button @click="showCheckSheetModal = true" class="px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center hover:bg-indigo-700 transition-colors"><i class="ph-bold ph-table mr-1.5"></i> Check Sheet Resmi</button>
-                                    <button @click="openAddModal" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-black shadow-md flex items-center hover:bg-brand-700 transition-colors"><i class="ph-bold ph-plus mr-1.5"></i> Tambah Item</button>
+                                    <button v-if="canManage" @click="openAddModal" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-black shadow-md flex items-center hover:bg-brand-700 transition-colors"><i class="ph-bold ph-plus mr-1.5"></i> Tambah Item</button>
                                 </div>
                             </div>
                             
@@ -567,10 +567,10 @@
                                         <input v-model="searchQuery" @input="searchQuery = String(searchQuery).toUpperCase()" type="text" placeholder="Strict Search..." class="w-full pl-10 pr-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white">
                                         <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-lg"></i>
                                     </div>
-                                    <button v-if="selectedInventoryItems.length > 0" @click="deleteSelectedInventory" class="px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-bold flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedInventoryItems.length }})</button>
+                                    <button v-if="canManage && selectedInventoryItems.length > 0" @click="deleteSelectedInventory" class="px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-bold flex items-center"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedInventoryItems.length }})</button>
                                 </div>
                                 <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
-                                    <select v-if="currentUser.role === 'Super Admin'" v-model="dashboardFilter" class="py-2 px-3 border rounded-xl text-brand-700 bg-brand-50 text-xs font-bold outline-none uppercase"><option value="ALL">📍 Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option></select>
+                                    <select v-if="canManage" v-model="dashboardFilter" class="py-2 px-3 border rounded-xl text-brand-700 bg-brand-50 text-xs font-bold outline-none uppercase"><option value="ALL">📍 Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">📍 {{ loc }}</option></select>
                                     <select v-model.number="invItemsPerPage" class="py-2 px-3 border rounded-xl text-xs font-bold outline-none bg-white"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
                                 </div>
                             </div>
@@ -602,8 +602,8 @@
                                             <td class="p-3 text-center">
                                                 <div class="flex items-center justify-center space-x-2">
                                                     <button @click="showQRCode(item)" class="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg" title="Cetak QR Label"><i class="ph-bold ph-qr-code text-base"></i></button>
-                                                    <button @click="openEditModal(item)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Edit Barang"><i class="ph-bold ph-pencil-simple text-base"></i></button>
-                                                    <button @click="deleteItem(item.barcode)" class="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg" title="Hapus Barang"><i class="ph-bold ph-trash text-base"></i></button>
+                                                    <button v-if="canManage" @click="openEditModal(item)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Edit Barang"><i class="ph-bold ph-pencil-simple text-base"></i></button>
+                                                    <button v-if="canManage" @click="deleteItem(item.barcode)" class="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg" title="Hapus Barang"><i class="ph-bold ph-trash text-base"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -628,7 +628,7 @@
                                 </div>
                                 <div class="flex flex-wrap gap-2 relative z-10">
                                     <input type="file" ref="historyFileInput" @change="handleImportHistoryExcel" accept=".xlsx, .xls, .csv" class="hidden">
-                                    <button @click="triggerImportHistoryExcel" class="px-3 py-2 bg-white border rounded-xl text-xs font-bold flex items-center shadow-sm"><i class="ph-bold ph-upload-simple mr-1.5"></i> Import Log</button>
+                                    <button v-if="isSuperAdmin" @click="triggerImportHistoryExcel" class="px-3 py-2 bg-white border rounded-xl text-xs font-bold flex items-center shadow-sm"><i class="ph-bold ph-upload-simple mr-1.5"></i> Import Log</button>
                                     <button @click="exportHistoryExcel" class="px-3 py-2 bg-white border rounded-xl text-xs font-bold flex items-center shadow-sm"><i class="ph-bold ph-download-simple mr-1.5"></i> Export Log</button>
                                 </div>
                             </div>
@@ -637,7 +637,7 @@
                                     <label class="block text-xs font-black uppercase mb-1">Tanggal</label>
                                     <input id="logDateInputId" type="text" placeholder="Pilih Rentang Tanggal..." class="w-full px-3 py-2 border rounded-xl text-sm outline-none font-bold cursor-pointer">
                                 </div>
-                                <div v-if="currentUser.role === 'Super Admin'" class="w-full sm:w-auto flex-1">
+                                <div v-if="canManage" class="w-full sm:w-auto flex-1">
                                     <label class="block text-xs font-black uppercase mb-1">Gudang</label>
                                     <select v-model="logFilterLocation" class="w-full px-3 py-2 border rounded-xl text-sm font-bold uppercase"><option value="ALL">Semua Gudang</option><option v-for="loc in availableLocations" :key="loc" :value="loc">{{ loc }}</option></select>
                                 </div>
@@ -650,7 +650,7 @@
                             <div class="p-4 sm:px-6 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div class="flex items-center space-x-2 w-full sm:w-auto">
                                     <input v-model="logSearchQuery" type="text" placeholder="Strict Search..." class="w-full sm:w-64 px-4 py-2 border rounded-xl text-sm outline-none uppercase bg-white shadow-sm">
-                                    <button v-if="selectedLogItems.length > 0" @click="deleteSelectedLogs" class="px-3 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold flex items-center shadow-sm"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedLogItems.length }})</button>
+                                    <button v-if="canManage && selectedLogItems.length > 0" @click="deleteSelectedLogs" class="px-3 py-2.5 bg-red-600 text-white rounded-xl text-xs font-bold flex items-center shadow-sm"><i class="ph-bold ph-trash mr-1.5"></i> Hapus ({{ selectedLogItems.length }})</button>
                                 </div>
                                 <select v-model.number="logItemsPerPage" class="py-2.5 px-3 border rounded-xl text-xs font-bold outline-none bg-white"><option value="20">20 Baris</option><option value="50">50 Baris</option><option value="100">100 Baris</option></select>
                             </div>
@@ -679,7 +679,7 @@
                                             <td class="p-3 text-center font-black text-brand-700">{{ log.newQty }}</td>
                                             <td class="p-3 text-right font-black"><span v-if="log.variance === 0" class="text-slate-400">0</span><span v-else :class="log.variance > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'" class="px-2 py-1 rounded-lg border">{{ log.variance > 0 ? '+' : '' }}{{ log.variance }}</span></td>
                                             <td class="p-3 text-center">
-                                                <button @click="openEditLog(log)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Revisi Roving">
+                                                <button v-if="canManage" @click="openEditLog(log)" class="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg" title="Revisi Roving">
                                                     <i class="ph-bold ph-pencil-simple text-base"></i>
                                                 </button>
                                             </td>
@@ -713,6 +713,9 @@
                             <button v-if="currentUser.role === 'Super Admin'" @click="activeSettingsTab = 'users'" :class="activeSettingsTab === 'users' ? 'bg-teal-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
                                 <i class="ph-duotone ph-users text-lg mr-2"></i> Manajemen Akses
                             </button>
+                            <button v-if="isSuperAdmin" @click="activeSettingsTab = 'backup'" :class="activeSettingsTab === 'backup' ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'" class="px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center">
+                                <i class="ph-duotone ph-cloud-arrow-up text-lg mr-2"></i> Backup &amp; Log
+                            </button>
                         </div>
 
                         <transition name="fade-slide" mode="out-in">
@@ -723,7 +726,7 @@
                                 <div class="p-5">
                                     <form @submit.prevent="submitChangePassword" class="space-y-4 max-w-md">
                                         <div><label class="block text-xs font-black mb-1">Password Lama</label><input v-model="passwordForm.old" type="password" required class="w-full px-4 py-2 border rounded-xl outline-none"></div>
-                                        <div><label class="block text-xs font-black mb-1">Password Baru</label><input v-model="passwordForm.new" type="password" required class="w-full px-4 py-2 border rounded-xl outline-none"></div>
+                                        <div><label class="block text-xs font-black mb-1">Password Baru</label><input v-model="passwordForm.new" type="password" required class="w-full px-4 py-2 border rounded-xl outline-none"><p class="text-[11px] text-slate-500 mt-1">Minimal 8 karakter, kombinasi huruf dan angka.</p></div>
                                         <div><label class="block text-xs font-black mb-1">Konfirmasi Password</label><input v-model="passwordForm.confirm" type="password" required class="w-full px-4 py-2 border rounded-xl outline-none"></div>
                                         <button type="submit" class="px-6 py-2.5 bg-brand-600 text-white rounded-xl font-black shadow-md">Update Password</button>
                                     </form>
@@ -783,19 +786,70 @@
                             <div v-else-if="activeSettingsTab === 'users' && currentUser.role === 'Super Admin'" key="usr" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                                 <div class="p-5 border-b border-slate-100 bg-teal-50">
                                     <h2 class="text-lg font-black flex items-center text-slate-800"><i class="ph-duotone ph-users text-xl mr-2"></i> Manajemen Akun Operator</h2>
+                                    <p class="text-xs text-slate-600 mt-2 leading-relaxed"><b>Super Admin</b>: akses penuh termasuk Pengaturan. <b>SPV</b>: semua menu, tapi Pengaturan hanya Keamanan Akun. <b>Staff Gudang</b>: hanya input roving &amp; melihat data gudangnya sendiri.</p>
                                 </div>
                                 <div class="p-5 space-y-4">
+                                    <div v-if="superAdminCount > 1" class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-800">
+                                        <i class="ph-bold ph-warning mr-1"></i> Ada {{ superAdminCount }} akun Super Admin. Demi keamanan, sebaiknya hanya 1 akun Super Admin; akun lain dijadikan SPV.
+                                    </div>
                                     <div v-for="(u, index) in usersData" :key="index" class="p-4 bg-slate-50 border rounded-xl">
-                                        <div class="grid grid-cols-4 gap-3">
+                                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                             <div><label class="block text-xs font-black mb-1">Username</label><input v-model="u.username" type="text" class="w-full px-3 py-2 border rounded-lg outline-none lowercase"></div>
-                                            <div><label class="block text-xs font-black mb-1">Password</label><input v-model="u.password" type="text" :placeholder="u._isNew ? 'Wajib diisi' : 'Kosongkan = tidak diubah'" class="w-full px-3 py-2 border rounded-lg outline-none"></div>
-                                            <div><label class="block text-xs font-black mb-1">Level Akses</label><select v-model="u.role" class="w-full px-3 py-2 border rounded-lg outline-none"><option>Staff Gudang</option><option>Super Admin</option></select></div>
-                                            <div><label class="block text-xs font-black mb-1">Gudang</label><select v-model="u.location" class="w-full px-3 py-2 border rounded-lg uppercase outline-none"><option value="ALL">ALL</option><option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option></select></div>
+                                            <div><label class="block text-xs font-black mb-1">Password</label><input v-model="u.password" type="text" :placeholder="u._isNew ? 'Min. 8 karakter, huruf+angka' : 'Kosongkan = tidak diubah'" class="w-full px-3 py-2 border rounded-lg outline-none"></div>
+                                            <div><label class="block text-xs font-black mb-1">Level Akses</label><select v-model="u.role" @change="onUserRoleChange(u)" class="w-full px-3 py-2 border rounded-lg outline-none"><option>Staff Gudang</option><option>SPV</option><option>Super Admin</option></select></div>
+                                            <div><label class="block text-xs font-black mb-1">Gudang</label>
+                                                <select v-model="u.location" :disabled="u.role !== 'Staff Gudang'" class="w-full px-3 py-2 border rounded-lg uppercase outline-none disabled:bg-slate-100 disabled:text-slate-500">
+                                                    <option v-if="u.role !== 'Staff Gudang'" value="ALL">ALL</option>
+                                                    <option v-else value="" disabled>-- Pilih gudang --</option>
+                                                    <option v-for="loc in availableLocationsFromSettings" :key="loc" :value="loc">{{ loc }}</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <button @click="usersData.splice(index, 1)" class="mt-2 text-xs text-red-600 font-bold border border-red-200 bg-red-50 px-2 py-1 rounded">Hapus Akun</button>
                                     </div>
-                                    <button @click="usersData.push({username: '', password: '', role: 'Staff Gudang', location: 'ALL', _isNew: true})" class="px-4 py-2 text-teal-600 border border-teal-300 border-dashed rounded-xl font-bold text-sm bg-teal-50">+ Akun Baru</button>
+                                    <button @click="usersData.push({username: '', password: '', role: 'Staff Gudang', location: '', _isNew: true})" class="px-4 py-2 text-teal-600 border border-teal-300 border-dashed rounded-xl font-bold text-sm bg-teal-50">+ Akun Baru</button>
                                     <button @click="submitSaveUsers" class="px-6 py-2 bg-teal-600 text-white rounded-xl font-black ml-2 shadow-md" :disabled="isProcessing">Simpan</button>
+                                </div>
+                            </div>
+
+                            <div v-else-if="activeSettingsTab === 'backup' && isSuperAdmin" key="bkp" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                                <div class="p-5 border-b border-slate-100 bg-emerald-50">
+                                    <h2 class="text-lg font-black flex items-center text-slate-800"><i class="ph-duotone ph-cloud-arrow-up text-xl mr-2"></i> Backup Database &amp; Log Aktivitas</h2>
+                                    <p class="text-xs text-slate-600 mt-2">Backup otomatis setiap <b>hari Minggu pukul 20:00 WIB</b> ke folder Google Drive "Backup Daily Roving" (menyimpan {{ backupInfo ? backupInfo.keep : 8 }} backup terakhir).</p>
+                                </div>
+                                <div class="p-5 space-y-5">
+                                    <div v-if="!backupInfo" class="text-sm text-slate-500">{{ backupLoading ? 'Memuat status backup...' : 'Status backup belum bisa dimuat (pastikan Code.gs terbaru sudah di-deploy).' }}</div>
+                                    <div v-else class="space-y-4">
+                                        <div class="flex flex-wrap items-center gap-3">
+                                            <span class="px-3 py-1.5 rounded-lg text-xs font-black border" :class="backupInfo.triggerActive ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'">
+                                                {{ backupInfo.triggerActive ? 'Jadwal otomatis AKTIF' : 'Jadwal otomatis BELUM aktif' }}
+                                            </span>
+                                            <button v-if="!backupInfo.triggerActive" @click="enableBackupSchedule" :disabled="isProcessing" class="px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-black shadow-sm">Aktifkan Jadwal</button>
+                                            <button @click="runBackupNow" :disabled="isProcessing" class="px-4 py-1.5 bg-slate-800 text-white rounded-lg text-xs font-black shadow-sm">Backup Sekarang</button>
+                                            <button @click="loadBackupInfo(); loadAuditLog()" class="px-3 py-1.5 bg-white border rounded-lg text-xs font-bold">Muat Ulang</button>
+                                        </div>
+                                        <div class="text-sm"><b>Backup terakhir:</b> <span v-if="backupInfo.last">{{ backupInfo.last.time }} ({{ backupInfo.last.label }})</span><span v-else class="text-slate-500">Belum ada</span></div>
+                                        <div v-if="backupInfo.lastError" class="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-700">Backup terakhir gagal: {{ backupInfo.lastError }}</div>
+                                        <div v-if="backupInfo.files && backupInfo.files.length" class="border rounded-xl overflow-hidden">
+                                            <table class="w-full text-xs text-left">
+                                                <thead class="bg-slate-50 text-slate-500 uppercase"><tr><th class="p-2">File Backup</th><th class="p-2">Dibuat</th><th class="p-2"></th></tr></thead>
+                                                <tbody class="divide-y"><tr v-for="f in backupInfo.files" :key="f.url"><td class="p-2 font-mono">{{ f.name }}</td><td class="p-2">{{ f.date }}</td><td class="p-2 text-right"><a :href="f.url" target="_blank" rel="noopener" class="text-blue-600 font-bold">Buka</a></td></tr></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 class="text-sm font-black text-slate-800 mb-2">Log Aktivitas (150 terakhir)</h3>
+                                        <div class="border rounded-xl overflow-auto max-h-96">
+                                            <table class="w-full text-xs text-left whitespace-nowrap">
+                                                <thead class="bg-slate-50 text-slate-500 uppercase sticky top-0"><tr><th class="p-2">Waktu</th><th class="p-2">User</th><th class="p-2">Aksi</th><th class="p-2">Detail</th></tr></thead>
+                                                <tbody class="divide-y">
+                                                    <tr v-for="(l, i) in auditLogs" :key="i"><td class="p-2">{{ l.time }}</td><td class="p-2 font-bold">{{ l.user }}</td><td class="p-2 font-bold" :class="(l.action || '').includes('DITOLAK') || (l.action || '').includes('GAGAL') || (l.action || '').includes('DIKUNCI') ? 'text-red-600' : 'text-slate-700'">{{ l.action }}</td><td class="p-2 whitespace-normal min-w-[240px]">{{ l.detail }}</td></tr>
+                                                    <tr v-if="!auditLogs.length"><td colspan="4" class="p-4 text-center text-slate-400">Belum ada catatan.</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </transition>
@@ -1153,6 +1207,9 @@
                 const addFormItems = ref([]);
                 
                 const passwordForm = ref({ old: '', new: '', confirm: '' });
+                const backupInfo = ref(null);
+                const backupLoading = ref(false);
+                const auditLogs = ref([]);
                 const showPass = ref({ login: false, old: false, new: false, confirm: false });
 
                 const excelFileInput = ref(null);
@@ -1173,6 +1230,12 @@
                 const currentDateStr = computed(() => currentTime.value.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }));
                 const currentTimeStr = computed(() => currentTime.value.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
                 
+                // LEVEL AKSES: Super Admin (semua), SPV (menu sama, pengaturan terbatas), Staff Gudang (input & lihat saja)
+                const isSuperAdmin = computed(() => currentUser.value.role === 'Super Admin');
+                const isSPV = computed(() => currentUser.value.role === 'SPV');
+                const canManage = computed(() => isSuperAdmin.value || isSPV.value);
+                const roleLabel = computed(() => currentUser.value.role || '');
+
                 const availableLocations = computed(() => [...new Set((inventory.value || []).map(i => String(i.location || '').trim()))].filter(Boolean));
                 const availableLocationsFromSettings = computed(() => [...new Set((settingsData.value || []).map(s => String(s.Location || '').toUpperCase().trim()))].filter(Boolean));
                 const uniquePics = computed(() => [...new Set((transactions.value || []).map(t => t.pic ? String(t.pic).toUpperCase() : ''))].filter(Boolean));
@@ -1767,6 +1830,7 @@
                             if (!isSilent) AppSwal.fire({ title: 'Sesi Berakhir', text: resData.message, icon: 'warning' }); 
                             throw new Error(resData.message);
                         }
+                        if (resData.error === "FORBIDDEN" && !isSilent) { AppSwal.fire({ title: 'Akses Ditolak', text: resData.message || 'Level akses Anda tidak diizinkan.', icon: 'error' }); }
                         return resData;
                     } catch (err) { 
                         if (!isSilent) {
@@ -1819,7 +1883,7 @@
                 };
 
                 const forceSyncQueue = () => {
-                    if (currentUser.value.role === 'Super Admin') {
+                    if (canManage.value) {
                         AppSwal.fire({
                             title: 'Kelola Antrean Lokal',
                             text: `Terdapat ${syncQueue.value.length} data yang tertahan dan belum terkirim ke server.`,
@@ -1839,11 +1903,23 @@
                     }
                 };
 
+                // Role & gudang SELALU mengikuti data terbaru dari server (localStorage bisa diubah orang).
+                const applyMe = (me) => {
+                    if (!me || !me.username) return;
+                    if (me.role !== currentUser.value.role || me.location !== currentUser.value.location) {
+                        currentUser.value = { username: me.username, role: me.role, location: me.location };
+                        try { localStorage.setItem('currentUser', JSON.stringify(currentUser.value)); } catch (e) {}
+                        dashboardFilter.value = me.location === 'ALL' ? 'ALL' : me.location;
+                        if (!['Super Admin'].includes(me.role) && activeSettingsTab.value !== 'security') activeSettingsTab.value = 'security';
+                    }
+                };
+
                 const fetchData = async () => {
                     loading.value = true;
                     try {
                         const res = await apiCall('getInitialData');
                         if (res && res.success) {
+                            applyMe(res.data.me);
                             inventory.value = res.data.inventory; transactions.value = res.data.transactions;
                             if (res.data.settings) settingsData.value = res.data.settings; 
                             if (res.data.users) usersData.value = res.data.users.map(u => ({ ...u, _isNew: false })); 
@@ -1879,6 +1955,7 @@
                     try {
                         const res = await apiCall('getInitialData', {}, true);
                         if (res && res.success) {
+                            applyMe(res.data.me);
                             const newInvStr = JSON.stringify(res.data.inventory); const curInvStr = JSON.stringify(inventory.value);
                             const newTxStr = JSON.stringify(res.data.transactions); const curTxStr = JSON.stringify(transactions.value);
 
@@ -2082,7 +2159,7 @@
 
                 const submitChangePassword = async () => {
                     if (passwordForm.value.new !== passwordForm.value.confirm) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Konfirmasi password baru tidak cocok!', icon: 'warning' }); return; }
-                    if (passwordForm.value.new.length < 3) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Password baru terlalu pendek.', icon: 'warning' }); return; }
+                    { const pe = passwordPolicyError(passwordForm.value.new, currentUser.value.username); if (pe) { AppSwal.fire({ title: 'Validasi Gagal', text: pe, icon: 'warning' }); return; } }
                     isProcessing.value = true;
                     try {
                         const payload = JSON.parse(JSON.stringify({ username: currentUser.value.username, oldPassword: passwordForm.value.old, newPassword: passwordForm.value.new }));
@@ -2102,7 +2179,61 @@
                     } catch (e) { AppSwal.fire({ title: 'Error Sistem', text: e.message, icon: 'error' }); } finally { isProcessing.value = false; }
                 };
 
+                // ---- Manajemen level akses ----
+                const superAdminCount = computed(() => usersData.value.filter(u => u.role === 'Super Admin').length);
+                const onUserRoleChange = (u) => {
+                    if (u.role === 'Staff Gudang') { if (!u.location || u.location === 'ALL') u.location = ''; }
+                    else u.location = 'ALL';
+                };
+                const passwordPolicyError = (pw, username) => {
+                    pw = String(pw || '');
+                    if (pw.length < 8) return 'Password minimal 8 karakter.';
+                    if (!/[A-Za-z]/.test(pw) || !/[0-9]/.test(pw)) return 'Password harus mengandung huruf dan angka.';
+                    if (username && pw.toLowerCase() === String(username).toLowerCase()) return 'Password tidak boleh sama dengan username.';
+                    return '';
+                };
+
+                // ---- Backup & Log ----
+                const loadBackupInfo = async () => {
+                    backupLoading.value = true;
+                    try { const r = await apiCall('getBackupInfo', {}, true); if (r && r.success && r.data && typeof r.data === 'object') backupInfo.value = r.data; } catch (e) {} finally { backupLoading.value = false; }
+                };
+                const loadAuditLog = async () => {
+                    try { const r = await apiCall('getAuditLog', {}, true); if (r && r.success && Array.isArray(r.data)) auditLogs.value = r.data; } catch (e) {}
+                };
+                const runBackupNow = async () => {
+                    const c = await AppSwal.fire({ title: 'Backup Sekarang?', text: 'Salinan seluruh database akan disimpan ke Google Drive.', icon: 'question', showCancelButton: true, confirmButtonText: 'Ya, Backup' });
+                    if (!c.isConfirmed) return;
+                    isProcessing.value = true;
+                    try {
+                        const r = await apiCall('runBackupNow');
+                        if (r && r.success) AppSwal.fire('Backup Berhasil', 'File: ' + (r.data && r.data.name ? r.data.name : '-'), 'success');
+                        else AppSwal.fire({ title: 'Backup Gagal', text: r?.error || 'Terjadi kesalahan.', icon: 'error' });
+                        await loadBackupInfo(); await loadAuditLog();
+                    } finally { isProcessing.value = false; }
+                };
+                const enableBackupSchedule = async () => {
+                    isProcessing.value = true;
+                    try {
+                        const r = await apiCall('setupBackupTrigger');
+                        if (r && r.success) AppSwal.fire('Aktif', r.data, 'success'); else AppSwal.fire({ title: 'Gagal', text: r?.error || 'Tidak bisa membuat jadwal.', icon: 'error' });
+                        await loadBackupInfo();
+                    } finally { isProcessing.value = false; }
+                };
+                watch(activeSettingsTab, (v) => { if (v === 'backup' && isSuperAdmin.value) { loadBackupInfo(); loadAuditLog(); } });
+
                 const submitSaveUsers = async () => {
+                    {
+                        const staffNoLoc = usersData.value.find(u => u.role === 'Staff Gudang' && (!u.location || u.location === 'ALL'));
+                        if (staffNoLoc) { AppSwal.fire({ title: 'Validasi Gagal', text: `Akun Staff "${staffNoLoc.username}" harus dipilih satu gudang.`, icon: 'warning' }); return; }
+                        if (!usersData.value.some(u => u.role === 'Super Admin')) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Harus ada minimal 1 akun Super Admin.', icon: 'warning' }); return; }
+                        for (const u of usersData.value) {
+                            if (u.password && String(u.password).trim() !== '') {
+                                const err = passwordPolicyError(u.password, u.username);
+                                if (err) { AppSwal.fire({ title: 'Validasi Gagal', text: `Password ${u.username}: ${err}`, icon: 'warning' }); return; }
+                            }
+                        }
+                    }
                     if (usersData.value.some(u => !u.username || !u.role || !u.location)) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Harap isi seluruh kolom Username, Role, dan Lokasi.', icon: 'warning' }); return; }
                     if (usersData.value.some(u => u._isNew && !u.password)) { AppSwal.fire({ title: 'Validasi Gagal', text: 'Akun baru wajib diisi Password.', icon: 'warning' }); return; }
                     const usernames = usersData.value.map(u => String(u.username).trim().toLowerCase());
@@ -2751,6 +2882,8 @@
                     exportExcel, exportRecapExcel, downloadCheckSheetExcel, triggerImportExcel, handleImportExcel, exportHistoryExcel, triggerImportHistoryExcel, handleImportHistoryExcel,
                     passwordForm, showPass, submitChangePassword, submitSaveSettings, submitSaveUsers, submitSaveAppSettings, setDateRange, isRecapToday, isRecapYesterday,
                     recapDateInput, logDateInput, showCheckSheetModal, checkSheetMonth, checkSheetData, isLiburRow,
+                    isSuperAdmin, isSPV, canManage, roleLabel, onUserRoleChange, superAdminCount,
+                    backupInfo, backupLoading, auditLogs, loadBackupInfo, loadAuditLog, runBackupNow, enableBackupSchedule,
                     syncQueue, forceSyncQueue // Return ke UI Vue
                 };
             }
